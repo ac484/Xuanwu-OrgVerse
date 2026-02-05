@@ -14,22 +14,25 @@ import {
   ChevronLeft, 
   ChevronRight,
   Clock,
-  Trash2
+  Trash2,
+  Terminal,
+  UserCheck,
+  Handshake,
+  ShieldCheck
 } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { 
   format, 
   startOfMonth, 
   endOfMonth, 
   eachDayOfInterval, 
   getDay, 
-  isSameMonth, 
   isToday,
   addMonths,
   subMonths
 } from "date-fns";
 import { useFirebase } from "@/firebase/provider";
-import { collection, query, addDoc, updateDoc, deleteDoc, doc, writeBatch, serverTimestamp } from "firebase/firestore";
+import { collection, query, addDoc, doc, writeBatch, deleteDoc } from "firebase/firestore";
 import { useCollection } from "@/firebase";
 import { toast } from "@/hooks/use-toast";
 import { 
@@ -41,13 +44,15 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 /**
- * SchedulePage - 職責：維度層級的排班治理
- * 採用 Orchestra 的草稿/發佈雙軌邏輯。
+ * SchedulePage - 職責：維度層級的排班治理 (Orchestra 強化版)
+ * 1. 地點對齊至工作區 (Workspaces)
+ * 2. 成員分類展示 (Teams & Partners)
  */
 export default function SchedulePage() {
-  const { activeOrgId, organizations } = useAppStore();
+  const { activeOrgId, organizations, workspaces } = useAppStore();
   const { db } = useFirebase();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -58,12 +63,10 @@ export default function SchedulePage() {
     [organizations, activeOrgId]
   );
 
-  // 實時獲取地點
-  const locQuery = useMemo(() => {
-    if (!activeOrgId || !db) return null;
-    return query(collection(db, "organizations", activeOrgId, "locations"));
-  }, [activeOrgId, db]);
-  const { data: locations } = useCollection<any>(locQuery);
+  const orgWorkspaces = useMemo(() => 
+    (workspaces || []).filter(w => w.orgId === activeOrgId),
+    [workspaces, activeOrgId]
+  );
 
   // 實時獲取排班
   const schQuery = useMemo(() => {
@@ -79,27 +82,21 @@ export default function SchedulePage() {
   const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
 
-  const handleAddLocation = async () => {
-    const name = prompt("輸入新作業地點名稱:");
-    if (!name || !activeOrgId) return;
-    await addDoc(collection(db, "organizations", activeOrgId, "locations"), { name });
-    toast({ title: "地點已建立" });
-  };
-
-  const handleAssign = async (member: any, locationId: string, locationName: string) => {
+  const handleAssign = async (member: any, workspace: any) => {
     if (!selectedDay || !activeOrgId) return;
     const dateStr = format(selectedDay, "yyyy-MM-dd");
     
-    await addDoc(collection(db, "organizations", activeOrgId, "schedules"), {
+    const newAssignment = {
       memberId: member.id,
       memberName: member.name,
-      locationId,
-      locationName,
+      locationId: workspace.id,
+      locationName: workspace.name,
       date: dateStr,
       state: 'draft'
-    });
-    
-    toast({ title: "草稿已添加", description: `已將 ${member.name} 分配至 ${locationName}` });
+    };
+
+    await addDoc(collection(db, "organizations", activeOrgId, "schedules"), newAssignment);
+    toast({ title: "作業草稿已建立", description: `已分配 ${member.name} 至 ${workspace.name}` });
     setIsAssignOpen(false);
   };
 
@@ -118,55 +115,49 @@ export default function SchedulePage() {
     });
 
     await batch.commit();
-    toast({ title: "排班已正式發佈", description: "所有草稿已同步至全域時間線。" });
+    toast({ title: "維度排班正式發佈", description: "所有草稿已完成全域共振。" });
   };
 
-  const handleDeleteAssignment = async (id: string) => {
-    if (!activeOrgId) return;
-    await deleteDoc(doc(db, "organizations", activeOrgId, "schedules", id));
+  const handleDelete = async (id: string) => {
+    await deleteDoc(doc(db, "organizations", activeOrgId!, "schedules", id));
   };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500 pb-20">
       <PageHeader 
-        title="排班治理中心" 
-        description="管理維度下的作業地點分配。採用「草稿-發佈」雙軌制確保作業穩定性。"
+        title="作業排班治理" 
+        description="管理維度下各個工作區的資源分配。對齊「空間」與「人員」的數位脈動。"
       >
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleAddLocation} className="gap-2 font-bold uppercase text-[10px]">
-            <MapPin className="w-3.5 h-3.5" /> 新增地點
-          </Button>
-          <Button size="sm" onClick={handlePublish} className="gap-2 font-bold uppercase text-[10px] bg-primary shadow-lg shadow-primary/20">
-            <Send className="w-3.5 h-3.5" /> 發佈同步
-          </Button>
-        </div>
+        <Button onClick={handlePublish} className="gap-2 font-bold uppercase text-[10px] shadow-xl shadow-primary/20">
+          <Send className="w-3.5 h-3.5" /> 發佈同步
+        </Button>
       </PageHeader>
 
-      <div className="flex items-center justify-between bg-muted/30 p-4 rounded-2xl border border-border/60">
+      <div className="flex items-center justify-between bg-card/50 backdrop-blur-sm p-4 rounded-3xl border border-border/60 shadow-sm">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={handlePrevMonth}><ChevronLeft /></Button>
-          <h2 className="text-xl font-bold font-headline min-w-[160px] text-center">{format(currentDate, "MMMM yyyy")}</h2>
-          <Button variant="ghost" size="icon" onClick={handleNextMonth}><ChevronRight /></Button>
+          <Button variant="ghost" size="icon" onClick={handlePrevMonth} className="rounded-full"><ChevronLeft /></Button>
+          <h2 className="text-xl font-bold font-headline min-w-[180px] text-center tracking-tight">{format(currentDate, "MMMM yyyy")}</h2>
+          <Button variant="ghost" size="icon" onClick={handleNextMonth} className="rounded-full"><ChevronRight /></Button>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500" />
-            <span className="text-[10px] font-bold uppercase text-muted-foreground">草稿</span>
+            <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500 animate-pulse" />
+            <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">草稿狀態</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-primary" />
-            <span className="text-[10px] font-bold uppercase text-muted-foreground">正式</span>
+            <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">正式共振</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-px bg-border overflow-hidden rounded-3xl border border-border/60">
+      <div className="grid grid-cols-7 gap-px bg-border/40 overflow-hidden rounded-[2rem] border border-border/60 shadow-inner">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
-          <div key={d} className="bg-muted/50 p-3 text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{d}</div>
+          <div key={d} className="bg-muted/30 p-4 text-center text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">{d}</div>
         ))}
         
         {Array.from({ length: getDay(monthStart) }).map((_, i) => (
-          <div key={`empty-${i}`} className="bg-card/30 min-h-[120px]" />
+          <div key={`empty-${i}`} className="bg-card/10 min-h-[160px]" />
         ))}
 
         {days.map(day => {
@@ -177,32 +168,35 @@ export default function SchedulePage() {
             <div 
               key={dateStr} 
               className={cn(
-                "bg-card min-h-[140px] p-2 border-t border-l transition-colors hover:bg-muted/10 cursor-pointer group",
-                isToday(day) && "bg-primary/5"
+                "bg-card min-h-[180px] p-2 border-t border-l transition-all hover:bg-primary/[0.02] cursor-pointer group relative",
+                isToday(day) && "bg-primary/[0.04]"
               )}
               onClick={() => { setSelectedDay(day); setIsAssignOpen(true); }}
             >
-              <div className="flex justify-between items-start mb-2">
+              <div className="flex justify-between items-center mb-3 px-1">
                 <span className={cn(
-                  "text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full",
-                  isToday(day) ? "bg-primary text-white" : "text-muted-foreground"
+                  "text-xs font-black w-7 h-7 flex items-center justify-center rounded-full transition-colors",
+                  isToday(day) ? "bg-primary text-white shadow-lg shadow-primary/30" : "text-muted-foreground group-hover:text-primary"
                 )}>
                   {format(day, "d")}
                 </span>
-                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100"><Plus className="w-3 h-3" /></Button>
+                <Plus className="w-3.5 h-3.5 opacity-0 group-hover:opacity-40 transition-opacity" />
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {dayAssignments.map((a: any) => (
                   <div 
                     key={a.id} 
                     className={cn(
-                      "text-[9px] p-1 rounded border flex items-center justify-between",
-                      a.state === 'draft' ? "bg-amber-500/10 border-amber-500/30 text-amber-700" : "bg-primary text-white"
+                      "text-[9px] p-2 rounded-xl border flex items-center justify-between group/item transition-all",
+                      a.state === 'draft' ? "bg-amber-500/5 border-amber-500/20 text-amber-700 italic" : "bg-primary text-white shadow-sm font-bold"
                     )}
                   >
-                    <span className="truncate">{a.memberName} @ {a.locationName}</span>
-                    <button onClick={(e) => { e.stopPropagation(); handleDeleteAssignment(a.id); }}>
-                      <Trash2 className="w-2.5 h-2.5 opacity-60 hover:opacity-100" />
+                    <div className="flex items-center gap-1.5 truncate">
+                      <div className={cn("w-1 h-1 rounded-full", a.state === 'draft' ? "bg-amber-500" : "bg-white")} />
+                      <span className="truncate">{a.memberName} @ {a.locationName}</span>
+                    </div>
+                    <button onClick={(e) => { e.stopPropagation(); handleDelete(a.id); }} className="opacity-0 group-hover/item:opacity-100 transition-opacity">
+                      <Trash2 className="w-2.5 h-2.5" />
                     </button>
                   </div>
                 ))}
@@ -213,56 +207,85 @@ export default function SchedulePage() {
       </div>
 
       <Dialog open={isAssignOpen} onOpenChange={setIsAssignOpen}>
-        <DialogContent className="rounded-3xl max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-headline text-2xl flex items-center gap-2">
-              <Clock className="w-6 h-6 text-primary" /> 分配成員
-            </DialogTitle>
-            <p className="text-xs text-muted-foreground">
-              {selectedDay ? format(selectedDay, "yyyy-MM-dd") : ""} · 建立作業草稿
-            </p>
-          </DialogHeader>
+        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden">
+          <div className="bg-primary p-8 text-white">
+            <DialogHeader>
+              <DialogTitle className="font-headline text-3xl flex items-center gap-3">
+                <Clock className="w-8 h-8" /> 成員分派中心
+              </DialogTitle>
+              <p className="text-primary-foreground/80 font-bold uppercase tracking-widest text-[10px] mt-2">
+                {selectedDay ? format(selectedDay, "yyyy-MM-dd") : ""} · 建立空間共振草稿
+              </p>
+            </DialogHeader>
+          </div>
           
-          <ScrollArea className="h-[400px] pr-4">
-            <div className="space-y-6 py-4">
-              {locations?.length > 0 ? locations.map((loc: any) => (
-                <div key={loc.id} className="space-y-3">
-                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary">
-                    <MapPin className="w-3 h-3" /> {loc.name}
+          <div className="p-8">
+            <ScrollArea className="h-[450px] pr-6">
+              <div className="space-y-10">
+                {orgWorkspaces.map((ws) => (
+                  <div key={ws.id} className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-border/40">
+                      <Terminal className="w-4 h-4 text-primary" />
+                      <h4 className="text-xs font-black uppercase tracking-[0.2em] text-primary">工作區: {ws.name}</h4>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {/* 分類：內部團隊 */}
+                      {activeOrg?.members?.filter(m => !m.isExternal).map((m: any) => (
+                        <MemberItem key={m.id} member={m} onClick={() => handleAssign(m, ws)} />
+                      ))}
+                      {/* 分類：外部夥伴 */}
+                      {activeOrg?.members?.filter(m => m.isExternal).map((m: any) => (
+                        <MemberItem key={m.id} member={m} isExternal onClick={() => handleAssign(m, ws)} />
+                      ))}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 gap-2">
-                    {activeOrg?.members?.map((m: any) => (
-                      <Button 
-                        key={m.id} 
-                        variant="outline" 
-                        className="justify-start h-12 rounded-xl border-border/60 hover:bg-primary/5 hover:border-primary/40 group"
-                        onClick={() => handleAssign(m, loc.id, loc.name)}
-                      >
-                        <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold mr-3 group-hover:bg-primary group-hover:text-white transition-colors">
-                          {m.name[0]}
-                        </div>
-                        <div className="text-left">
-                          <p className="text-xs font-bold">{m.name}</p>
-                          <p className="text-[9px] text-muted-foreground uppercase">{m.role}</p>
-                        </div>
-                      </Button>
-                    ))}
+                ))}
+                {orgWorkspaces.length === 0 && (
+                  <div className="text-center py-20 opacity-30">
+                    <MapPin className="w-12 h-12 mx-auto mb-4" />
+                    <p className="text-sm font-bold uppercase tracking-widest">請先至維度空間建立工作區</p>
                   </div>
-                </div>
-              )) : (
-                <div className="text-center py-10 opacity-30">
-                  <MapPin className="w-10 h-10 mx-auto mb-2" />
-                  <p className="text-xs font-bold uppercase">請先新增作業地點</p>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
           
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAssignOpen(false)} className="rounded-xl">取消</Button>
+          <DialogFooter className="p-6 bg-muted/30 border-t">
+            <Button variant="ghost" onClick={() => setIsAssignOpen(false)} className="rounded-2xl font-bold uppercase text-[10px] tracking-widest">取消操作</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function MemberItem({ member, isExternal, onClick }: { member: any, isExternal?: boolean, onClick: () => void }) {
+  return (
+    <Button 
+      variant="outline" 
+      className="justify-start h-16 rounded-[1.25rem] border-border/60 hover:border-primary/40 hover:bg-primary/[0.02] group transition-all p-3"
+      onClick={onClick}
+    >
+      <Avatar className="w-10 h-10 border-2 border-background shadow-sm mr-3 group-hover:scale-110 transition-transform">
+        <AvatarFallback className={cn("text-xs font-bold", isExternal ? "bg-accent/10 text-accent" : "bg-primary/10 text-primary")}>
+          {member.name[0]}
+        </AvatarFallback>
+      </Avatar>
+      <div className="text-left flex-1 truncate">
+        <p className="text-xs font-black truncate">{member.name}</p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          {isExternal ? (
+            <Badge variant="outline" className="text-[7px] h-3.5 border-accent/30 text-accent font-black px-1">
+              {member.group || '外部夥伴'}
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-[7px] h-3.5 border-primary/30 text-primary font-black px-1">
+              {member.role}
+            </Badge>
+          )}
+        </div>
+      </div>
+    </Button>
   );
 }

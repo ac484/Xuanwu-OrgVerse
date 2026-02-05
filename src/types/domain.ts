@@ -13,6 +13,7 @@ export interface MemberReference {
   role: UserRole;
   status: 'active' | 'away' | 'offline';
   isExternal?: boolean;
+  group?: string; // 用於外部夥伴的分組概念
   expiryDate?: string; 
   accessProtocol?: 'Deep Isolation' | 'Standard Bridge' | 'Full Collaborative';
 }
@@ -44,8 +45,8 @@ export interface ScheduleAssignment {
   id: string;
   memberId: string;
   memberName: string;
-  locationId: string;
-  locationName: string;
+  locationId: string; // 對齊至 WorkspaceId
+  locationName: string; // 對齊至 WorkspaceName
   date: string; // ISO date string YYYY-MM-DD
   state: 'draft' | 'published';
 }
