@@ -20,7 +20,9 @@ import {
   Plus,
   Users,
   UserPlus,
-  Trash2
+  Trash2,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
@@ -28,8 +30,7 @@ import { useState, useEffect } from "react";
 
 /**
  * WorkspaceDetailPage
- * 職責：管理組織子單元的技術規格與人員存取權。
- * 已完全併入原子能力註冊表 (Specs) 管理邏輯。
+ * 職責：管理空間技術規格與人員存取。
  */
 export default function WorkspaceDetailPage() {
   const { id } = useParams();
@@ -92,16 +93,22 @@ export default function WorkspaceDetailPage() {
 
       <PageHeader 
         title={workspace.name} 
-        description={`運行時環境: ${workspace.context}`}
+        description="管理此空間的原子能力規格與存取治理。"
         badge={
-          <Badge className="bg-primary/10 text-primary border-primary/20 uppercase text-[9px] tracking-widest font-bold">
-            ID: {workspace.id.toUpperCase()}
-          </Badge>
+          <div className="flex items-center gap-2 mb-2">
+            <Badge className="bg-primary/10 text-primary border-primary/20 uppercase text-[9px] tracking-widest font-bold">
+              ID: {workspace.id.toUpperCase()}
+            </Badge>
+            <Badge variant="outline" className="text-[9px] uppercase font-bold flex items-center gap-1">
+              {workspace.visibility === 'visible' ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+              {workspace.visibility === 'visible' ? '已顯示' : '已隱藏'}
+            </Badge>
+          </div>
         }
       >
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase text-[10px] tracking-widest">
-            <Settings className="w-3.5 h-3.5" /> 策略設定
+            <Settings className="w-3.5 h-3.5" /> 空間設定
           </Button>
           <Button size="sm" className="h-9 gap-2 font-bold uppercase text-[10px] tracking-widest" onClick={() => toast({ title: "同步成功", description: "維度共振已重新校準。" })}>
             <Zap className="w-3.5 h-3.5" /> 刷新共鳴
@@ -109,11 +116,11 @@ export default function WorkspaceDetailPage() {
         </div>
       </PageHeader>
 
-      <Tabs defaultValue="infra" className="space-y-6">
+      <Tabs defaultValue="specs" className="space-y-6">
         <TabsList className="bg-muted/40 p-1 border border-border/50">
-          <TabsTrigger value="infra" className="text-[10px] font-bold uppercase tracking-widest px-6">基礎設施定義</TabsTrigger>
           <TabsTrigger value="specs" className="text-[10px] font-bold uppercase tracking-widest px-6">能力註冊表 (Specs)</TabsTrigger>
           <TabsTrigger value="members" className="text-[10px] font-bold uppercase tracking-widest px-6">人員存取權</TabsTrigger>
+          <TabsTrigger value="infra" className="text-[10px] font-bold uppercase tracking-widest px-6">基礎設施定義</TabsTrigger>
         </TabsList>
 
         <TabsContent value="infra" className="space-y-6">
@@ -124,13 +131,9 @@ export default function WorkspaceDetailPage() {
                   <Globe className="w-3.5 h-3.5" />
                   運行範圍 (Scope)
                 </CardTitle>
-                <CardDescription className="text-xs">定義子單元的邏輯邊界與運行時上下文。</CardDescription>
+                <CardDescription className="text-xs">定義子單元的邏輯邊界與資源範疇。</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-3 bg-muted/30 rounded-lg border border-border/40">
-                  <p className="text-[9px] text-muted-foreground uppercase font-bold mb-1">運行識別符</p>
-                  <code className="text-xs text-primary font-mono">{workspace.context}</code>
-                </div>
                 <div>
                   <p className="text-[9px] text-muted-foreground uppercase font-bold mb-2">已授權資源</p>
                   <div className="flex flex-wrap gap-1.5">
@@ -149,18 +152,12 @@ export default function WorkspaceDetailPage() {
                   <Database className="w-3.5 h-3.5" />
                   解析路徑 (Resolver)
                 </CardTitle>
-                <CardDescription className="text-xs">定義數據解析路徑與安全治理協議。</CardDescription>
+                <CardDescription className="text-xs">定義數據解析路徑與治理協議。</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="p-3 bg-muted/30 rounded-lg border border-border/40">
                   <p className="text-[9px] text-muted-foreground uppercase font-bold mb-1">解析協議</p>
                   <p className="text-xs font-mono">{workspace.resolver}</p>
-                </div>
-                <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                  <p className="text-[9px] text-primary uppercase font-bold mb-1 flex items-center gap-1">
-                    <Shield className="w-3 h-3" /> 當前安全策略
-                  </p>
-                  <p className="text-xs font-semibold">{workspace.policy}</p>
                 </div>
               </CardContent>
             </Card>

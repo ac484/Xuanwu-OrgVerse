@@ -3,7 +3,7 @@
 import { Workspace } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Terminal, Trash2, ArrowUpRight } from "lucide-react";
+import { Terminal, Trash2, ArrowUpRight, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface WorkspaceListItemProps {
@@ -26,8 +26,9 @@ export function WorkspaceListItem({ workspace, onDelete }: WorkspaceListItemProp
         <div>
           <h3 className="font-semibold text-sm">{workspace.name}</h3>
           <div className="flex items-center gap-2 mt-0.5">
-            <Badge variant="outline" className="text-[9px] uppercase tracking-tighter px-1.5 h-4">
-              上下文: {workspace.context}
+            <Badge variant="outline" className="text-[9px] uppercase tracking-tighter px-1.5 h-4 flex items-center gap-1">
+              {workspace.visibility === 'visible' ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+              {workspace.visibility === 'visible' ? '顯示' : '隱藏'}
             </Badge>
             <span className="text-[10px] text-muted-foreground">ID: {workspace.id.toUpperCase()}</span>
           </div>
@@ -35,8 +36,8 @@ export function WorkspaceListItem({ workspace, onDelete }: WorkspaceListItemProp
       </div>
       <div className="flex items-center gap-4">
         <div className="text-right hidden md:block">
-          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">安全策略</p>
-          <p className="text-[11px] font-medium">{workspace.policy}</p>
+          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">解析器</p>
+          <p className="text-[11px] font-medium">{workspace.resolver}</p>
         </div>
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">

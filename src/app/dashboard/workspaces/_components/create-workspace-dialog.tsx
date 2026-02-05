@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 
 interface CreateWorkspaceDialogProps {
@@ -25,16 +26,14 @@ interface CreateWorkspaceDialogProps {
 export function CreateWorkspaceDialog({ open, onOpenChange, activeOrgName, activeOrgId }: CreateWorkspaceDialogProps) {
   const { addWorkspace } = useAppStore();
   const [name, setName] = useState("");
-  const [context, setContext] = useState("標準運行時-v1");
-  const [policy, setPolicy] = useState("嚴格隔離策略-v1");
+  const [isVisible, setIsVisible] = useState(true);
 
   const handleCreate = () => {
     if (!name.trim()) return;
     addWorkspace({
       name,
       orgId: activeOrgId,
-      context,
-      policy,
+      visibility: isVisible ? 'visible' : 'hidden',
       scope: ['驗證', '運算'],
       resolver: '標準閘道器'
     });
@@ -55,7 +54,7 @@ export function CreateWorkspaceDialog({ open, onOpenChange, activeOrgName, activ
             在 {activeOrgName} 維度中定義一個新的技術環境與邊界。
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-6 py-4">
           <div className="space-y-2">
             <Label>空間名稱</Label>
             <Input 
@@ -64,18 +63,17 @@ export function CreateWorkspaceDialog({ open, onOpenChange, activeOrgName, activ
               placeholder="例如: 核心解析空間" 
             />
           </div>
-          <div className="space-y-2">
-            <Label>運行環境 (Runtime Context)</Label>
-            <Input 
-              value={context} 
-              onChange={(e) => setContext(e.target.value)} 
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>安全策略 (Security Policy)</Label>
-            <Input 
-              value={policy} 
-              onChange={(e) => setPolicy(e.target.value)} 
+          
+          <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-border/60">
+            <div className="space-y-0.5">
+              <Label className="text-base">空間可見性</Label>
+              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">
+                {isVisible ? '公開顯示於維度目錄' : '僅對授權人員隱藏顯示'}
+              </p>
+            </div>
+            <Switch 
+              checked={isVisible} 
+              onCheckedChange={setIsVisible} 
             />
           </div>
         </div>

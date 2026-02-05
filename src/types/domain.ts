@@ -56,10 +56,9 @@ export interface Workspace {
   id: string;
   orgId: string;
   name: string;
-  context: string;   
+  visibility: 'visible' | 'hidden'; 
   scope: string[];   
   resolver: string;  
-  policy: string;    
   specs: ResourceBlock[]; 
   members: MemberReference[]; 
 }

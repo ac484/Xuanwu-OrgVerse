@@ -96,8 +96,7 @@ export const useAppStore = create<AppState>()(
           }] : [],
           teams: []
         };
-        const newState = { organizations: [...state.organizations, newOrg], activeOrgId: id };
-        return newState;
+        return { organizations: [...state.organizations, newOrg], activeOrgId: id };
       }),
 
       updateOrganization: (id, updates) => {

@@ -4,7 +4,7 @@ import { Workspace } from "@/types/domain";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Terminal } from "lucide-react";
+import { MoreVertical, Terminal, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface WorkspaceCardProps {
@@ -31,18 +31,23 @@ export function WorkspaceCard({ workspace, onAction }: WorkspaceCardProps) {
           <div className="p-2.5 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
             <Terminal className="w-5 h-5" />
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-8 w-8 text-muted-foreground hover:bg-accent/10" 
-            onClick={(e) => { e.stopPropagation(); onAction?.(workspace.id); }}
-          >
-            <MoreVertical className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Badge variant="ghost" className="h-6 w-6 p-0 flex items-center justify-center text-muted-foreground">
+              {workspace.visibility === 'visible' ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+            </Badge>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-muted-foreground hover:bg-accent/10" 
+              onClick={(e) => { e.stopPropagation(); onAction?.(workspace.id); }}
+            >
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
         <CardTitle className="mt-4 font-headline text-lg group-hover:text-primary transition-colors">{workspace.name}</CardTitle>
         <CardDescription className="text-[9px] uppercase tracking-widest font-bold opacity-60">
-          上下文: {workspace.context}
+          可見性: {workspace.visibility === 'visible' ? '顯示' : '隱藏'}
         </CardDescription>
       </CardHeader>
       <CardContent>
