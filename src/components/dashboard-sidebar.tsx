@@ -6,11 +6,15 @@ import {
   Settings, 
   Layers, 
   Users, 
+  UserPlus,
   LogOut,
   Terminal,
   ChevronUp,
   Fingerprint,
-  UserCircle
+  UserCircle,
+  FolderTree,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -23,7 +27,10 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
-  SidebarSeparator
+  SidebarSeparator,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton
 } from "@/components/ui/sidebar";
 import { GlobalSwitcher } from "@/components/global-switcher";
 import { useRouter, usePathname } from "next/navigation";
@@ -37,6 +44,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 /**
  * DashboardSidebar - 職責：維度導航中樞
@@ -53,12 +61,6 @@ export function DashboardSidebar() {
     router.push("/login");
   };
 
-  const mainMenuItems = [
-    { title: "維度脈動", icon: LayoutDashboard, href: "/dashboard" },
-    { title: "共鳴團隊", icon: Users, href: "/dashboard/team" },
-    { title: "邏輯空間", icon: Layers, href: "/dashboard/workspaces" },
-  ];
-
   return (
     <Sidebar className="border-r border-border/50">
       <SidebarHeader className="p-4">
@@ -73,23 +75,52 @@ export function DashboardSidebar() {
       
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50 px-3">維度主控台</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50 px-3">維度控制中心</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainMenuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={pathname === item.href || (item.href === '/dashboard/workspaces' && pathname.startsWith('/dashboard/workspaces'))}
-                    className="transition-all duration-200 hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
-                  >
-                    <Link href={item.href} className="flex items-center gap-3">
-                      <item.icon className="w-4 h-4" />
-                      <span className="font-semibold">{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard'} className="transition-all duration-200">
+                  <Link href="/dashboard" className="flex items-center gap-3">
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span className="font-semibold">維度脈動</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <Collapsible defaultOpen className="group/collapsible">
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton className="transition-all duration-200">
+                      <FolderTree className="w-4 h-4" />
+                      <span className="font-semibold">組織架構</span>
+                      <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/members'}>
+                          <Link href="/dashboard/organization/members">成員清單 (Members)</Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild isActive={pathname.startsWith('/dashboard/organization/teams')}>
+                          <Link href="/dashboard/organization/teams">部門團隊 (Teams)</Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
                 </SidebarMenuItem>
-              ))}
+              </Collapsible>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/workspaces')} className="transition-all duration-200">
+                  <Link href="/dashboard/workspaces" className="flex items-center gap-3">
+                    <Layers className="w-4 h-4" />
+                    <span className="font-semibold">邏輯空間</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -97,9 +128,7 @@ export function DashboardSidebar() {
         <SidebarSeparator className="mx-4 opacity-50" />
 
         <SidebarGroup>
-          <div className="flex items-center justify-between px-3 mb-2">
-            <SidebarGroupLabel className="p-0 text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">活躍空間列表</SidebarGroupLabel>
-          </div>
+          <SidebarGroupLabel className="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">快速切換空間</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {orgWorkspaces.map((workspace) => (
@@ -110,16 +139,14 @@ export function DashboardSidebar() {
                         <Terminal className="w-3 h-3 text-primary/60 group-hover:text-primary transition-colors" />
                         <span className="truncate text-xs font-medium">{workspace.name}</span>
                       </div>
-                      <Badge variant="outline" className="text-[8px] h-3.5 px-1 uppercase group-hover:border-primary group-hover:text-primary transition-all">
-                        {workspace.id.slice(-3).toUpperCase()}
-                      </Badge>
+                      <Badge variant="outline" className="text-[8px] h-3.5 px-1 uppercase">{workspace.id.slice(-3).toUpperCase()}</Badge>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
               {orgWorkspaces.length === 0 && (
-                <div className="px-3 py-2 border border-dashed rounded-lg mx-2 bg-muted/20">
-                  <p className="text-[9px] text-muted-foreground italic text-center uppercase tracking-widest">無活躍空間</p>
+                <div className="px-3 py-2 border border-dashed rounded-lg mx-2 bg-muted/10">
+                  <p className="text-[9px] text-muted-foreground italic text-center">無活躍空間</p>
                 </div>
               )}
             </SidebarMenu>
@@ -132,21 +159,21 @@ export function DashboardSidebar() {
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton size="lg" className="hover:bg-primary/5 transition-all">
+                <SidebarMenuButton size="lg" className="hover:bg-primary/5">
                   <div className="flex items-center gap-3 w-full">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0 shadow-inner">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-inner">
                       {user?.name?.[0]}
                     </div>
                     <div className="flex flex-col overflow-hidden text-left flex-1">
                       <span className="text-xs font-bold truncate">{user?.name}</span>
-                      <span className="text-[9px] text-muted-foreground truncate uppercase tracking-tighter">{user?.email}</span>
+                      <span className="text-[9px] text-muted-foreground truncate uppercase">{user?.email}</span>
                     </div>
                     <ChevronUp className="ml-auto w-4 h-4 text-muted-foreground opacity-50" />
                   </div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
-              <DropdownMenuContent side="top" align="start" className="w-[220px] shadow-xl border-border/60">
-                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest opacity-60">身分主權中心</DropdownMenuLabel>
+              <DropdownMenuContent side="top" align="start" className="w-[220px]">
+                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest opacity-60">帳戶中心</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard/settings" className="cursor-pointer flex items-center gap-2 py-2">
@@ -155,12 +182,9 @@ export function DashboardSidebar() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={handleLogout}
-                  className="text-destructive focus:text-destructive cursor-pointer flex items-center gap-2 py-2"
-                >
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer flex items-center gap-2 py-2">
                   <LogOut className="w-4 h-4" />
-                  <span className="text-xs font-bold">中斷維度連線</span>
+                  <span className="text-xs font-bold">中斷連線</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

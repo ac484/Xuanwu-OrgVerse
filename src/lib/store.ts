@@ -1,11 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, ResourceBlock, MemberReference } from '@/types/domain';
+import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, ResourceBlock, MemberReference, Team } from '@/types/domain';
 
-/**
- * AppState - 職責：維度狀態管理核心
- * 已完全移除全局 ResourceBlocks，實現以 Workspace 為核心的局部主權管理。
- */
 interface AppState {
   user: User | null;
   organizations: Organization[];
@@ -16,12 +12,18 @@ interface AppState {
   login: (userData: User) => void;
   logout: () => void;
   setActiveOrg: (id: string) => void;
-  addOrganization: (org: Omit<Organization, 'id' | 'role' | 'members'>) => void;
+  addOrganization: (org: Omit<Organization, 'id' | 'role' | 'members' | 'teams'>) => void;
   updateOrgTheme: (id: string, theme: ThemeConfig) => void;
   
-  // 組織成員管理 (全局)
+  // 組織成員 (Organization Members)
   addOrgMember: (orgId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
   removeOrgMember: (orgId: string, memberId: string) => void;
+  
+  // 組織團隊 (Organization Teams)
+  addOrgTeam: (orgId: string, team: Omit<Team, 'id' | 'memberIds'>) => void;
+  removeOrgTeam: (orgId: string, teamId: string) => void;
+  addMemberToTeam: (orgId: string, teamId: string, memberId: string) => void;
+  removeMemberFromTeam: (orgId: string, teamId: string, memberId: string) => void;
   
   // 邏輯空間 (Workspace) 管理
   addWorkspace: (workspace: Omit<Workspace, 'id' | 'specs' | 'members'>) => void;
@@ -50,7 +52,8 @@ export const useAppStore = create<AppState>()(
           role: 'Owner',
           members: [
             { id: 'm1', name: '展示用戶', email: 'demo@orgverse.io', role: 'Owner', status: 'active' }
-          ]
+          ],
+          teams: []
         },
       ],
       activeOrgId: 'personal',
@@ -73,7 +76,8 @@ export const useAppStore = create<AppState>()(
             email: state.user.email, 
             role: 'Owner' as UserRole, 
             status: 'active' as const 
-          }] : []
+          }] : [],
+          teams: []
         };
         return { organizations: [...state.organizations, newOrg], activeOrgId: id };
       }),
@@ -92,7 +96,42 @@ export const useAppStore = create<AppState>()(
       removeOrgMember: (orgId, memberId) => set((state) => ({
         organizations: state.organizations.map(o => o.id === orgId ? {
           ...o,
-          members: o.members.filter(m => m.id !== memberId)
+          members: o.members.filter(m => m.id !== memberId),
+          teams: o.teams.map(t => ({ ...t, memberIds: t.memberIds.filter(mid => mid !== memberId) }))
+        } : o)
+      })),
+
+      addOrgTeam: (orgId, team) => set((state) => ({
+        organizations: state.organizations.map(o => o.id === orgId ? {
+          ...o,
+          teams: [...o.teams, { ...team, id: `team-${Math.random().toString(36).substring(2, 6)}`, memberIds: [] }]
+        } : o)
+      })),
+
+      removeOrgTeam: (orgId, teamId) => set((state) => ({
+        organizations: state.organizations.map(o => o.id === orgId ? {
+          ...o,
+          teams: o.teams.filter(t => t.id !== teamId)
+        } : o)
+      })),
+
+      addMemberToTeam: (orgId, teamId, memberId) => set((state) => ({
+        organizations: state.organizations.map(o => o.id === orgId ? {
+          ...o,
+          teams: o.teams.map(t => t.id === teamId ? { 
+            ...t, 
+            memberIds: Array.from(new Set([...t.memberIds, memberId])) 
+          } : t)
+        } : o)
+      })),
+
+      removeMemberFromTeam: (orgId, teamId, memberId) => set((state) => ({
+        organizations: state.organizations.map(o => o.id === orgId ? {
+          ...o,
+          teams: o.teams.map(t => t.id === teamId ? { 
+            ...t, 
+            memberIds: t.memberIds.filter(mid => mid !== memberId) 
+          } : t)
         } : o)
       })),
       

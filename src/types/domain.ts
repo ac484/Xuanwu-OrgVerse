@@ -14,6 +14,17 @@ export interface MemberReference {
   status: 'active' | 'away' | 'offline';
 }
 
+/**
+ * Team (組織團隊/部門)
+ * 職責：組織內部的邏輯分組，如技術部、行銷部。
+ */
+export interface Team {
+  id: string;
+  name: string;
+  description: string;
+  memberIds: string[]; // 引用 Organization.members 的 ID
+}
+
 export interface Organization {
   id: string;
   name: string;
@@ -22,11 +33,11 @@ export interface Organization {
   role: UserRole;
   theme?: ThemeConfig;
   members: MemberReference[];
+  teams: Team[];
 }
 
 /**
  * ResourceBlock (原子能力規範)
- * 職責：描述可掛載於 Workspace 的獨立業務能力。
  */
 export interface ResourceBlock {
   id: string;
@@ -34,12 +45,11 @@ export interface ResourceBlock {
   type: 'component' | 'api' | 'data';
   status: 'stable' | 'beta';
   description: string;
-  spec?: object; // 技術規範定義
+  spec?: object;
 }
 
 /**
  * Workspace (邏輯空間)
- * 職責：定義純粹的技術邊界與運行上下文。
  */
 export interface Workspace {
   id: string;
