@@ -4,30 +4,40 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldCheck, Activity, Layers, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useAppStore } from "@/lib/store";
+import { useMemo } from "react";
 
 /**
  * StatCards - 職責：展示維度運行的動態指標
- * 已優化：環境一致性現在根據空間 Protocol 的統一程度動態計算。
+ * 效能優化：使用 useMemo 記憶化所有複雜運算，確保在大數據量下極速響應。
  */
 export function StatCards({ orgId, orgName }: { orgId: string, orgName: string }) {
   const { pulseLogs, workspaces } = useAppStore();
   
-  const orgWorkspaces = (workspaces || []).filter(w => w.orgId === orgId);
+  // 記憶化：過濾當前維度的空間
+  const orgWorkspaces = useMemo(() => 
+    (workspaces || []).filter(w => w.orgId === orgId),
+    [workspaces, orgId]
+  );
   
-  // 動態計算環境一致性：基於 Protocol 的統一性
-  const protocols = orgWorkspaces.map(w => w.protocol);
-  const uniqueProtocols = new Set(protocols);
-  const consistency = orgWorkspaces.length > 0 
-    ? Math.round((1 / uniqueProtocols.size) * 100) 
-    : 100;
+  // 記憶化：計算環境一致性
+  const consistency = useMemo(() => {
+    if (orgWorkspaces.length === 0) return 100;
+    const protocols = orgWorkspaces.map(w => w.protocol);
+    const uniqueProtocols = new Set(protocols);
+    return Math.round((1 / uniqueProtocols.size) * 100);
+  }, [orgWorkspaces]);
 
-  // 動態計算脈動率
-  const recentPulseCount = pulseLogs.filter(l => l.orgId === orgId).length;
-  const pulseRate = Math.min((recentPulseCount / 20) * 100, 100);
+  // 記憶化：計算脈動率
+  const pulseRate = useMemo(() => {
+    const recentPulseCount = (pulseLogs || []).filter(l => l.orgId === orgId).length;
+    return Math.min((recentPulseCount / 20) * 100, 100);
+  }, [pulseLogs, orgId]);
 
-  // 模擬負載：基於掛載的能力數量
-  const totalCapabilities = orgWorkspaces.reduce((acc, w) => acc + (w.capabilities?.length || 0), 0);
-  const capabilityLoad = Math.min(totalCapabilities * 5, 100);
+  // 記憶化：計算能力負載
+  const capabilityLoad = useMemo(() => {
+    const totalCapabilities = orgWorkspaces.reduce((acc, w) => acc + (w.capabilities?.length || 0), 0);
+    return Math.min(totalCapabilities * 5, 100);
+  }, [orgWorkspaces]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -83,7 +93,7 @@ export function StatCards({ orgId, orgName }: { orgId: string, orgName: string }
           </p>
           <div className="mt-4 flex items-center gap-2 text-primary">
             <Zap className="w-4 h-4 fill-primary" />
-            <span className="text-[10px] font-bold uppercase tracking-tight">AI 輔助優化中</span>
+            <span className="text-[10px] font-bold uppercase tracking-tight text-primary">AI 輔助優化中</span>
           </div>
         </CardContent>
       </Card>

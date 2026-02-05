@@ -7,10 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Activity, Clock, Box, Shield, Terminal, Zap } from "lucide-react";
 import { format } from "date-fns";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 /**
  * DimensionPulsePage - 職責：展示維度內的活動脈動日誌
+ * 效能優化：記憶化日誌過濾邏輯，支持極速響應。
  */
 export default function DimensionPulsePage() {
   const { pulseLogs, activeOrgId } = useAppStore();
@@ -20,9 +21,13 @@ export default function DimensionPulsePage() {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  // 效能優化：記憶化日誌過濾
+  const filteredLogs = useMemo(() => 
+    (pulseLogs || []).filter(log => log.orgId === activeOrgId),
+    [pulseLogs, activeOrgId]
+  );
 
-  const filteredLogs = pulseLogs.filter(log => log.orgId === activeOrgId);
+  if (!mounted) return null;
 
   const getActionIcon = (type: string) => {
     switch (type) {
@@ -42,7 +47,7 @@ export default function DimensionPulsePage() {
 
       <Card className="border-border/60 bg-card/50 backdrop-blur-sm overflow-hidden shadow-sm">
         <CardContent className="p-0">
-          <ScrollArea className="h-[600px]">
+          <ScrollArea className="h-[600px] content-visibility-auto">
             <div className="divide-y divide-border/40">
               {filteredLogs.length > 0 ? filteredLogs.map((log) => (
                 <div key={log.id} className="p-4 hover:bg-muted/30 transition-colors flex items-start gap-4">
@@ -54,9 +59,9 @@ export default function DimensionPulsePage() {
                       <p className="text-sm font-bold flex items-center gap-2">
                         <span className="text-muted-foreground font-normal">{log.actor}</span>
                         <span className="text-primary">{log.action}</span>
-                        <span>{log.target}</span>
+                        <span className="truncate max-w-[200px]">{log.target}</span>
                       </p>
-                      <time className="text-[10px] text-muted-foreground flex items-center gap-1 font-mono">
+                      <time className="text-[10px] text-muted-foreground flex items-center gap-1 font-mono whitespace-nowrap">
                         <Clock className="w-3 h-3" />
                         {format(log.timestamp, "yyyy-MM-dd HH:mm:ss")}
                       </time>

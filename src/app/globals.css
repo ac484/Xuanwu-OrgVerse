@@ -10,13 +10,13 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 197 100% 45%; /* 精緻化的深空藍 */
+    --primary: 197 100% 45%; 
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222 47% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 2 100% 70%; /* 更有活力的珊瑚色 */
+    --accent: 2 100% 70%; 
     --accent-foreground: 222 47% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -70,7 +70,14 @@
     @apply bg-background text-foreground font-body antialiased;
     background-image: radial-gradient(at 0% 0%, rgba(var(--primary), 0.05) 0px, transparent 50%),
                       radial-gradient(at 100% 0%, rgba(var(--accent), 0.05) 0px, transparent 50%);
+    background-attachment: fixed;
   }
+}
+
+/* 效能優化：內容可見性優化 */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 500px;
 }
 
 .glass-card {
@@ -79,4 +86,10 @@
 
 .dimension-glow {
   box-shadow: 0 0 20px -5px rgba(var(--primary), 0.3);
+}
+
+/* 減少大規模重繪 */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform, opacity;
 }
