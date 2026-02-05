@@ -28,28 +28,18 @@
       },
       "required": ["name", "orgId"]
     },
-    "WorkspaceTask": {
-      "title": "Workspace Task",
-      "description": "A task within a logic workspace",
+    "PartnerInvite": {
+      "title": "Partner Invite",
+      "description": "An invitation sent to an external email to join the dimension",
       "type": "object",
       "properties": {
-        "title": { "type": "string" },
-        "status": { "type": "string", "enum": ["todo", "completed", "verified", "accepted"] },
-        "createdAt": { "type": "object" }
+        "email": { "type": "string" },
+        "role": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "expired"] },
+        "invitedAt": { "type": "object" },
+        "protocol": { "type": "string" }
       },
-      "required": ["title", "status"]
-    },
-    "PulseLog": {
-      "title": "Pulse Log",
-      "description": "A dimension-wide audit or activity entry",
-      "type": "object",
-      "properties": {
-        "actor": { "type": "string" },
-        "action": { "type": "string" },
-        "target": { "type": "string" },
-        "type": { "type": "string" },
-        "timestamp": { "type": "object" }
-      }
+      "required": ["email", "status"]
     }
   },
   "auth": {
@@ -60,29 +50,13 @@
       "schema": "#/backend/entities/Organization",
       "description": "Top-level dimension definitions"
     },
-    "/organizations/{orgId}/pulseLogs/{logId}": {
-      "schema": "#/backend/entities/PulseLog",
-      "description": "Shared audit logs for the organization"
+    "/organizations/{orgId}/invites/{inviteId}": {
+      "schema": "#/backend/entities/PartnerInvite",
+      "description": "Pending invitations for external partners"
     },
     "/workspaces/{workspaceId}": {
       "schema": "#/backend/entities/Workspace",
       "description": "Logical workspace definitions"
-    },
-    "/workspaces/{workspaceId}/tasks/{taskId}": {
-      "schema": "#/backend/entities/WorkspaceTask",
-      "description": "Tasks within a specific workspace"
-    },
-    "/workspaces/{workspaceId}/issues/{issueId}": {
-      "schema": "object",
-      "description": "Anomalies within a specific workspace"
-    },
-    "/workspaces/{workspaceId}/dailyLogs/{logId}": {
-      "schema": "object",
-      "description": "Daily status updates"
-    },
-    "/workspaces/{workspaceId}/files/{fileId}": {
-      "schema": "object",
-      "description": "Registered document assets"
     }
   }
 }

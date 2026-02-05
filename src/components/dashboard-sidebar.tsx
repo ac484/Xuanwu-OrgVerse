@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -16,7 +17,8 @@ import {
   GlobeLock,
   Users,
   Settings2,
-  Box
+  Box,
+  Handshake
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -51,7 +53,6 @@ import { useMemo } from "react";
 
 /**
  * DashboardSidebar - 職責：全站導航與空間快速切換
- * 術語對齊：已校準為複數路徑 /organizations。
  */
 export function DashboardSidebar() {
   const router = useRouter();
@@ -104,15 +105,6 @@ export function DashboardSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard/organizations/audit'}>
-                  <Link href="/dashboard/organizations/audit" className="flex items-center gap-3">
-                    <Activity className="w-4 h-4" />
-                    <span className="font-semibold">維度脈動日誌</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
               <Collapsible defaultOpen className="group/collapsible">
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
@@ -135,6 +127,13 @@ export function DashboardSidebar() {
                         <SidebarMenuSubButton asChild isActive={pathname.startsWith('/dashboard/organizations/teams')}>
                           <Link href="/dashboard/organizations/teams" className="flex items-center gap-2">
                             <UserCircle className="w-3 h-3" /> 部門團隊
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organizations/partners'}>
+                          <Link href="/dashboard/organizations/partners" className="flex items-center gap-2">
+                            <Handshake className="w-3 h-3" /> 合作夥伴
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
@@ -169,15 +168,6 @@ export function DashboardSidebar() {
                   <Link href="/dashboard/workspaces" className="flex items-center gap-3">
                     <Layers className="w-4 h-4" />
                     <span className="font-semibold">維度空間</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard/workspaces/capabilities'}>
-                  <Link href="/dashboard/workspaces/capabilities" className="flex items-center gap-3">
-                    <Box className="w-4 h-4" />
-                    <span className="font-semibold">原子能力規範</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
