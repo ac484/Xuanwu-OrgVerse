@@ -10,7 +10,8 @@ import {
   LogOut,
   Terminal,
   User,
-  ChevronUp
+  ChevronUp,
+  Box
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -39,7 +40,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 /**
- * DashboardSidebar - 職責：側邊欄導航，管理空間與能力的入口。
+ * DashboardSidebar - 職責：管理邏輯架構與身分主權的導航入口。
  */
 export function DashboardSidebar() {
   const { user, logout, activeOrgId, workspaces } = useAppStore();
@@ -53,11 +54,14 @@ export function DashboardSidebar() {
     router.push("/login");
   };
 
-  const menuItems = [
+  const mainMenuItems = [
     { title: "維度脈動", icon: LayoutDashboard, href: "/dashboard" },
-    { title: "邏輯容器", icon: Layers, href: "/dashboard/workspaces" },
     { title: "共鳴團隊", icon: Users, href: "/dashboard/team" },
-    { title: "能力規範", icon: Package, href: "/dashboard/blocks" },
+  ];
+
+  const archMenuItems = [
+    { title: "邏輯容器", icon: Layers, href: "/dashboard/workspaces" },
+    { title: "原子化能力", icon: Box, href: "/dashboard/workspaces/blocks" },
     { title: "架構設定", icon: Settings, href: "/dashboard/settings" },
   ];
 
@@ -75,10 +79,34 @@ export function DashboardSidebar() {
       
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>維度導航</SidebarGroupLabel>
+          <SidebarGroupLabel>核心維度</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {mainMenuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={pathname === item.href}
+                    className="transition-all duration-200"
+                  >
+                    <Link href={item.href} className="flex items-center gap-3">
+                      <item.icon className="w-4 h-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        <SidebarGroup>
+          <SidebarGroupLabel>邏輯架構 (Architecture)</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {archMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
@@ -100,7 +128,7 @@ export function DashboardSidebar() {
 
         <SidebarGroup>
           <div className="flex items-center justify-between px-2 mb-2">
-            <SidebarGroupLabel className="p-0 text-xs font-bold uppercase">空間節點</SidebarGroupLabel>
+            <SidebarGroupLabel className="p-0 text-xs font-bold uppercase">空間節點 (Active Nodes)</SidebarGroupLabel>
           </div>
           <SidebarGroupContent>
             <SidebarMenu>
