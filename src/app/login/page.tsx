@@ -29,6 +29,7 @@ import {
 
 /**
  * LoginPage - 職責：整合 Firebase Authentication 的數位主權入口
+ * 視覺主題：全面以 🐢 (烏龜) 為核心，象徵穩健、長壽與主權防護。
  */
 export default function LoginPage() {
   const { auth } = useFirebase();
@@ -131,37 +132,41 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background px-4">
-      <div className="flex items-center gap-3 mb-10">
-        <span className="text-4xl">🐢</span>
-        <span className="text-2xl font-bold tracking-tight font-headline">OrgVerse</span>
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-background px-4 overflow-hidden">
+      {/* 🐢 背景主題層 */}
+      <div className="absolute inset-0 pointer-events-none select-none opacity-5">
+        <span className="absolute top-10 left-10 text-9xl">🐢</span>
+        <span className="absolute bottom-20 right-20 text-8xl">🐢</span>
+        <span className="absolute top-1/2 left-1/4 text-6xl -rotate-12">🐢</span>
+        <span className="absolute top-1/3 right-1/3 text-7xl rotate-12">🐢</span>
       </div>
       
-      <Card className="w-full max-w-md border-border/50 shadow-xl overflow-hidden bg-card/50 backdrop-blur-md">
+      <Card className="w-full max-w-md border-border/50 shadow-2xl overflow-hidden bg-card/50 backdrop-blur-md z-10">
         <div className="h-1.5 bg-primary" />
         <CardHeader className="space-y-1 pb-6 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="p-4 bg-primary/5 rounded-full border border-primary/10">
-              <span className="text-5xl">🐢</span>
+          <div className="flex justify-center mb-6">
+            <div className="relative p-6 bg-primary/5 rounded-full border border-primary/10 shadow-inner group">
+              <span className="text-6xl group-hover:scale-110 transition-transform duration-500 block">🐢</span>
+              <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping opacity-20" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-headline">數位主權閘道器</CardTitle>
-          <CardDescription>
-            驗證數位身分以建立邏輯存在。
+          <CardTitle className="text-2xl font-headline tracking-tight">數位主權閘道器</CardTitle>
+          <CardDescription className="text-xs uppercase font-bold tracking-widest opacity-60">
+            驗證身分以啟動維度共振
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-muted/50 mb-6">
-              <TabsTrigger value="login" className="text-xs uppercase font-bold">登入</TabsTrigger>
-              <TabsTrigger value="register" className="text-xs uppercase font-bold">註冊</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 bg-muted/50 mb-6 rounded-xl h-11 p-1">
+              <TabsTrigger value="login" className="text-xs uppercase font-bold rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">登入</TabsTrigger>
+              <TabsTrigger value="register" className="text-xs uppercase font-bold rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">註冊</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">電子信箱</Label>
+                  <Label htmlFor="login-email" className="text-[10px] font-bold uppercase tracking-widest ml-1">聯絡端點 (Email)</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                     <Input 
@@ -170,20 +175,20 @@ export default function LoginPage() {
                       value={email} 
                       onChange={(e) => setEmail(e.target.value)} 
                       placeholder="name@orgverse.io"
-                      className="pl-10"
+                      className="pl-10 h-11 rounded-xl"
                       required
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="login-password">安全權杖 (密碼)</Label>
+                  <div className="flex justify-between items-center px-1">
+                    <Label htmlFor="login-password" title="🐢 Security" className="text-[10px] font-bold uppercase tracking-widest">安全密鑰</Label>
                     <button 
                       type="button"
                       onClick={() => setIsResetOpen(true)}
                       className="text-[10px] uppercase font-bold text-primary hover:underline"
                     >
-                      忘記密碼?
+                      找回密鑰
                     </button>
                   </div>
                   <div className="relative">
@@ -194,13 +199,13 @@ export default function LoginPage() {
                       value={password} 
                       onChange={(e) => setPassword(e.target.value)} 
                       placeholder="••••••••"
-                      className="pl-10"
+                      className="pl-10 h-11 rounded-xl"
                       required
                     />
                   </div>
                 </div>
-                <Button className="w-full font-bold uppercase tracking-widest h-11" disabled={isLoading}>
-                  {isLoading ? "驗證中..." : "建立身分共振"}
+                <Button className="w-full font-bold uppercase tracking-widest h-12 rounded-xl shadow-lg shadow-primary/20 mt-2" disabled={isLoading}>
+                  {isLoading ? "正在驗證主權..." : "進入維度空間"}
                 </Button>
               </form>
             </TabsContent>
@@ -208,21 +213,21 @@ export default function LoginPage() {
             <TabsContent value="register">
               <form onSubmit={handleRegister} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="reg-name">數位稱號</Label>
+                  <Label htmlFor="reg-name" className="text-[10px] font-bold uppercase tracking-widest ml-1">數位稱號</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                     <Input 
                       id="reg-name" 
                       value={name} 
                       onChange={(e) => setName(e.target.value)} 
-                      placeholder="例如: 亞特蘭提斯首席"
-                      className="pl-10"
+                      placeholder="例如: 守護者"
+                      className="pl-10 h-11 rounded-xl"
                       required
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="reg-email">聯絡端點 (Email)</Label>
+                  <Label htmlFor="reg-email" className="text-[10px] font-bold uppercase tracking-widest ml-1">聯絡端點 (Email)</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                     <Input 
@@ -231,13 +236,13 @@ export default function LoginPage() {
                       value={email} 
                       onChange={(e) => setEmail(e.target.value)} 
                       placeholder="name@orgverse.io"
-                      className="pl-10"
+                      className="pl-10 h-11 rounded-xl"
                       required
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="reg-password">安全密鑰</Label>
+                  <Label htmlFor="reg-password" title="🐢 Protection" className="text-[10px] font-bold uppercase tracking-widest ml-1">設定密鑰</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                     <Input 
@@ -246,13 +251,13 @@ export default function LoginPage() {
                       value={password} 
                       onChange={(e) => setPassword(e.target.value)} 
                       placeholder="至少 6 位字元"
-                      className="pl-10"
+                      className="pl-10 h-11 rounded-xl"
                       required
                     />
                   </div>
                 </div>
-                <Button className="w-full font-bold uppercase tracking-widest h-11" disabled={isLoading}>
-                  {isLoading ? "初始化中..." : "註冊數位身分"}
+                <Button className="w-full font-bold uppercase tracking-widest h-12 rounded-xl shadow-lg shadow-primary/20 mt-2" disabled={isLoading}>
+                  {isLoading ? "身分共振中..." : "建立主權身分"}
                 </Button>
               </form>
             </TabsContent>
@@ -266,11 +271,11 @@ export default function LoginPage() {
             onClick={handleAnonymousLogin}
             disabled={isLoading}
           >
-            <Ghost className="w-4 h-4" /> 訪客模式 (受限存取)
+            <Ghost className="w-4 h-4" /> 訪客存取 (受限主權)
           </Button>
           
-          <p className="text-[10px] text-center text-muted-foreground/60 leading-tight">
-            登入即表示您同意激活跨維度的權限授權與隱私條款。
+          <p className="text-[9px] text-center text-muted-foreground/60 leading-tight uppercase font-bold tracking-tighter">
+            登入即代表同意 🐢 維度安全協議與隱私授權。
           </p>
         </CardFooter>
       </Card>
@@ -278,7 +283,9 @@ export default function LoginPage() {
       <Dialog open={isResetOpen} onOpenChange={setIsResetOpen}>
         <DialogContent className="sm:max-w-[425px] rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="font-headline text-xl">重設安全權杖</DialogTitle>
+            <DialogTitle className="font-headline text-xl flex items-center gap-2">
+              <span className="text-2xl">🐢</span> 重設安全密鑰
+            </DialogTitle>
             <DialogDescription>
               輸入您的聯絡端點 (Email)，我們將發送重設指令。
             </DialogDescription>
@@ -291,12 +298,13 @@ export default function LoginPage() {
                 value={resetEmail} 
                 onChange={(e) => setResetEmail(e.target.value)} 
                 placeholder="your@email.com" 
+                className="h-11 rounded-xl"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsResetOpen(false)}>取消</Button>
-            <Button onClick={handleResetPassword}>發送重設郵件</Button>
+            <Button variant="outline" onClick={() => setIsResetOpen(false)} className="rounded-xl font-bold uppercase text-[10px]">取消</Button>
+            <Button onClick={handleResetPassword} className="rounded-xl font-bold uppercase text-[10px]">發送重設郵件</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
