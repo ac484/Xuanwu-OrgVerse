@@ -13,7 +13,8 @@ interface AppState {
   logout: () => void;
   setActiveOrg: (id: string) => void;
   addOrganization: (org: Omit<Organization, 'id' | 'role' | 'members' | 'teams'>) => void;
-  updateOrgTheme: (id: string, theme: ThemeConfig) => void;
+  updateOrganization: (id: string, updates: Partial<Omit<Organization, 'id' | 'members' | 'teams'>>) => void;
+  updateOrgTheme: (id: string, theme: ThemeConfig | undefined) => void;
   
   // 組織成員 (Organization Members)
   addOrgMember: (orgId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
@@ -83,6 +84,10 @@ export const useAppStore = create<AppState>()(
         };
         return { organizations: [...state.organizations, newOrg], activeOrgId: id };
       }),
+
+      updateOrganization: (id, updates) => set((state) => ({
+        organizations: state.organizations.map(o => o.id === id ? { ...o, ...updates } : o)
+      })),
       
       updateOrgTheme: (id, theme) => set((state) => ({
         organizations: state.organizations.map(o => o.id === id ? { ...o, theme } : o)

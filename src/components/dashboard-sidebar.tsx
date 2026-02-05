@@ -11,7 +11,7 @@ import {
   UserCircle,
   FolderTree,
   ChevronRight,
-  Users
+  Settings
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -103,6 +103,11 @@ export function DashboardSidebar() {
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton asChild isActive={pathname.startsWith('/dashboard/organization/teams')}>
                           <Link href="/dashboard/organization/teams">部門團隊 (Teams)</Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/settings'}>
+                          <Link href="/dashboard/organization/settings">維度設定 (Settings)</Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     </SidebarMenuSub>
