@@ -4,7 +4,7 @@ import { Workspace } from "@/types/domain";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Terminal, Eye, EyeOff } from "lucide-react";
+import { MoreVertical, Terminal, Eye, EyeOff, Shield } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface WorkspaceCardProps {
@@ -12,14 +12,9 @@ interface WorkspaceCardProps {
   onAction?: (id: string) => void;
 }
 
-/**
- * WorkspaceCard - 職責：展示單一邏輯空間的技術規格與範圍。
- */
 export function WorkspaceCard({ workspace, onAction }: WorkspaceCardProps) {
   const router = useRouter();
-  
-  // 防禦性處理：確保屬性始終存在
-  const displayScope = workspace?.scope || [];
+  const displayBoundary = workspace?.boundary || [];
 
   return (
     <Card 
@@ -29,7 +24,7 @@ export function WorkspaceCard({ workspace, onAction }: WorkspaceCardProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="p-2.5 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
-            <Terminal className="w-5 h-5" />
+            <Shield className="w-5 h-5" />
           </div>
           <div className="flex items-center gap-1">
             <Badge variant="ghost" className="h-6 w-6 p-0 flex items-center justify-center text-muted-foreground">
@@ -47,29 +42,28 @@ export function WorkspaceCard({ workspace, onAction }: WorkspaceCardProps) {
         </div>
         <CardTitle className="mt-4 font-headline text-lg group-hover:text-primary transition-colors">{workspace.name}</CardTitle>
         <CardDescription className="text-[9px] uppercase tracking-widest font-bold opacity-60">
-          可見性: {workspace.visibility === 'visible' ? '顯示' : '隱藏'}
+          狀態: {workspace.visibility === 'visible' ? '已掛載' : '隱藏模式'}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap gap-1.5 mt-1">
-          {displayScope.slice(0, 3).map(s => (
-            <Badge key={s} variant="secondary" className="text-[8px] px-1.5 py-0 uppercase tracking-tighter bg-muted/50 border-none">
-              {s}
+          {displayBoundary.slice(0, 3).map(b => (
+            <Badge key={b} variant="secondary" className="text-[8px] px-1.5 py-0 uppercase tracking-tighter bg-muted/50 border-none">
+              {b}
             </Badge>
           ))}
-          {displayScope.length > 3 && (
-            <span className="text-[8px] text-muted-foreground font-bold">+{displayScope.length - 3}</span>
-          )}
         </div>
       </CardContent>
       <CardFooter className="pt-0 flex justify-between items-center border-t border-border/20 mt-4 py-4">
         <div className="flex flex-col">
-          <span className="text-[8px] text-muted-foreground uppercase font-bold tracking-tighter leading-none">解析協議</span>
-          <span className="text-[10px] font-mono truncate max-w-[120px]">{workspace.resolver}</span>
+          <span className="text-[8px] text-muted-foreground uppercase font-bold tracking-tighter leading-none">存取協議</span>
+          <span className="text-[10px] font-mono truncate max-w-[120px]">{workspace.protocol || '預設協議'}</span>
         </div>
         <div className="flex -space-x-1.5">
-          {[1, 2].map(i => (
-            <div key={i} className="w-6 h-6 rounded-full border-2 border-background bg-muted text-[8px] flex items-center justify-center font-bold shadow-sm">U{i}</div>
+          {(workspace.members || []).slice(0, 3).map((m, i) => (
+            <div key={i} className="w-6 h-6 rounded-full border-2 border-background bg-primary/10 text-[8px] flex items-center justify-center font-bold shadow-sm">
+              {m.name?.[0] || 'U'}
+            </div>
           ))}
         </div>
       </CardFooter>

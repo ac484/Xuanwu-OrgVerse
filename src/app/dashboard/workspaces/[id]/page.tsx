@@ -23,7 +23,8 @@ import {
   Trash2,
   Eye,
   EyeOff,
-  Box
+  Box,
+  Layout
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
@@ -60,18 +61,19 @@ export default function WorkspaceDetailPage() {
   const handleQuickAddCapability = () => {
     addCapabilityToWorkspace(workspace.id, {
       name: `原子能力-${Math.floor(Math.random() * 1000)}`,
-      type: "api",
+      type: "ui",
       status: "beta",
       description: "於此空間子單元內定義的技術規格單元。"
     });
     toast({
-      title: "原子能力已註冊",
+      title: "原子能力已掛載",
       description: "新的技術規格已添加至此空間的專屬註冊表中。",
     });
   };
 
   const getIcon = (type: string) => {
     switch (type) {
+      case 'ui': return <Layout className="w-5 h-5" />;
       case 'api': return <Code className="w-5 h-5" />;
       case 'data': return <Database className="w-5 h-5" />;
       default: return <Layers className="w-5 h-5" />;
@@ -89,7 +91,7 @@ export default function WorkspaceDetailPage() {
 
       <PageHeader 
         title={workspace.name} 
-        description="管理此空間的原子能力規格與存制治理。"
+        description="管理此空間的原子能力規格與存取治理協議。"
         badge={
           <div className="flex items-center gap-2 mb-2">
             <Badge className="bg-primary/10 text-primary border-primary/20 uppercase text-[9px] tracking-widest font-bold">
@@ -97,7 +99,7 @@ export default function WorkspaceDetailPage() {
             </Badge>
             <Badge variant="outline" className="text-[9px] uppercase font-bold flex items-center gap-1">
               {workspace.visibility === 'visible' ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-              {workspace.visibility === 'visible' ? '已顯示' : '已隱藏'}
+              {workspace.visibility === 'visible' ? '可見' : '受限'}
             </Badge>
           </div>
         }
@@ -114,12 +116,12 @@ export default function WorkspaceDetailPage() {
 
       <Tabs defaultValue="capabilities" className="space-y-6">
         <TabsList className="bg-muted/40 p-1 border border-border/50">
-          <TabsTrigger value="capabilities" className="text-[10px] font-bold uppercase tracking-widest px-6">原子能力 (Capabilities)</TabsTrigger>
+          <TabsTrigger value="capabilities" className="text-[10px] font-bold uppercase tracking-widest px-6">原子能力</TabsTrigger>
           <TabsTrigger value="members" className="text-[10px] font-bold uppercase tracking-widest px-6">人員存取權</TabsTrigger>
-          <TabsTrigger value="logic" className="text-[10px] font-bold uppercase tracking-widest px-6">邏輯定義 (Logic)</TabsTrigger>
+          <TabsTrigger value="specs" className="text-[10px] font-bold uppercase tracking-widest px-6">空間規格</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="logic" className="space-y-6">
+        <TabsContent value="specs" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="border-border/60 shadow-sm bg-card/30">
               <CardHeader>
@@ -127,7 +129,7 @@ export default function WorkspaceDetailPage() {
                   <Globe className="w-3.5 h-3.5" />
                   資源邊界 (Boundary)
                 </CardTitle>
-                <CardDescription className="text-xs">定義子單元的邏輯邊界與資源範疇。</CardDescription>
+                <CardDescription className="text-xs">定義此空間子單元的邏輯邊界與資源範疇。</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -153,7 +155,7 @@ export default function WorkspaceDetailPage() {
               <CardContent className="space-y-4">
                 <div className="p-3 bg-muted/30 rounded-lg border border-border/40">
                   <p className="text-[9px] text-muted-foreground uppercase font-bold mb-1">協議類別</p>
-                  <p className="text-xs font-mono">{workspace.protocol}</p>
+                  <p className="text-xs font-mono">{workspace.protocol || '標準存取協議'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -162,8 +164,8 @@ export default function WorkspaceDetailPage() {
 
         <TabsContent value="capabilities" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold uppercase tracking-widest">空間專屬能力目錄</h3>
-            <Button size="sm" variant="outline" className="h-8 gap-2 font-bold text-[9px] uppercase tracking-widest" onClick={handleQuickAddCapability}>
+            <h3 className="text-sm font-bold uppercase tracking-widest">空間能力目錄</h3>
+            <Button size="sm" variant="outline" className="h-8 gap-2 font-bold text-[9px] uppercase tracking-widest" onClick={() => router.push(`/dashboard/workspaces/capabilities`)}>
               <Plus className="w-3 h-3" /> 註冊原子能力
             </Button>
           </div>
@@ -178,7 +180,7 @@ export default function WorkspaceDetailPage() {
                         {getIcon(cap.type)}
                       </div>
                       <Badge variant="outline" className="text-[9px] uppercase font-bold bg-background/50">
-                        {cap.status === 'stable' ? 'PRODUCTION' : 'BETA'}
+                        {cap.status === 'stable' ? '穩定版' : '測試版'}
                       </Badge>
                     </div>
                     <CardTitle className="text-lg font-headline">{cap.name}</CardTitle>
@@ -190,9 +192,6 @@ export default function WorkspaceDetailPage() {
                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => removeCapabilityFromWorkspace(workspace.id, cap.id)}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-8 gap-2 font-bold uppercase text-[9px] tracking-widest text-primary">
-                        <Info className="w-3.5 h-3.5" /> 規格
-                      </Button>
                     </div>
                   </CardFooter>
                 </Card>
@@ -202,7 +201,7 @@ export default function WorkspaceDetailPage() {
             <div className="p-16 text-center border-2 border-dashed rounded-3xl bg-muted/5 border-border/40">
               <Terminal className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-10" />
               <h3 className="text-xl font-bold font-headline">能力目錄為空</h3>
-              <p className="text-sm text-muted-foreground mb-8">此空間目前尚未註冊任何原子能力規範。</p>
+              <p className="text-sm text-muted-foreground mb-8">此空間目前尚未掛載任何原子能力規範。</p>
               <Button onClick={handleQuickAddCapability} className="font-bold text-[10px] uppercase tracking-widest h-10 px-6">
                 定義首個能力
               </Button>
@@ -213,7 +212,7 @@ export default function WorkspaceDetailPage() {
         <TabsContent value="members" className="space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold uppercase tracking-widest">空間存取名單</h3>
-            <Button size="sm" variant="outline" className="h-8 gap-2 font-bold text-[9px] uppercase tracking-widest" onClick={() => addWorkspaceMember(workspace.id, { name: "新操作員", email: "new@orgverse.io", role: "Member" })}>
+            <Button size="sm" variant="outline" className="h-8 gap-2 font-bold text-[9px] uppercase tracking-widest" onClick={() => addWorkspaceMember(workspace.id, { name: "新操作員", email: "operator@orgverse.io", role: "Member" })}>
               <UserPlus className="w-3 h-3" /> 分配成員
             </Button>
           </div>
@@ -235,23 +234,13 @@ export default function WorkspaceDetailPage() {
                     <Badge variant="outline" className="text-[8px] uppercase tracking-tighter bg-background">
                       {member.role}
                     </Badge>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => removeWorkspaceMember(workspace.id, member.id)}>
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => removeWorkspaceMember(workspace.id, member.id)}>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
-
-            {members.length === 0 && (
-              <div className="col-span-full p-12 text-center border-2 border-dashed rounded-3xl bg-muted/5 border-border/40">
-                <Users className="w-10 h-10 text-muted-foreground mx-auto mb-4 opacity-10" />
-                <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">無分配人員</p>
-                <p className="text-[10px] text-muted-foreground/60 mt-1">此空間目前由系統自動化治理。</p>
-              </div>
-            )}
           </div>
         </TabsContent>
       </Tabs>

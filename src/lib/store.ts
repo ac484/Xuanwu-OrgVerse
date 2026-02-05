@@ -50,7 +50,7 @@ export const useAppStore = create<AppState>()(
         { 
           id: 'personal', 
           name: '個人維度', 
-          context: '個人基礎設施沙盒', 
+          description: '個人基礎設施沙盒', 
           role: 'Owner',
           members: [
             { id: 'm1', name: '展示用戶', email: 'demo@orgverse.io', role: 'Owner', status: 'active' }
@@ -78,27 +78,29 @@ export const useAppStore = create<AppState>()(
 
       addOrganization: (org) => set((state) => {
         const id = `org-${Math.random().toString(36).substring(2, 7)}`;
-        const newOrg = { 
-          ...org, 
-          id, 
-          role: 'Owner' as UserRole,
-          members: state.user ? [{ 
-            id: 'm-owner', 
-            name: state.user.name, 
-            email: state.user.email, 
-            role: 'Owner' as UserRole, 
-            status: 'active' as const 
-          }] : [],
-          teams: []
+        return { 
+          organizations: [...state.organizations, { 
+            ...org, 
+            id, 
+            role: 'Owner' as UserRole,
+            members: state.user ? [{ 
+              id: `m-${Math.random().toString(36).substring(2, 6)}`, 
+              name: state.user.name, 
+              email: state.user.email, 
+              role: 'Owner' as UserRole, 
+              status: 'active' as const 
+            }] : [],
+            teams: []
+          }], 
+          activeOrgId: id 
         };
-        return { organizations: [...state.organizations, newOrg], activeOrgId: id };
       }),
 
       updateOrganization: (id, updates) => {
         set((state) => ({
           organizations: state.organizations.map(o => o.id === id ? { ...o, ...updates } : o)
         }));
-        get().addAuditLog({ actor: get().user?.name || 'System', action: '更新維度設定', target: id, type: 'update' });
+        get().addAuditLog({ actor: get().user?.name || 'System', action: '更新維度識別', target: id, type: 'update' });
       },
       
       updateOrgTheme: (id, theme) => set((state) => ({
@@ -109,10 +111,10 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           organizations: state.organizations.map(o => o.id === orgId ? {
             ...o,
-            members: [...(o.members || []), { ...member, id: `m-${Math.random().toString(36).substring(2, 6)}`, status: 'offline' }]
+            members: [...(o.members || []), { ...member, id: `m-${Math.random().toString(36).substring(2, 6)}`, status: 'active' }]
           } : o)
         }));
-        get().addAuditLog({ actor: get().user?.name || 'System', action: '招募成員', target: member.name, type: 'create' });
+        get().addAuditLog({ actor: get().user?.name || 'System', action: '同步身分', target: member.name, type: 'create' });
       },
 
       removeOrgMember: (orgId, memberId) => set((state) => ({
@@ -137,7 +139,7 @@ export const useAppStore = create<AppState>()(
             teams: [...(o.teams || []), { ...team, id: `team-${Math.random().toString(36).substring(2, 6)}`, memberIds: [] }]
           } : o)
         }));
-        get().addAuditLog({ actor: get().user?.name || 'System', action: '建立團隊', target: team.name, type: 'create' });
+        get().addAuditLog({ actor: get().user?.name || 'System', action: '定義團隊', target: team.name, type: 'create' });
       },
 
       removeOrgTeam: (orgId, teamId) => set((state) => ({
@@ -176,7 +178,7 @@ export const useAppStore = create<AppState>()(
             members: [] 
           }]
         }));
-        get().addAuditLog({ actor: get().user?.name || 'System', action: '建立空間', target: workspace.name, type: 'create' });
+        get().addAuditLog({ actor: get().user?.name || 'System', action: '初始化空間', target: workspace.name, type: 'create' });
       },
 
       deleteWorkspace: (id) => set((state) => ({
@@ -203,7 +205,7 @@ export const useAppStore = create<AppState>()(
       addWorkspaceMember: (workspaceId, member) => set((state) => ({
         workspaces: state.workspaces.map(w => w.id === workspaceId ? {
           ...w,
-          members: [...(w.members || []), { ...member, id: `wm-${Math.random().toString(36).substring(2, 6)}`, status: 'offline' }]
+          members: [...(w.members || []), { ...member, id: `wm-${Math.random().toString(36).substring(2, 6)}`, status: 'active' }]
         } : w)
       })),
 

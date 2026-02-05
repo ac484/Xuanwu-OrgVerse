@@ -26,7 +26,7 @@ export interface Team {
 export interface Organization {
   id: string;
   name: string;
-  context: string;
+  description: string; // 修正: 統一為描述
   isExternal?: boolean;
   role: UserRole;
   theme?: ThemeConfig;
@@ -35,12 +35,12 @@ export interface Organization {
 }
 
 /**
- * Capability (原子能力) - 取代舊有的 ResourceBlock
+ * Capability (原子能力)
  */
 export interface Capability {
   id: string;
   name: string;
-  type: 'component' | 'api' | 'data';
+  type: 'ui' | 'api' | 'data';
   status: 'stable' | 'beta';
   description: string;
   config?: object;
@@ -54,8 +54,8 @@ export interface Workspace {
   orgId: string;
   name: string;
   visibility: 'visible' | 'hidden'; 
-  boundary: string[]; // 取代舊有的 scope
-  protocol: string;  // 取代舊有的 resolver
+  boundary: string[]; 
+  protocol: string;  
   capabilities: Capability[]; 
   members: MemberReference[]; 
 }

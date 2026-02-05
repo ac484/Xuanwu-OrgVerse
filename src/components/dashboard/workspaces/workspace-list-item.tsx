@@ -3,7 +3,7 @@
 import { Workspace } from "@/types/domain";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Terminal, Trash2, ArrowUpRight, Eye, EyeOff } from "lucide-react";
+import { Shield, Trash2, ArrowUpRight, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface WorkspaceListItemProps {
@@ -21,7 +21,7 @@ export function WorkspaceListItem({ workspace, onDelete }: WorkspaceListItemProp
     >
       <div className="flex items-center gap-4">
         <div className="p-2 bg-primary/5 rounded-lg text-primary">
-          <Terminal className="w-5 h-5" />
+          <Shield className="w-5 h-5" />
         </div>
         <div>
           <h3 className="font-semibold text-sm">{workspace.name}</h3>
@@ -36,8 +36,8 @@ export function WorkspaceListItem({ workspace, onDelete }: WorkspaceListItemProp
       </div>
       <div className="flex items-center gap-4">
         <div className="text-right hidden md:block">
-          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">解析器</p>
-          <p className="text-[11px] font-medium">{workspace.resolver}</p>
+          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1">存取協議</p>
+          <p className="text-[11px] font-medium">{workspace.protocol || '預設協議'}</p>
         </div>
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
