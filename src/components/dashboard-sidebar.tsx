@@ -7,7 +7,6 @@ import {
   LogOut,
   Terminal,
   ChevronUp,
-  Fingerprint,
   UserCircle,
   FolderTree,
   ChevronRight,
@@ -56,7 +55,6 @@ import { useMemo } from "react";
 
 /**
  * DashboardSidebar - 職責：全站導航與空間快速切換
- * 術語校準：統一使用單數「organization」路徑。
  */
 export function DashboardSidebar() {
   const router = useRouter();
@@ -87,9 +85,7 @@ export function DashboardSidebar() {
     <Sidebar className="border-r border-border/50">
       <SidebarHeader className="p-4">
         <Link href="/dashboard" className="flex items-center gap-2 mb-4 px-1 hover:opacity-80 transition-opacity">
-          <div className="p-1.5 bg-primary rounded-lg shadow-sm">
-            <Fingerprint className="w-5 h-5 text-primary-foreground" />
-          </div>
+          <div className="text-2xl mr-1">🐢</div>
           <span className="text-xl font-bold font-headline tracking-tight italic">OrgVerse</span>
         </Link>
         <GlobalSwitcher />

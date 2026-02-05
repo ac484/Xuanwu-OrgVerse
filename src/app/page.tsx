@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Globe, Shield, Zap } from "lucide-react";
+import { ArrowRight, Shield, Zap, Globe } from "lucide-react";
 
 /**
  * 首頁落地頁 - 職責：展示 OrgVerse 核心價值與入口
@@ -23,9 +23,7 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center min-h-screen px-4 text-center bg-background">
       <div className="max-w-3xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
         <div className="flex justify-center">
-          <div className="p-3 bg-primary/10 rounded-2xl">
-            <Globe className="w-12 h-12 text-primary" />
-          </div>
+          <div className="text-7xl animate-bounce duration-[3000ms]">🐢</div>
         </div>
         
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground font-headline">

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Fingerprint, Lock, Mail, User, Ghost } from "lucide-react";
+import { Mail, User, Ghost, Lock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useFirebase } from "@/firebase/provider";
 import { 
@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dialog";
 
 /**
- * LoginPage - 職責：整合 Firebase Authentication 的數位主權入口 (已移除 Google 登入)
+ * LoginPage - 職責：整合 Firebase Authentication 的數位主權入口
  */
 export default function LoginPage() {
   const { auth } = useFirebase();
@@ -132,8 +132,8 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background px-4">
-      <div className="flex items-center gap-2 mb-10">
-        <Shield className="w-8 h-8 text-primary" />
+      <div className="flex items-center gap-3 mb-10">
+        <span className="text-4xl">🐢</span>
         <span className="text-2xl font-bold tracking-tight font-headline">OrgVerse</span>
       </div>
       
@@ -141,8 +141,8 @@ export default function LoginPage() {
         <div className="h-1.5 bg-primary" />
         <CardHeader className="space-y-1 pb-6 text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-4 bg-primary/10 rounded-full border border-primary/20">
-              <Fingerprint className="w-10 h-10 text-primary" />
+            <div className="p-4 bg-primary/5 rounded-full border border-primary/10">
+              <span className="text-5xl">🐢</span>
             </div>
           </div>
           <CardTitle className="text-2xl font-headline">數位主權閘道器</CardTitle>
