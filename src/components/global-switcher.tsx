@@ -1,6 +1,6 @@
 "use client";
 
-import { useAppStore, Organization } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -14,7 +14,6 @@ import {
   Plus, 
   Check, 
   ChevronsUpDown, 
-  Globe, 
   User, 
   Users, 
   ExternalLink 
@@ -45,14 +44,14 @@ export function GlobalSwitcher() {
     if (!newOrgName.trim()) return;
     addOrganization({ 
       name: newOrgName, 
-      context: newOrgContext || "General business context" 
+      context: newOrgContext || "General dimension profile" 
     });
     setNewOrgName("");
     setNewOrgContext("");
     setIsCreateOpen(false);
     toast({
-      title: "Organization Forged",
-      description: `${newOrgName} is now a root directory within your architecture.`,
+      title: "新維度已建立",
+      description: `${newOrgName} 現已成為您的根目錄之一。`,
     });
   };
 
@@ -76,7 +75,7 @@ export function GlobalSwitcher() {
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-[240px]" align="start">
           <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-widest font-bold px-2 py-1.5">
-            Dimensions
+            可選維度
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {organizations.map((org) => (
@@ -115,7 +114,7 @@ export function GlobalSwitcher() {
             }}
           >
             <Plus className="w-4 h-4" />
-            Forge New Organization
+            建立新維度
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -123,35 +122,35 @@ export function GlobalSwitcher() {
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle className="font-headline text-2xl">Forge New Organization</DialogTitle>
+            <DialogTitle className="font-headline text-2xl">建立新維度</DialogTitle>
             <DialogDescription>
-              Build a new resource boundary and define its root logic.
+              定義新的資源邊界與識別特質。
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="org-name">Organization Name</Label>
+              <Label htmlFor="org-name">維度名稱</Label>
               <Input 
                 id="org-name" 
                 value={newOrgName} 
                 onChange={(e) => setNewOrgName(e.target.value)} 
-                placeholder="e.g. Galactic Ventures" 
+                placeholder="例如: 亞特蘭提斯研究中心" 
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="org-context">Architectural Context</Label>
+              <Label htmlFor="org-context">維度識別描述</Label>
               <Input 
                 id="org-context" 
                 value={newOrgContext} 
                 onChange={(e) => setNewOrgContext(e.target.value)} 
-                placeholder="e.g. High-tech research lab" 
+                placeholder="例如: 專注於高科技研發的實驗室" 
               />
-              <p className="text-[10px] text-muted-foreground">This helps our AI adapt the environment resonance.</p>
+              <p className="text-[10px] text-muted-foreground">這將幫助 AI 自動適配環境色彩共振。</p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
-            <Button onClick={handleCreateOrg}>Initiate Forge</Button>
+            <Button variant="outline" onClick={() => setIsCreateOpen(false)}>取消</Button>
+            <Button onClick={handleCreateOrg}>啟動建立</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
