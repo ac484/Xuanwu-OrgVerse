@@ -11,7 +11,7 @@ import {z} from 'genkit';
 const AdaptUIColorToOrgContextInputSchema = z.object({
   organizationContext: z
     .string()
-    .describe('A brief description of the organization dimension (its identity, industry, or vibe).'),
+    .describe('A brief description of the dimension identity (its character, industry, or vibe).'),
 });
 export type AdaptUIColorToOrgContextInput = z.infer<
   typeof AdaptUIColorToOrgContextInputSchema

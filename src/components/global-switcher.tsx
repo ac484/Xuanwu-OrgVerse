@@ -36,7 +36,7 @@ export function GlobalSwitcher() {
   const { organizations, activeOrgId, setActiveOrg, addOrganization } = useAppStore();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newOrgName, setNewOrgName] = useState("");
-  const [newOrgContext, setNewOrgContext] = useState("");
+  const [newOrgDescription, setNewOrgDescription] = useState("");
 
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
 
@@ -44,10 +44,10 @@ export function GlobalSwitcher() {
     if (!newOrgName.trim()) return;
     addOrganization({ 
       name: newOrgName, 
-      context: newOrgContext || "General dimension profile" 
+      description: newOrgDescription || "General dimension profile" 
     });
     setNewOrgName("");
-    setNewOrgContext("");
+    setNewOrgDescription("");
     setIsCreateOpen(false);
     toast({
       title: "新維度已建立",
@@ -138,11 +138,11 @@ export function GlobalSwitcher() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="org-context">維度識別描述</Label>
+              <Label htmlFor="org-desc">維度識別描述</Label>
               <Input 
-                id="org-context" 
-                value={newOrgContext} 
-                onChange={(e) => setNewOrgContext(e.target.value)} 
+                id="org-desc" 
+                value={newOrgDescription} 
+                onChange={(e) => setNewOrgDescription(e.target.value)} 
                 placeholder="例如: 專注於高科技研發的實驗室" 
               />
               <p className="text-[10px] text-muted-foreground">這將幫助 AI 自動適配環境色彩共振。</p>

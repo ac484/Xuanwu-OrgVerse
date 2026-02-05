@@ -21,7 +21,7 @@ export default function OrganizationSettingsPage() {
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
   
   const [name, setName] = useState(activeOrg?.name || "");
-  const [context, setContext] = useState(activeOrg?.context || "");
+  const [description, setDescription] = useState(activeOrg?.description || "");
 
   useEffect(() => {
     setMounted(true);
@@ -30,14 +30,14 @@ export default function OrganizationSettingsPage() {
   useEffect(() => {
     if (activeOrg) {
       setName(activeOrg.name);
-      setContext(activeOrg.context);
+      setDescription(activeOrg.description);
     }
   }, [activeOrg]);
 
   if (!mounted || !activeOrg) return null;
 
   const handleSave = () => {
-    updateOrganization(activeOrg.id, { name, context });
+    updateOrganization(activeOrg.id, { name, description });
     toast({
       title: "維度主權更新成功",
       description: "維度識別參數已同步至全域環境。",
@@ -80,11 +80,11 @@ export default function OrganizationSettingsPage() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="org-context">維度識別描述 (Dimension Identity Description)</Label>
+              <Label htmlFor="org-desc">維度識別描述 (Dimension Identity Description)</Label>
               <Textarea 
-                id="org-context" 
-                value={context} 
-                onChange={(e) => setContext(e.target.value)}
+                id="org-desc" 
+                value={description} 
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="描述此維度的業務背景、技術偏好或文化特質..."
                 className="min-h-[100px]"
               />

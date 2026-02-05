@@ -26,7 +26,7 @@ export interface Team {
 export interface Organization {
   id: string;
   name: string;
-  description: string; // 修正: 統一為描述
+  description: string; 
   isExternal?: boolean;
   role: UserRole;
   theme?: ThemeConfig;
@@ -35,7 +35,7 @@ export interface Organization {
 }
 
 /**
- * Capability (原子能力)
+ * Atomic Capability (原子能力)
  */
 export interface Capability {
   id: string;

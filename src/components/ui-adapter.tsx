@@ -9,7 +9,6 @@ import { hexToHsl } from "@/lib/utils";
 /**
  * UIAdapter acts as a middleware component that listens to the active organization
  * and applies AI-driven theme transformations.
- * Optimized with useRef to prevent redundant adaptation calls.
  */
 export function UIAdapter({ children }: { children: React.ReactNode }) {
   const { organizations, activeOrgId, updateOrgTheme } = useAppStore();
@@ -18,10 +17,8 @@ export function UIAdapter({ children }: { children: React.ReactNode }) {
 
   const activeOrg = organizations.find(o => o.id === activeOrgId);
 
-  // Trigger AI adaptation only when necessary
   useEffect(() => {
     async function adaptTheme() {
-      // Guard: Check if org exists, already has a theme, or is currently being adapted
       if (!activeOrg || activeOrg.theme || adaptingId.current === activeOrg.id) return;
 
       adaptingId.current = activeOrg.id;
@@ -29,7 +26,7 @@ export function UIAdapter({ children }: { children: React.ReactNode }) {
       
       try {
         const result = await adaptUIColorToOrgContext({ 
-          organizationContext: activeOrg.context 
+          organizationContext: activeOrg.description 
         });
         
         if (result && adaptingId.current === activeOrg.id) {
@@ -48,9 +45,8 @@ export function UIAdapter({ children }: { children: React.ReactNode }) {
     }
 
     adaptTheme();
-  }, [activeOrgId, activeOrg?.context, activeOrg?.theme, updateOrgTheme]);
+  }, [activeOrgId, activeOrg?.description, activeOrg?.theme, updateOrgTheme]);
 
-  // Apply CSS variables to the document root
   useEffect(() => {
     const root = document.documentElement;
     if (activeOrg?.theme) {
