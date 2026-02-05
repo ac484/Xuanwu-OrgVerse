@@ -5,12 +5,12 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Code, Database, Layers, Info, Terminal, ChevronRight, Layout, ShieldCheck, Trophy, MessageSquare, AlertCircle, FileText } from "lucide-react";
+import { Layout, ShieldCheck, Trophy, MessageSquare, AlertCircle, FileText, Layers, Info, Terminal, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 /**
- * CapabilitiesPage - 職責：原子能力規範註冊表
- * 集中管理維度中所有可掛載的技術規範，直接連動 Store 內的預定義規格。
+ * CapabilitiesPage - 職責：原子能力規範註冊表 (Registry)
+ * 定義維度中所有可掛載至空間節點的技術規格與介面標準。
  */
 export default function CapabilitiesPage() {
   const router = useRouter();
@@ -31,14 +31,14 @@ export default function CapabilitiesPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500 pb-20">
       <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">
-        <span className="cursor-pointer hover:text-primary transition-colors" onClick={() => router.push('/dashboard/workspaces')}>維度空間</span>
-        <ChevronRight className="w-3 h-3" />
-        <span className="text-foreground">原子能力規範註冊表</span>
+        <span className="cursor-pointer hover:text-primary transition-colors" onClick={() => router.push('/dashboard/workspaces')}>空間節點</span>
+        <ChevronRight className="w-3 h-3 opacity-30" />
+        <span className="text-foreground">原子能力註冊表</span>
       </div>
 
       <PageHeader 
-        title="原子能力規範註冊表" 
-        description="定義可供邏輯空間掛載的技術規範與介面標準，確保模組間保持絕對技術隔離。"
+        title="原子能力註冊表" 
+        description="定義可供空間節點掛載的技術規範與 Facade 接口，確保模組間保持絕對技術隔離。"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -73,7 +73,7 @@ export default function CapabilitiesPage() {
         ))}
         <div className="p-8 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center bg-muted/5 border-border/40 hover:bg-muted/10 transition-colors">
           <Terminal className="w-8 h-8 text-muted-foreground mb-4 opacity-20" />
-          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em]">擴展新能力</p>
+          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em]">擴展原子能力</p>
           <p className="text-[9px] text-muted-foreground/50 mt-2 max-w-[160px]">遵循維度協議規範，自定義您的專屬原子單元。</p>
         </div>
       </div>

@@ -1,12 +1,19 @@
 export type UserRole = 'Owner' | 'Admin' | 'Member' | 'Guest';
 export type WorkspaceStatus = 'preparatory' | 'active' | 'stopped';
 
+/**
+ * 維度主題配置 (Dimension Theme)
+ */
 export interface ThemeConfig {
   primary: string;
   background: string;
   accent: string;
 }
 
+/**
+ * 成員身分參考 (Member Reference)
+ * 屬於「維度」或「空間」的身分實體
+ */
 export interface MemberReference {
   id: string;
   name: string;
@@ -14,11 +21,14 @@ export interface MemberReference {
   role: UserRole;
   status: 'active' | 'away' | 'offline';
   isExternal?: boolean;
-  group?: string; // 用於外部夥伴的分組概念 (ID)
+  group?: string; 
   expiryDate?: string; 
   accessProtocol?: 'Deep Isolation' | 'Standard Bridge' | 'Full Collaborative';
 }
 
+/**
+ * 治理層：部門團隊 (Governance Teams)
+ */
 export interface Team {
   id: string;
   name: string;
@@ -26,6 +36,9 @@ export interface Team {
   memberIds: string[]; 
 }
 
+/**
+ * 治理層：夥伴群組 (Governance Partner Groups)
+ */
 export interface PartnerGroup {
   id: string;
   name: string;
@@ -33,6 +46,10 @@ export interface PartnerGroup {
   memberIds: string[];
 }
 
+/**
+ * 第一層：維度 (Dimension / Organization)
+ * 最頂層的主權邊界
+ */
 export interface Organization {
   id: string;
   name: string;
@@ -45,21 +62,22 @@ export interface Organization {
   partnerGroups: PartnerGroup[];
 }
 
-export interface OrgLocation {
-  id: string;
-  name: string;
-}
-
+/**
+ * 排班指派 (Schedule / Pulse)
+ */
 export interface ScheduleAssignment {
   id: string;
   memberId: string;
   memberName: string;
-  locationId: string; // 對齊至 WorkspaceId
-  locationName: string; // 對齊至 WorkspaceName
-  date: string; // ISO date string YYYY-MM-DD
+  locationId: string; 
+  locationName: string; 
+  date: string; 
   state: 'draft' | 'published';
 }
 
+/**
+ * 第四層：原子能力規範 (Capability Spec)
+ */
 export interface CapabilitySpec {
   id: string;
   name: string;
@@ -69,13 +87,19 @@ export interface CapabilitySpec {
   icon?: string;
 }
 
+/**
+ * 掛載後的原子能力 (Mounted Capability)
+ */
 export interface Capability extends CapabilitySpec {
   config?: object;
 }
 
+/**
+ * 第五層：原子數據 - 任務 (Atomic Task)
+ */
 export interface WorkspaceTask {
   id: string;
-  parentId?: string; // WBS 父節點
+  parentId?: string; 
   name: string;
   description?: string;
   type: string;
@@ -83,25 +107,20 @@ export interface WorkspaceTask {
   quantity: number;
   unit: string;
   unitPrice: number;
-  subtotal: number; // 自動計算: Quantity * UnitPrice
-  taxRate: number; // 稅率 %
-  total: number; // 含稅總額
-  progress: number; // 進度 0-100
-  weight: number; // 權重
+  subtotal: number; 
+  taxRate: number; 
+  total: number; 
+  progress: number; 
+  weight: number; 
   location?: string;
-  space?: string;
-  startTime?: any;
-  endTime?: any;
-  actualStartTime?: any;
-  actualEndTime?: any;
   status: 'todo' | 'completed' | 'verified' | 'accepted';
-  dependencies: string[]; // 相依任務 ID 陣列
-  attachments?: string[];
-  completedBy?: string;
-  completedAt?: any;
+  dependencies: string[]; 
   createdAt: any;
 }
 
+/**
+ * 第五層：原子數據 - 議題 (Atomic Issue)
+ */
 export interface WorkspaceIssue {
   id: string;
   title: string;
@@ -110,30 +129,10 @@ export interface WorkspaceIssue {
   type?: 'technical' | 'financial' | 'operational';
 }
 
-export interface WorkspaceDaily {
-  id: string;
-  content: string;
-  author: string;
-  timestamp: number;
-}
-
-export interface WorkspaceFileVersion {
-  versionId: string;
-  versionNumber: number;
-  versionName: string;
-  size: number;
-  uploadedBy: string;
-  createdAt: any;
-}
-
-export interface WorkspaceFile {
-  id: string;
-  name: string;
-  currentVersionId: string;
-  versions: WorkspaceFileVersion[];
-  updatedAt: any;
-}
-
+/**
+ * 第三層：空間節點 (Workspace / Space Node)
+ * 維度下的邏輯執行容器
+ */
 export interface Workspace {
   id: string;
   orgId: string;
@@ -144,12 +143,10 @@ export interface Workspace {
   protocol: string;
   capabilities: Capability[]; 
   members: MemberReference[]; 
-  teamIds: string[]; // 已授權的團隊 ID
-  partnerGroupIds: string[]; // 已授權的合作夥伴群組 ID
+  teamIds: string[]; 
+  partnerGroupIds: string[]; 
   tasks?: WorkspaceTask[];
   issues?: WorkspaceIssue[];
-  dailyLogs?: WorkspaceDaily[];
-  files?: WorkspaceFile[];
 }
 
 export interface User {
@@ -158,6 +155,9 @@ export interface User {
   email: string;
 }
 
+/**
+ * 第五層：原子數據 - 脈動與通知 (Resonance)
+ */
 export interface Notification {
   id: string;
   title: string;
@@ -167,6 +167,9 @@ export interface Notification {
   timestamp: number;
 }
 
+/**
+ * 維度脈動日誌 (Dimension Pulse Log)
+ */
 export interface PulseLog {
   id: string;
   orgId: string;

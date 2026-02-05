@@ -11,13 +11,13 @@ import {
   ChevronRight,
   Grid3X3,
   Users,
-  Handshake,
   History,
   MessageSquare,
   CalendarDays,
   Globe,
   Settings2,
-  Terminal
+  Terminal,
+  Box
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -50,10 +50,6 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useMemo } from "react";
 
-/**
- * DashboardSidebar - 職責：全站導航與空間快速切換
- * 結構：位於 src/components/dashboard/dashboard-sidebar.tsx
- */
 export function DashboardSidebar() {
   const router = useRouter();
   const pathname = usePathname();
@@ -90,7 +86,7 @@ export function DashboardSidebar() {
       
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50 px-3">控制中心</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50 px-3">維度核心 (Core)</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -106,7 +102,16 @@ export function DashboardSidebar() {
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/workspaces')}>
                   <Link href="/dashboard/workspaces" className="flex items-center gap-3">
                     <Layers className="w-4 h-4" />
-                    <span className="font-semibold">維度空間</span>
+                    <span className="font-semibold">空間節點</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard/workspaces/capabilities'}>
+                  <Link href="/dashboard/workspaces/capabilities" className="flex items-center gap-3">
+                    <Box className="w-4 h-4" />
+                    <span className="font-semibold">原子能力庫</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -125,21 +130,21 @@ export function DashboardSidebar() {
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/members'}>
                           <Link href="/dashboard/organization/members" className="flex items-center gap-2">
-                            <Users className="w-3 h-3" /> 成員名單
+                            <Users className="w-3 h-3" /> 成員名冊
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton asChild isActive={pathname.startsWith('/dashboard/organization/teams')}>
                           <Link href="/dashboard/organization/teams" className="flex items-center gap-2">
-                            <UserCircle className="w-3 h-3" /> 部門團隊
+                            <Grid3X3 className="w-3 h-3" /> 部門團隊
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton asChild isActive={pathname.startsWith('/dashboard/organization/partners')}>
                           <Link href="/dashboard/organization/partners" className="flex items-center gap-2">
-                            <Globe className="w-3 h-3" /> 合作夥伴
+                            <Globe className="w-3 h-3" /> 外部夥伴
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
@@ -153,7 +158,7 @@ export function DashboardSidebar() {
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/matrix'}>
                           <Link href="/dashboard/organization/matrix" className="flex items-center gap-2">
-                            <Grid3X3 className="w-3 h-3" /> 權限共振
+                            <Settings2 className="w-3 h-3" /> 權限共振
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
@@ -189,7 +194,7 @@ export function DashboardSidebar() {
         <SidebarSeparator className="mx-4 opacity-50" />
 
         <SidebarGroup>
-          <SidebarGroupLabel className="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">快速切換空間</SidebarGroupLabel>
+          <SidebarGroupLabel className="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">空間快速掛載</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {orgWorkspaces.map((workspace) => (

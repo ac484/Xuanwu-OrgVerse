@@ -2,7 +2,7 @@
 
 import { Workspace } from "@/types/domain";
 import { ArrowUpRight, Terminal } from "lucide-react";
-import { WorkspaceListItem } from "@/components/dashboard/workspaces/workspace-list-item";
+import { WorkspaceListItem } from "@/components/workspaces/workspace-list-item";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 

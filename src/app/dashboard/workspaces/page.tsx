@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { WorkspaceCard } from "@/components/dashboard/workspaces/workspace-card";
-import { WorkspaceListItem } from "@/components/dashboard/workspaces/workspace-list-item";
+import { WorkspaceCard } from "@/components/workspaces/workspace-card";
+import { WorkspaceListItem } from "@/components/workspaces/workspace-list-item";
 import { CreateWorkspaceDialog } from "./_components/create-workspace-dialog";
 
 /**

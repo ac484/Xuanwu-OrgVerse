@@ -18,15 +18,16 @@ import {
 } from "lucide-react";
 import { useFirebase } from "@/firebase/provider";
 import { doc, updateDoc, arrayRemove } from "firebase/firestore";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
-import { useCallback } from "react";
 import { toast } from "@/hooks/use-toast";
+import { useCallback } from "react";
 
 interface WorkspaceCapabilitiesProps {
   onOpenAddCap: () => void;
 }
 
+/**
+ * WorkspaceCapabilities - 職責：管理空間已掛載的「原子能力」
+ */
 export function WorkspaceCapabilities({ onOpenAddCap }: WorkspaceCapabilitiesProps) {
   const { workspace, emitEvent } = useWorkspace();
   const { db } = useFirebase();
@@ -36,15 +37,7 @@ export function WorkspaceCapabilities({ onOpenAddCap }: WorkspaceCapabilitiesPro
     updateDoc(wsRef, { capabilities: arrayRemove(cap) })
       .then(() => {
         emitEvent("卸載原子能力", cap.name);
-        toast({ title: "能力已卸載" });
-      })
-      .catch(async () => {
-        const error = new FirestorePermissionError({
-          path: wsRef.path,
-          operation: 'update',
-          requestResourceData: { capabilities: 'arrayRemove' }
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', error);
+        toast({ title: "原子能力已卸載" });
       });
   }, [workspace.id, db, emitEvent]);
 
@@ -64,13 +57,13 @@ export function WorkspaceCapabilities({ onOpenAddCap }: WorkspaceCapabilitiesPro
     <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-          <Box className="w-4 h-4" /> 已掛載單元
+          <Box className="w-4 h-4" /> 已掛載原子能力
         </h3>
         <button 
           onClick={onOpenAddCap}
           className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary hover:opacity-80 transition-opacity"
         >
-          <Plus className="w-3.5 h-3.5" /> 掛載能力
+          <Plus className="w-3.5 h-3.5" /> 掛載新能力
         </button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -89,7 +82,7 @@ export function WorkspaceCapabilities({ onOpenAddCap }: WorkspaceCapabilitiesPro
               <CardDescription className="text-[11px] mt-1 leading-relaxed">{cap.description}</CardDescription>
             </CardHeader>
             <CardFooter className="border-t border-border/10 flex justify-between items-center py-4 bg-muted/5">
-              <span className="text-[9px] font-mono text-muted-foreground opacity-60">ID: {cap.id.toUpperCase()}</span>
+              <span className="text-[9px] font-mono text-muted-foreground opacity-60">SPEC_ID: {cap.id.toUpperCase()}</span>
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -104,7 +97,7 @@ export function WorkspaceCapabilities({ onOpenAddCap }: WorkspaceCapabilitiesPro
         {(workspace.capabilities || []).length === 0 && (
           <div className="col-span-full p-20 text-center border-2 border-dashed rounded-3xl opacity-20">
             <Box className="w-12 h-12 mx-auto mb-4" />
-            <p className="text-xs font-bold uppercase tracking-widest">此空間尚未掛載任何能力</p>
+            <p className="text-xs font-bold uppercase tracking-widest">此空間尚未掛載任何原子能力</p>
           </div>
         )}
       </div>

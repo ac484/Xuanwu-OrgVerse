@@ -2,7 +2,7 @@
 
 import { Organization } from "@/types/domain";
 import { Globe, ArrowUpRight } from "lucide-react";
-import { OrganizationCard } from "@/components/dashboard/organization/organization-card";
+import { OrganizationCard } from "@/components/organization/organization-card";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
