@@ -9,7 +9,7 @@ import { Layout, ShieldCheck, Trophy, MessageSquare, AlertCircle, FileText, Laye
 import { useRouter } from "next/navigation";
 
 /**
- * CapabilitiesPage - 職責：原子能力規範註冊表 (Registry)
+ * CapabilitiesPage - 職責：原子能力註冊表 (Capability Registry)
  * 定義維度中所有可掛載至空間節點的技術規格與介面標準。
  */
 export default function CapabilitiesPage() {
@@ -38,7 +38,7 @@ export default function CapabilitiesPage() {
 
       <PageHeader 
         title="原子能力註冊表" 
-        description="定義可供空間節點掛載的技術規範與 Facade 接口，確保模組間保持絕對技術隔離。"
+        description="定義可供空間節點掛載的技術規範與單元標準，確保模組間保持絕對技術隔離。"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -59,7 +59,7 @@ export default function CapabilitiesPage() {
             <CardContent>
               <div className="flex items-center gap-2">
                 <Badge className="text-[9px] font-bold uppercase tracking-tighter bg-muted/60 text-muted-foreground border-none">
-                  TYPE: {cap.type.toUpperCase()}
+                  層級: 原子能力 (CAPABILITY)
                 </Badge>
               </div>
             </CardContent>
@@ -73,7 +73,7 @@ export default function CapabilitiesPage() {
         ))}
         <div className="p-8 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center bg-muted/5 border-border/40 hover:bg-muted/10 transition-colors">
           <Terminal className="w-8 h-8 text-muted-foreground mb-4 opacity-20" />
-          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em]">擴展原子能力</p>
+          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em]">擴展能力規格</p>
           <p className="text-[9px] text-muted-foreground/50 mt-2 max-w-[160px]">遵循維度協議規範，自定義您的專屬原子單元。</p>
         </div>
       </div>

@@ -127,7 +127,7 @@ export function WorkspaceDialogs({ openStates, onOpenChange }: WorkspaceDialogsP
     deleteDoc(wsRef)
       .then(() => {
         router.push("/dashboard/workspaces");
-        toast({ title: "空間已銷毀" });
+        toast({ title: "空間節點已銷毀" });
       })
       .catch(async () => {
         const error = new FirestorePermissionError({
@@ -140,13 +140,13 @@ export function WorkspaceDialogs({ openStates, onOpenChange }: WorkspaceDialogsP
 
   const handleAddCapability = useCallback((capKey: string) => {
     const capTemplates: Record<string, any> = {
-      'files': { id: 'files', name: '檔案空間', type: 'data', description: '管理空間內的文檔與資產。', status: 'stable' },
-      'tasks': { id: 'tasks', name: '原子任務', type: 'ui', description: '追蹤空間內的行動目標。', status: 'stable' },
-      'qa': { id: 'qa', name: '品質檢驗', type: 'ui', description: '檢核任務執行品質。', status: 'stable' },
-      'acceptance': { id: 'acceptance', name: '最終驗收', type: 'ui', description: '驗收成果並結案。', status: 'stable' },
-      'finance': { id: 'finance', name: '財務核算', type: 'ui', description: '處理資金撥付與清算單元。', status: 'beta' },
-      'issues': { id: 'issues', name: '議題追蹤', type: 'ui', description: '處理技術衝突與異常。', status: 'stable' },
-      'daily': { id: 'daily', name: '每日動態', type: 'ui', description: '極簡的技術協作日誌牆。', status: 'stable' },
+      'files': { id: 'files', name: '檔案空間', type: 'data', description: '管理維度內的文檔主權與技術資產。', status: 'stable' },
+      'tasks': { id: 'tasks', name: '原子任務', type: 'ui', description: '追蹤空間節點內的具體行動目標。', status: 'stable' },
+      'qa': { id: 'qa', name: '品質檢驗', type: 'ui', description: '檢核原子數據執行品質的治理單元。', status: 'stable' },
+      'acceptance': { id: 'acceptance', name: '最終驗收', type: 'ui', description: '驗收空間成果並終止 A 軌共振。', status: 'stable' },
+      'finance': { id: 'finance', name: '財務核算', type: 'ui', description: '追蹤維度預算與驗收後的資金撥付。', status: 'beta' },
+      'issues': { id: 'issues', name: '議題追蹤', type: 'ui', description: '處理技術衝突與 B 軌異常的治理模組。', status: 'stable' },
+      'daily': { id: 'daily', name: '每日動態', type: 'ui', description: '極簡的空間技術協作脈動牆。', status: 'stable' },
     };
     
     const template = capTemplates[capKey];
@@ -178,7 +178,7 @@ export function WorkspaceDialogs({ openStates, onOpenChange }: WorkspaceDialogsP
           </DialogHeader>
           <div className="space-y-6 py-4">
             <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-widest opacity-60">空間名稱</Label>
+              <Label className="text-xs font-bold uppercase tracking-widest opacity-60">空間節點名稱</Label>
               <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="rounded-xl h-11" />
             </div>
 
@@ -218,11 +218,11 @@ export function WorkspaceDialogs({ openStates, onOpenChange }: WorkspaceDialogsP
           </DialogHeader>
           <div className="space-y-6 py-4">
             <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-widest opacity-60">存取協議</Label>
+              <Label className="text-xs font-bold uppercase tracking-widest opacity-60">存取協議 (Protocol)</Label>
               <Input value={editProtocol} onChange={(e) => setEditProtocol(e.target.value)} className="rounded-xl h-11" />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-widest opacity-60">授權範疇</Label>
+              <Label className="text-xs font-bold uppercase tracking-widest opacity-60">授權範疇 (Scope)</Label>
               <Input value={editScope} onChange={(e) => setEditScope(e.target.value)} className="rounded-xl h-11" />
             </div>
           </div>
@@ -240,13 +240,13 @@ export function WorkspaceDialogs({ openStates, onOpenChange }: WorkspaceDialogsP
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             {[
-              { id: 'files', name: '檔案空間', icon: <FileText className="w-6 h-6" />, desc: '管理單元' },
-              { id: 'tasks', name: '原子任務', icon: <ListTodo className="w-6 h-6" />, desc: '追蹤單元' },
-              { id: 'qa', name: '品質檢驗', icon: <ShieldCheck className="w-6 h-6" />, desc: '檢核單元' },
-              { id: 'acceptance', name: '最終驗收', icon: <Trophy className="w-6 h-6" />, desc: '結案單元' },
-              { id: 'finance', name: '財務核算', icon: <Landmark className="w-6 h-6" />, desc: '預算單元' },
-              { id: 'issues', name: '議題追蹤', icon: <AlertCircle className="w-6 h-6" />, desc: '衝突處理' },
-              { id: 'daily', name: '每日動態', icon: <MessageSquare className="w-6 h-6" />, desc: '日誌單元' },
+              { id: 'files', name: '檔案空間', icon: <FileText className="w-6 h-6" />, desc: '管理主權文檔' },
+              { id: 'tasks', name: '原子任務', icon: <ListTodo className="w-6 h-6" />, desc: '追蹤行動目標' },
+              { id: 'qa', name: '品質檢驗', icon: <ShieldCheck className="w-6 h-6" />, desc: '執行數據品檢' },
+              { id: 'acceptance', name: '最終驗收', icon: <Trophy className="w-6 h-6" />, desc: '成果交付結案' },
+              { id: 'finance', name: '財務核算', icon: <Landmark className="w-6 h-6" />, desc: '預算撥付治理' },
+              { id: 'issues', name: '議題追蹤', icon: <AlertCircle className="w-6 h-6" />, desc: '處理異常衝突' },
+              { id: 'daily', name: '每日動態', icon: <MessageSquare className="w-6 h-6" />, desc: '技術脈動日誌' },
             ].map((cap) => (
               <Button 
                 key={cap.id} 
@@ -273,7 +273,7 @@ export function WorkspaceDialogs({ openStates, onOpenChange }: WorkspaceDialogsP
             <DialogTitle className="text-destructive font-headline text-xl">啟動空間銷毀協議</DialogTitle>
           </DialogHeader>
           <div className="py-4 p-4 bg-destructive/5 rounded-2xl border border-destructive/20 text-[11px] text-destructive italic">
-            此操作將永久抹除空間「{workspace?.name}」及其下屬的所有技術規格。
+            此操作將永久抹除空間節點「{workspace?.name}」及其下屬的所有原子數據與技術規格。
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange('delete', false)}>取消</Button>
