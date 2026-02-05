@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 /**
- * RecentWorkspaces - 職責：展示最近使用的邏輯容器列表
+ * RecentWorkspaces - 職責：展示最近使用的邏輯空間列表
  */
 export function RecentWorkspaces({ workspaces }: { workspaces: Workspace[] }) {
   const router = useRouter();

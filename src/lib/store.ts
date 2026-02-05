@@ -5,7 +5,7 @@ import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, Res
 /**
  * AppState - 職責：維度狀態管理核心
  * 實現 Organization 與 Workspace 雙層級成員管理。
- * 完全棄用 "Container" 語義，統一使用 "Workspace"。
+ * 已完全統一語義為 "Workspace (邏輯空間)"。
  */
 interface AppState {
   user: User | null;
