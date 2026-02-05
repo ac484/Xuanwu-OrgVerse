@@ -112,8 +112,8 @@ export interface Notification {
 export interface PulseLog {
   id: string;
   orgId: string;
-  workspaceId?: string;
-  timestamp: number;
+  workspaceId?: string; // 新增：用於精準過濾空間脈動
+  timestamp: any;
   actor: string;
   action: string;
   target: string;

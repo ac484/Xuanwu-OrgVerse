@@ -28,13 +28,14 @@ interface WorkspaceCapabilitiesProps {
 }
 
 export function WorkspaceCapabilities({ onOpenAddCap }: WorkspaceCapabilitiesProps) {
-  const { workspace } = useWorkspace();
+  const { workspace, emitEvent } = useWorkspace();
   const { db } = useFirebase();
 
   const handleRemoveCapability = useCallback((cap: any) => {
     const wsRef = doc(db, "workspaces", workspace.id);
     updateDoc(wsRef, { capabilities: arrayRemove(cap) })
       .then(() => {
+        emitEvent("卸載原子能力", cap.name); // 關鍵修復：觸發脈動日誌
         toast({ title: "能力已卸載" });
       })
       .catch(async () => {
@@ -45,7 +46,7 @@ export function WorkspaceCapabilities({ onOpenAddCap }: WorkspaceCapabilitiesPro
         } satisfies SecurityRuleContext);
         errorEmitter.emit('permission-error', error);
       });
-  }, [workspace.id, db]);
+  }, [workspace.id, db, emitEvent]);
 
   const getIcon = (id: string) => {
     switch (id) {

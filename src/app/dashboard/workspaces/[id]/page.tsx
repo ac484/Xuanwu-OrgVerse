@@ -23,7 +23,6 @@ import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { WorkspaceProvider, useWorkspace } from "./workspace-context";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAppStore } from "@/lib/store";
 
 import { WorkspaceFiles } from "./_components/workspace-files";
 import { WorkspaceTasks } from "./_components/workspace-tasks";
@@ -37,7 +36,7 @@ import { WorkspaceDialogs } from "./_components/workspace-dialogs";
 
 /**
  * WorkspaceDetailPage - 職責：作為空間治理的容器頁面。
- * 原子化重構：將對話框邏輯抽離至 WorkspaceDialogs，將能力列表抽離至 WorkspaceCapabilities。
+ * 術語對齊：統一使用「空間 (Space)」描述 Workspace。
  */
 export default function WorkspaceDetailPage() {
   const { id } = useParams();
@@ -50,23 +49,16 @@ export default function WorkspaceDetailPage() {
 }
 
 function WorkspaceContent() {
-  const { workspace, protocol, scope } = useWorkspace();
-  const pulseLogs = useAppStore(state => state.pulseLogs);
+  const { workspace, protocol, scope, localPulse } = useWorkspace();
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
-  // 對話框狀態
   const [dialogs, setDialogs] = useState({
     settings: false,
     specs: false,
     capabilities: false,
     delete: false
   });
-
-  const localPulse = useMemo(() => 
-    (pulseLogs || []).filter(log => log.target.includes(workspace.name)).slice(0, 15),
-    [pulseLogs, workspace.name]
-  );
 
   const mountedCapIds = useMemo(() => 
     (workspace.capabilities || []).map((c: any) => c.id),
@@ -91,7 +83,7 @@ function WorkspaceContent() {
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em]">
-            <span>邏輯空間</span>
+            <span>維度空間</span>
             <ChevronRight className="w-3 h-3 opacity-30" />
             <span className="text-foreground">{workspace.name}</span>
           </div>
@@ -224,6 +216,11 @@ function WorkspaceContent() {
                       </div>
                     </div>
                   ))}
+                  {localPulse.length === 0 && (
+                    <div className="p-12 text-center text-muted-foreground opacity-30 text-[10px] uppercase font-bold italic">
+                      尚無空間事件紀錄
+                    </div>
+                  )}
                 </div>
               </ScrollArea>
             </CardContent>

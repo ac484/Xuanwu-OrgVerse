@@ -49,6 +49,10 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useMemo } from "react";
 
+/**
+ * DashboardSidebar - 職責：全站導航與空間快速切換
+ * 術語對齊：統一使用「維度治理」與「空間」。
+ */
 export function DashboardSidebar() {
   const router = useRouter();
   const pathname = usePathname();
@@ -176,7 +180,7 @@ export function DashboardSidebar() {
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/workspaces')}>
                   <Link href="/dashboard/workspaces" className="flex items-center gap-3">
                     <Layers className="w-4 h-4" />
-                    <span className="font-semibold">邏輯空間</span>
+                    <span className="font-semibold">維度空間</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
