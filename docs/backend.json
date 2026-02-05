@@ -14,7 +14,7 @@
     }
   },
   "auth": {
-    "providers": ["password"]
+    "providers": ["password", "google.com", "anonymous"]
   },
   "firestore": {
     "workspaces/{workspaceId}/tasks/{taskId}": {
