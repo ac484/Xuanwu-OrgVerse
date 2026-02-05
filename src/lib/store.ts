@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, ResourceBlock, MemberReference, Team } from '@/types/domain';
+import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, ResourceBlock, MemberReference, Team, AuditLog } from '@/types/domain';
 
 interface AppState {
   user: User | null;
@@ -8,6 +8,7 @@ interface AppState {
   activeOrgId: string | null;
   workspaces: Workspace[];
   notifications: Notification[];
+  auditLogs: AuditLog[];
   
   login: (userData: User) => void;
   logout: () => void;
@@ -16,25 +17,28 @@ interface AppState {
   updateOrganization: (id: string, updates: Partial<Omit<Organization, 'id' | 'members' | 'teams'>>) => void;
   updateOrgTheme: (id: string, theme: ThemeConfig | undefined) => void;
   
-  // 組織成員 (Organization Members)
+  // 審計
+  addAuditLog: (log: Omit<AuditLog, 'id' | 'timestamp' | 'orgId'>) => void;
+  
+  // 組織成員
   addOrgMember: (orgId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
   removeOrgMember: (orgId: string, memberId: string) => void;
+  updateOrgMember: (orgId: string, memberId: string, updates: Partial<MemberReference>) => void;
   
-  // 組織團隊 (Organization Teams)
+  // 組織團隊
   addOrgTeam: (orgId: string, team: Omit<Team, 'id' | 'memberIds'>) => void;
   removeOrgTeam: (orgId: string, teamId: string) => void;
   
-  // 團隊成員分派 (Organization Team Members)
+  // 團隊成員分派
   addMemberToTeam: (orgId: string, teamId: string, memberId: string) => void;
   removeMemberFromTeam: (orgId: string, teamId: string, memberId: string) => void;
   
-  // 邏輯空間 (Workspace) 管理
+  // 邏輯空間
   addWorkspace: (workspace: Omit<Workspace, 'id' | 'specs' | 'members'>) => void;
   deleteWorkspace: (id: string) => void;
   addSpecToWorkspace: (workspaceId: string, spec: Omit<ResourceBlock, 'id'>) => void;
   removeSpecFromWorkspace: (workspaceId: string, specId: string) => void;
   
-  // 空間專屬成員管理 (Workspace Members)
   addWorkspaceMember: (workspaceId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
   removeWorkspaceMember: (workspaceId: string, memberId: string) => void;
   
@@ -45,7 +49,7 @@ interface AppState {
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       organizations: [
         { 
@@ -62,11 +66,21 @@ export const useAppStore = create<AppState>()(
       activeOrgId: 'personal',
       workspaces: [],
       notifications: [],
+      auditLogs: [],
 
       login: (userData) => set({ user: userData }),
       logout: () => set({ user: null, activeOrgId: 'personal' }),
       setActiveOrg: (id) => set({ activeOrgId: id }),
       
+      addAuditLog: (log) => set((state) => ({
+        auditLogs: [{
+          ...log,
+          id: `log-${Math.random().toString(36).substring(2, 9)}`,
+          timestamp: Date.now(),
+          orgId: state.activeOrgId || 'personal'
+        }, ...state.auditLogs].slice(0, 100)
+      })),
+
       addOrganization: (org) => set((state) => {
         const id = `org-${Math.random().toString(36).substring(2, 7)}`;
         const newOrg = { 
@@ -82,23 +96,30 @@ export const useAppStore = create<AppState>()(
           }] : [],
           teams: []
         };
-        return { organizations: [...state.organizations, newOrg], activeOrgId: id };
+        const newState = { organizations: [...state.organizations, newOrg], activeOrgId: id };
+        return newState;
       }),
 
-      updateOrganization: (id, updates) => set((state) => ({
-        organizations: state.organizations.map(o => o.id === id ? { ...o, ...updates } : o)
-      })),
+      updateOrganization: (id, updates) => {
+        set((state) => ({
+          organizations: state.organizations.map(o => o.id === id ? { ...o, ...updates } : o)
+        }));
+        get().addAuditLog({ actor: get().user?.name || 'System', action: '更新維度設定', target: id, type: 'update' });
+      },
       
       updateOrgTheme: (id, theme) => set((state) => ({
         organizations: state.organizations.map(o => o.id === id ? { ...o, theme } : o)
       })),
 
-      addOrgMember: (orgId, member) => set((state) => ({
-        organizations: state.organizations.map(o => o.id === orgId ? {
-          ...o,
-          members: [...(o.members || []), { ...member, id: `m-${Math.random().toString(36).substring(2, 6)}`, status: 'offline' }]
-        } : o)
-      })),
+      addOrgMember: (orgId, member) => {
+        set((state) => ({
+          organizations: state.organizations.map(o => o.id === orgId ? {
+            ...o,
+            members: [...(o.members || []), { ...member, id: `m-${Math.random().toString(36).substring(2, 6)}`, status: 'offline' }]
+          } : o)
+        }));
+        get().addAuditLog({ actor: get().user?.name || 'System', action: '招募成員', target: member.name, type: 'create' });
+      },
 
       removeOrgMember: (orgId, memberId) => set((state) => ({
         organizations: state.organizations.map(o => o.id === orgId ? {
@@ -108,12 +129,22 @@ export const useAppStore = create<AppState>()(
         } : o)
       })),
 
-      addOrgTeam: (orgId, team) => set((state) => ({
+      updateOrgMember: (orgId, memberId, updates) => set((state) => ({
         organizations: state.organizations.map(o => o.id === orgId ? {
           ...o,
-          teams: [...(o.teams || []), { ...team, id: `team-${Math.random().toString(36).substring(2, 6)}`, memberIds: [] }]
+          members: (o.members || []).map(m => m.id === memberId ? { ...m, ...updates } : m)
         } : o)
       })),
+
+      addOrgTeam: (orgId, team) => {
+        set((state) => ({
+          organizations: state.organizations.map(o => o.id === orgId ? {
+            ...o,
+            teams: [...(o.teams || []), { ...team, id: `team-${Math.random().toString(36).substring(2, 6)}`, memberIds: [] }]
+          } : o)
+        }));
+        get().addAuditLog({ actor: get().user?.name || 'System', action: '建立團隊', target: team.name, type: 'create' });
+      },
 
       removeOrgTeam: (orgId, teamId) => set((state) => ({
         organizations: state.organizations.map(o => o.id === orgId ? {
@@ -142,25 +173,31 @@ export const useAppStore = create<AppState>()(
         } : o)
       })),
       
-      addWorkspace: (workspace) => set((state) => ({
-        workspaces: [...state.workspaces, { 
-          ...workspace, 
-          id: `ws-${Math.random().toString(36).substring(2, 6)}`,
-          specs: [],
-          members: [] 
-        }]
-      })),
+      addWorkspace: (workspace) => {
+        set((state) => ({
+          workspaces: [...state.workspaces, { 
+            ...workspace, 
+            id: `ws-${Math.random().toString(36).substring(2, 6)}`,
+            specs: [],
+            members: [] 
+          }]
+        }));
+        get().addAuditLog({ actor: get().user?.name || 'System', action: '建立空間', target: workspace.name, type: 'create' });
+      },
 
       deleteWorkspace: (id) => set((state) => ({
         workspaces: state.workspaces.filter(w => w.id !== id)
       })),
 
-      addSpecToWorkspace: (workspaceId, spec) => set((state) => ({
-        workspaces: state.workspaces.map(w => w.id === workspaceId ? {
-          ...w,
-          specs: [...(w.specs || []), { ...spec, id: `spec-${Math.random().toString(36).substring(2, 6)}` }]
-        } : w)
-      })),
+      addSpecToWorkspace: (workspaceId, spec) => {
+        set((state) => ({
+          workspaces: state.workspaces.map(w => w.id === workspaceId ? {
+            ...w,
+            specs: [...(w.specs || []), { ...spec, id: `spec-${Math.random().toString(36).substring(2, 6)}` }]
+          } : w)
+        }));
+        get().addAuditLog({ actor: get().user?.name || 'System', action: '掛載規格', target: spec.name, type: 'update' });
+      },
 
       removeSpecFromWorkspace: (workspaceId, specId) => set((state) => ({
         workspaces: state.workspaces.map(w => w.id === workspaceId ? {

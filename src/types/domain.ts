@@ -12,11 +12,12 @@ export interface MemberReference {
   email: string;
   role: UserRole;
   status: 'active' | 'away' | 'offline';
+  isExternal?: boolean;
+  expiryDate?: string; // 對於外部成員的有效期限
 }
 
 /**
  * Team (組織團隊/部門)
- * 職責：組織內部的邏輯分組，如技術部、行銷部。
  */
 export interface Team {
   id: string;
@@ -76,4 +77,17 @@ export interface Notification {
   type: 'info' | 'alert' | 'success';
   read: boolean;
   timestamp: number;
+}
+
+/**
+ * AuditLog (審計日誌)
+ */
+export interface AuditLog {
+  id: string;
+  orgId: string;
+  timestamp: number;
+  actor: string;
+  action: string;
+  target: string;
+  type: 'create' | 'update' | 'delete' | 'access';
 }

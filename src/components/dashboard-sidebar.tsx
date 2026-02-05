@@ -11,7 +11,10 @@ import {
   UserCircle,
   FolderTree,
   ChevronRight,
-  Settings
+  Settings,
+  Activity,
+  Grid3X3,
+  GlobeLock
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -84,6 +87,15 @@ export function DashboardSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard/organization/audit'} className="transition-all duration-200">
+                  <Link href="/dashboard/organization/audit" className="flex items-center gap-3">
+                    <Activity className="w-4 h-4" />
+                    <span className="font-semibold">審計串流</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
               <Collapsible defaultOpen className="group/collapsible">
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
@@ -103,6 +115,20 @@ export function DashboardSidebar() {
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton asChild isActive={pathname.startsWith('/dashboard/organization/teams')}>
                           <Link href="/dashboard/organization/teams">部門團隊 (Teams)</Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/matrix'}>
+                          <Link href="/dashboard/organization/matrix" className="flex items-center gap-2">
+                            <Grid3X3 className="w-3 h-3" /> 權限矩陣
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/external'}>
+                          <Link href="/dashboard/organization/external" className="flex items-center gap-2">
+                            <GlobeLock className="w-3 h-3" /> 外部閘道
+                          </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
