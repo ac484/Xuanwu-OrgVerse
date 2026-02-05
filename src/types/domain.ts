@@ -1,4 +1,5 @@
 export type UserRole = 'Owner' | 'Admin' | 'Member' | 'Guest';
+export type WorkspaceStatus = 'preparatory' | 'active' | 'stopped';
 
 export interface ThemeConfig {
   primary: string;
@@ -127,6 +128,7 @@ export interface Workspace {
   id: string;
   orgId: string;
   name: string;
+  status: WorkspaceStatus;
   visibility: 'visible' | 'hidden'; 
   scope: string[];
   protocol: string;

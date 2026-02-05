@@ -22,6 +22,13 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { 
   FileText, 
   ListTodo, 
   ShieldCheck, 
@@ -30,6 +37,7 @@ import {
   MessageSquare,
   Landmark
 } from "lucide-react";
+import { WorkspaceStatus } from "@/types/domain";
 
 interface WorkspaceDialogsProps {
   openStates: {
@@ -48,6 +56,7 @@ export function WorkspaceDialogs({ openStates, onOpenChange }: WorkspaceDialogsP
 
   const [editName, setEditName] = useState(workspace?.name || "");
   const [editVisibility, setEditVisibility] = useState(workspace?.visibility || "visible");
+  const [editStatus, setEditStatus] = useState<WorkspaceStatus>(workspace?.status || "preparatory");
   const [editProtocol, setEditProtocol] = useState(workspace?.protocol || "");
   const [editScope, setEditScope] = useState((workspace?.scope || []).join(", "));
 
@@ -55,6 +64,7 @@ export function WorkspaceDialogs({ openStates, onOpenChange }: WorkspaceDialogsP
     if (workspace) {
       setEditName(workspace.name);
       setEditVisibility(workspace.visibility);
+      setEditStatus(workspace.status || "preparatory");
       setEditProtocol(workspace.protocol || "");
       setEditScope((workspace.scope || []).join(", "));
     }
@@ -67,11 +77,15 @@ export function WorkspaceDialogs({ openStates, onOpenChange }: WorkspaceDialogsP
 
   const handleUpdateSettings = useCallback(() => {
     const wsRef = doc(db, "workspaces", workspace.id);
-    const updates = { name: editName, visibility: editVisibility };
+    const updates = { 
+      name: editName, 
+      visibility: editVisibility,
+      status: editStatus
+    };
     
     updateDoc(wsRef, updates)
       .then(() => {
-        emitEvent("校準空間設定", editName);
+        emitEvent("校準空間設定", `${editName} [${editStatus}]`);
         onOpenChange('settings', false);
         toast({ title: "空間規格已同步" });
       })
@@ -83,7 +97,7 @@ export function WorkspaceDialogs({ openStates, onOpenChange }: WorkspaceDialogsP
         } satisfies SecurityRuleContext);
         errorEmitter.emit('permission-error', error);
       });
-  }, [workspace.id, editName, editVisibility, db, emitEvent, onOpenChange]);
+  }, [workspace.id, editName, editVisibility, editStatus, db, emitEvent, onOpenChange]);
 
   const handleUpdateSpecs = useCallback(() => {
     const wsRef = doc(db, "workspaces", workspace.id);
@@ -167,8 +181,26 @@ export function WorkspaceDialogs({ openStates, onOpenChange }: WorkspaceDialogsP
               <Label className="text-xs font-bold uppercase tracking-widest opacity-60">空間名稱</Label>
               <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="rounded-xl h-11" />
             </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-widest opacity-60">當前狀態</Label>
+              <Select value={editStatus} onValueChange={(v: WorkspaceStatus) => setEditStatus(v)}>
+                <SelectTrigger className="rounded-xl h-11">
+                  <SelectValue placeholder="選擇狀態" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="preparatory">籌備 (Preparatory)</SelectItem>
+                  <SelectItem value="active">啟動 (Active)</SelectItem>
+                  <SelectItem value="stopped">停止 (Stopped)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-border/60">
-              <Label className="text-sm font-bold">空間可見性</Label>
+              <div className="space-y-0.5">
+                <Label className="text-sm font-bold">空間可見性</Label>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold">決定是否顯示於維度目錄</p>
+              </div>
               <Switch checked={editVisibility === 'visible'} onCheckedChange={(checked) => setEditVisibility(checked ? 'visible' : 'hidden')} />
             </div>
           </div>

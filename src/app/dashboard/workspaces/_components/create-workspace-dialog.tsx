@@ -14,11 +14,19 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { useFirebase } from "@/firebase/provider";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
+import { WorkspaceStatus } from "@/types/domain";
 
 interface CreateWorkspaceDialogProps {
   open: boolean;
@@ -32,6 +40,7 @@ export function CreateWorkspaceDialog({ open, onOpenChange, activeOrgName, activ
   const { user } = useAppStore();
   const [name, setName] = useState("");
   const [isVisible, setIsVisible] = useState(true);
+  const [status, setStatus] = useState<WorkspaceStatus>("preparatory");
 
   const handleCreate = () => {
     if (!name.trim() || !user) return;
@@ -40,6 +49,7 @@ export function CreateWorkspaceDialog({ open, onOpenChange, activeOrgName, activ
       name,
       orgId: activeOrgId,
       ownerId: user.id,
+      status,
       visibility: isVisible ? 'visible' : 'hidden',
       protocol: '標準存取協議',
       scope: ['驗證', '運算'],
@@ -81,8 +91,22 @@ export function CreateWorkspaceDialog({ open, onOpenChange, activeOrgName, activ
               value={name} 
               onChange={(e) => setName(e.target.value)} 
               placeholder="例如: 核心解析空間" 
-              className="rounded-xl"
+              className="rounded-xl h-11"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>初始狀態</Label>
+            <Select value={status} onValueChange={(v: WorkspaceStatus) => setStatus(v)}>
+              <SelectTrigger className="rounded-xl h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="preparatory">籌備 (Preparatory)</SelectItem>
+                <SelectItem value="active">啟動 (Active)</SelectItem>
+                <SelectItem value="stopped">停止 (Stopped)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-border/60">
@@ -100,7 +124,7 @@ export function CreateWorkspaceDialog({ open, onOpenChange, activeOrgName, activ
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
-          <Button onClick={handleCreate} className="rounded-xl">確認建立</Button>
+          <Button onClick={handleCreate} className="rounded-xl shadow-lg shadow-primary/20">確認建立</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
