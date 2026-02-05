@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -33,6 +34,8 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { useFirebase } from "@/firebase/provider";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 
 export function GlobalSwitcher() {
   const { organizations, activeOrgId, setActiveOrg, user } = useAppStore();
@@ -43,30 +46,37 @@ export function GlobalSwitcher() {
 
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
 
-  const handleCreateOrg = async () => {
+  const handleCreateOrg = () => {
     if (!newOrgName.trim() || !user) return;
     
-    try {
-      // 真正將資料寫入 Firebase Firestore
-      await addDoc(collection(db, "organizations"), {
-        name: newOrgName,
-        description: newOrgDescription || "General dimension profile",
-        ownerId: user.id,
-        role: "Owner",
-        createdAt: serverTimestamp(),
-        members: [{ id: user.id, name: user.name, email: user.email, role: 'Owner', status: 'active' }]
-      });
+    const orgData = {
+      name: newOrgName,
+      description: newOrgDescription || "General dimension profile",
+      ownerId: user.id,
+      role: "Owner",
+      createdAt: serverTimestamp(),
+      members: [{ id: user.id, name: user.name, email: user.email, role: 'Owner', status: 'active' }]
+    };
 
-      setNewOrgName("");
-      setNewOrgDescription("");
-      setIsCreateOpen(false);
-      toast({
-        title: "新維度已建立",
-        description: `${newOrgName} 現已同步至雲端環境。`,
+    // 遵循規範：不使用 await，鏈接 .catch() 以捕捉權限錯誤
+    addDoc(collection(db, "organizations"), orgData)
+      .then(() => {
+        setNewOrgName("");
+        setNewOrgDescription("");
+        setIsCreateOpen(false);
+        toast({
+          title: "新維度已建立",
+          description: `${newOrgName} 現已同步至雲端環境。`,
+        });
+      })
+      .catch(async (error) => {
+        const permissionError = new FirestorePermissionError({
+          path: 'organizations',
+          operation: 'create',
+          requestResourceData: orgData
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
       });
-    } catch (error) {
-      toast({ variant: "destructive", title: "建立失敗", description: "無法同步至 Firestore。" });
-    }
   };
 
   return (

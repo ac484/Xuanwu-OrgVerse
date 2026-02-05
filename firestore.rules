@@ -1,19 +1,32 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // 判斷使用者是否已驗證身分
+    function isSignedIn() {
+      return request.auth != null;
+    }
 
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
+    // 組織規則：只有 ownerId 匹配的人員可以訪問其維度
+    match /organizations/{orgId} {
+      allow read, write: if isSignedIn() && request.auth.uid == resource.data.ownerId;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.ownerId;
+    }
+
+    // 空間規則：暫時開放給所有登入者（開發階段），後續將改為基於組織成員關係
+    match /workspaces/{workspaceId} {
+      allow read, write: if isSignedIn();
+      
+      match /tasks/{taskId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+    
+    // 預設拒絕所有其他不匹配的請求
     match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2026, 3, 7);
+      allow read, write: if false;
     }
   }
 }
