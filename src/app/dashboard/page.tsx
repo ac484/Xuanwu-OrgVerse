@@ -6,13 +6,21 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCards } from "./_components/stat-cards";
 import { RecentWorkspaces } from "./_components/recent-workspaces";
 import { PermissionConstellation } from "./_components/permission-constellation";
+import { useState, useEffect } from "react";
 
 /**
  * DashboardPage - 職責：維度脈動主控台
- * 僅負責佈局與展示邏輯空間的活躍狀態。
+ * 僅負責佈局與展示組織子單元的活躍狀態。
  */
 export default function DashboardPage() {
   const { organizations, activeOrgId, workspaces } = useAppStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
   
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
   const orgWorkspaces = workspaces.filter(w => w.orgId === activeOrgId);
@@ -21,7 +29,7 @@ export default function DashboardPage() {
     <div className="space-y-8 max-w-7xl mx-auto animate-in fade-in duration-700">
       <PageHeader 
         title="維度脈動" 
-        description={activeOrg.context}
+        description="當前組織維度的運行狀態與子單元概覽。"
         badge={
           <Badge variant="outline" className="border-primary/30 text-primary uppercase text-[10px] tracking-widest font-bold bg-primary/5 px-2 py-1">
             當前維度: {activeOrg.name}
@@ -31,7 +39,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-6 bg-muted/40 p-4 rounded-2xl border border-border/50">
           <div className="text-center px-4 border-r border-border/50">
             <p className="text-2xl font-bold font-headline">{orgWorkspaces.length}</p>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold">活躍空間</p>
+            <p className="text-[10px] text-muted-foreground uppercase font-bold">子單元空間</p>
           </div>
           <div className="text-center px-4">
             <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">主權級別</p>

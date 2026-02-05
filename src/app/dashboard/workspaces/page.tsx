@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { 
@@ -18,13 +18,20 @@ import { WorkspaceListItem } from "@/components/dashboard/workspaces/workspace-l
 import { CreateWorkspaceDialog } from "./_components/create-workspace-dialog";
 
 /**
- * WorkspacesPage - 職責：管理邏輯空間列表的導覽與篩選
+ * WorkspacesPage - 職責：管理組織附屬的邏輯空間子單元
  */
 export default function WorkspacesPage() {
   const { organizations, activeOrgId, workspaces, deleteWorkspace } = useAppStore();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
   const orgWorkspaces = workspaces.filter(w => 
@@ -36,7 +43,7 @@ export default function WorkspacesPage() {
     <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500">
       <PageHeader 
         title="邏輯空間" 
-        description="當前維度中定義的活躍邏輯邊界。"
+        description="隸屬於此組織維度的子單元，負責定義獨立的技術邊界與能力規範。"
       >
         <div className="flex items-center gap-2">
           <div className="flex items-center border rounded-lg bg-background p-1 shadow-sm border-border/60">
@@ -58,7 +65,7 @@ export default function WorkspacesPage() {
             </Button>
           </div>
           <Button className="gap-2 shadow-sm font-bold uppercase tracking-widest text-[11px] h-10 px-4" onClick={() => setIsCreateOpen(true)}>
-            <Plus className="w-4 h-4" /> 建立邏輯空間
+            <Plus className="w-4 h-4" /> 建立空間單元
           </Button>
         </div>
       </PageHeader>
@@ -97,7 +104,7 @@ export default function WorkspacesPage() {
           <Terminal className="w-16 h-16 text-muted-foreground mx-auto mb-6 opacity-10" />
           <h3 className="text-2xl font-bold font-headline mb-2">空間虛無</h3>
           <p className="text-muted-foreground max-w-sm mx-auto mb-8 text-sm">
-            當前維度中沒有符合條件的邏輯節點。
+            當前維度中沒有符合條件的邏輯子單元。
           </p>
           <Button size="lg" onClick={() => setIsCreateOpen(true)} className="rounded-full px-8 shadow-lg font-bold uppercase tracking-widest text-xs">
             建立初始空間

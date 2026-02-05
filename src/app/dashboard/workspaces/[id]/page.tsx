@@ -20,20 +20,27 @@ import {
   Plus,
   Users,
   UserPlus,
-  Trash2,
-  Mail
+  Trash2
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 
 /**
  * WorkspaceDetailPage
- * 職責：管理邏輯空間的「基礎設施」、「原子能力註冊表」以及「成員存取權」。
+ * 職責：管理組織子單元的技術規格與人員存取。
  */
 export default function WorkspaceDetailPage() {
   const { id } = useParams();
   const { workspaces, addSpecToWorkspace, addWorkspaceMember, removeWorkspaceMember } = useAppStore();
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   const workspace = workspaces.find(w => w.id === id);
 
@@ -52,7 +59,7 @@ export default function WorkspaceDetailPage() {
       name: "新原子能力規格",
       type: "api",
       status: "beta",
-      description: "於此空間邊界內定義的技術規範單元。"
+      description: "於此空間子單元內定義的技術規範單元。"
     });
     toast({
       title: "規格已註冊",
@@ -74,12 +81,12 @@ export default function WorkspaceDetailPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
           <ArrowLeft className="w-4 h-4" />
         </Button>
-        <span className="text-xs font-bold uppercase tracking-widest">邏輯空間 / {workspace.name}</span>
+        <span className="text-xs font-bold uppercase tracking-widest">組織子單元 / {workspace.name}</span>
       </div>
 
       <PageHeader 
         title={workspace.name} 
-        description={`運行環境定義: ${workspace.context}`}
+        description={`子單元運行環境: ${workspace.context}`}
         badge={
           <Badge className="bg-primary/10 text-primary border-primary/20 uppercase text-[9px] tracking-widest font-bold">
             ID: {workspace.id.toUpperCase()}
@@ -99,8 +106,8 @@ export default function WorkspaceDetailPage() {
       <Tabs defaultValue="infra" className="space-y-6">
         <TabsList className="bg-muted/40 p-1 border border-border/50">
           <TabsTrigger value="infra" className="text-[10px] font-bold uppercase tracking-widest px-6">基礎設施定義</TabsTrigger>
-          <TabsTrigger value="specs" className="text-[10px] font-bold uppercase tracking-widest px-6">能力註冊表 (Specs)</TabsTrigger>
-          <TabsTrigger value="members" className="text-[10px] font-bold uppercase tracking-widest px-6">成員管理</TabsTrigger>
+          <TabsTrigger value="specs" className="text-[10px] font-bold uppercase tracking-widest px-6">專屬註冊表 (Specs)</TabsTrigger>
+          <TabsTrigger value="members" className="text-[10px] font-bold uppercase tracking-widest px-6">人員存取權</TabsTrigger>
         </TabsList>
 
         <TabsContent value="infra" className="space-y-6">
@@ -111,7 +118,7 @@ export default function WorkspaceDetailPage() {
                   <Globe className="w-3.5 h-3.5" />
                   運行範圍 (Scope)
                 </CardTitle>
-                <CardDescription className="text-xs">定義此空間的邏輯邊界與運行時上下文。</CardDescription>
+                <CardDescription className="text-xs">定義子單元的邏輯邊界與運行時上下文。</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="p-3 bg-muted/30 rounded-lg border border-border/40">
