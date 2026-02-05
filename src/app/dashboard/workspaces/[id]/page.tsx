@@ -10,7 +10,6 @@ import {
   ArrowLeft, 
   Settings, 
   Zap, 
-  Terminal,
   Globe,
   Database,
   Code,
@@ -22,13 +21,12 @@ import {
   Box,
   Layout,
   Activity,
-  Users,
+  ChevronRight,
+  Clock,
   FileText,
   ListTodo,
   AlertCircle,
-  MessageSquare,
-  ChevronRight,
-  Clock
+  MessageSquare
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
@@ -49,7 +47,7 @@ import { WorkspaceMembersManagement } from "./_components/workspace-members-mana
 
 /**
  * WorkspaceDetailPage - 職責：深度管理特定的邏輯空間
- * 優化點：整合檔案、任務、議題、動態牆與成員治理閉環。
+ * 已重構：UI 標籤頁現在完全由「已掛載的原子能力」動態驅動。
  */
 export default function WorkspaceDetailPage() {
   const { id } = useParams();
@@ -81,8 +79,7 @@ function WorkspaceContent() {
   const router = useRouter();
 
   const activeOrg = organizations.find(o => o.id === activeOrgId);
-  const localPulse = (pulseLogs || []).filter(log => log.target.includes(workspace.name)).slice(0, 8);
-  const assignedTeams = activeOrg?.teams?.filter(t => (workspace?.teamIds || []).includes(t.id)) || [];
+  const localPulse = (pulseLogs || []).filter(log => log.target.includes(workspace.name)).slice(0, 10);
 
   const [editName, setEditName] = useState("");
   const [editVisibility, setEditVisibility] = useState<"visible" | "hidden">("visible");
@@ -118,33 +115,35 @@ function WorkspaceContent() {
     toast({ title: "授權範疇已重定義" });
   };
 
-  const handleAddCapability = (capType: 'ui' | 'api' | 'data') => {
-    const caps = {
-      ui: { name: '新 UI 單元', description: '自定義的原子化視覺組件。' },
-      api: { name: '新 API 接口', description: '標準化的數據交換邏輯。' },
-      data: { name: '新數據帳本', description: '具備主權追蹤能力的持久化層。' }
+  const handleAddCapability = (capKey: string) => {
+    const capTemplates: Record<string, any> = {
+      'files': { name: '檔案空間', type: 'data', description: '管理維度內的文檔與資產。' },
+      'tasks': { name: '原子任務', type: 'ui', description: '追蹤空間內的行動目標。' },
+      'issues': { name: '議題追蹤', type: 'ui', description: '回報並處理技術衝突。' },
+      'daily': { name: '每日動態', type: 'ui', description: '極簡的技術協作日誌牆。' },
     };
     
-    addCapabilityToWorkspace(workspace.id, { ...caps[capType], type: capType, status: "beta" });
-    emitEvent("掛載原子能力", caps[capType].name);
-    setIsAddCapOpen(false);
-    toast({ title: "原子能力已掛載" });
+    const template = capTemplates[capKey];
+    if (template) {
+      addCapabilityToWorkspace(workspace.id, { ...template, id: capKey, status: "stable" });
+      emitEvent("掛載原子能力", template.name);
+      setIsAddCapOpen(false);
+      toast({ title: `${template.name} 已掛載` });
+    }
   };
 
-  const handleDeleteWorkspace = () => {
-    deleteWorkspace(workspace.id);
-    router.push("/dashboard/workspaces");
-    toast({ title: "空間已銷毀", description: "該空間的所有技術規格已抹除。" });
-  };
-
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'ui': return <Layout className="w-5 h-5" />;
-      case 'api': return <Code className="w-5 h-5" />;
-      case 'data': return <Database className="w-5 h-5" />;
+  const getIcon = (id: string) => {
+    switch (id) {
+      case 'files': return <FileText className="w-5 h-5" />;
+      case 'tasks': return <ListTodo className="w-5 h-5" />;
+      case 'issues': return <AlertCircle className="w-5 h-5" />;
+      case 'daily': return <MessageSquare className="w-5 h-5" />;
       default: return <Layers className="w-5 h-5" />;
     }
   };
+
+  // 判斷哪些能力已被掛載
+  const mountedCapIds = (workspace.capabilities || []).map(c => c.id);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500 pb-20">
@@ -162,7 +161,7 @@ function WorkspaceContent() {
         <Button 
           variant="outline" 
           size="sm" 
-          className="text-destructive border-destructive/20 hover:bg-destructive/5 font-bold uppercase text-[10px] tracking-widest shadow-sm"
+          className="text-destructive border-destructive/20 hover:bg-destructive/5 font-bold uppercase text-[10px] tracking-widest"
           onClick={() => setIsDeleteConfirmOpen(true)}
         >
           <Trash2 className="w-3.5 h-3.5 mr-2" /> 銷毀空間
@@ -174,7 +173,7 @@ function WorkspaceContent() {
         description="管理此空間的原子能力堆疊、資料交換與治理協議。"
         badge={
           <div className="flex items-center gap-2 mb-2">
-            <Badge className="bg-primary/10 text-primary border-primary/20 uppercase text-[9px] tracking-[0.1em] font-bold px-2 py-0.5 shadow-sm">
+            <Badge className="bg-primary/10 text-primary border-primary/20 uppercase text-[9px] tracking-[0.1em] font-bold px-2 py-0.5">
               ID: {workspace.id.toUpperCase()}
             </Badge>
             <Badge variant="outline" className="text-[9px] uppercase font-bold flex items-center gap-1 bg-background/50 backdrop-blur-sm">
@@ -185,7 +184,7 @@ function WorkspaceContent() {
         }
       >
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase text-[10px] tracking-widest shadow-sm" onClick={() => setIsSettingsOpen(true)}>
+          <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase text-[10px] tracking-widest" onClick={() => setIsSettingsOpen(true)}>
             <Settings className="w-3.5 h-3.5" /> 空間設定
           </Button>
           <Button size="sm" className="h-9 gap-2 font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20" onClick={() => setIsSpecsOpen(true)}>
@@ -198,19 +197,19 @@ function WorkspaceContent() {
         <div className="lg:col-span-3">
           <Tabs defaultValue="capabilities" className="space-y-6">
             <TabsList className="bg-muted/40 p-1 border border-border/50 rounded-xl w-full flex overflow-x-auto justify-start no-scrollbar">
-              <TabsTrigger value="capabilities" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg flex-shrink-0">原子能力</TabsTrigger>
-              <TabsTrigger value="files" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg flex-shrink-0">檔案</TabsTrigger>
-              <TabsTrigger value="tasks" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg flex-shrink-0">任務</TabsTrigger>
-              <TabsTrigger value="issues" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg flex-shrink-0">議題</TabsTrigger>
-              <TabsTrigger value="daily" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg flex-shrink-0">動態牆</TabsTrigger>
-              <TabsTrigger value="members" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg flex-shrink-0">存取治理</TabsTrigger>
-              <TabsTrigger value="specs" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg flex-shrink-0">技術規格</TabsTrigger>
+              <TabsTrigger value="capabilities" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">能力清單</TabsTrigger>
+              {mountedCapIds.includes('files') && <TabsTrigger value="files" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">檔案</TabsTrigger>}
+              {mountedCapIds.includes('tasks') && <TabsTrigger value="tasks" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">任務</TabsTrigger>}
+              {mountedCapIds.includes('issues') && <TabsTrigger value="issues" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">議題</TabsTrigger>}
+              {mountedCapIds.includes('daily') && <TabsTrigger value="daily" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">動態牆</TabsTrigger>}
+              <TabsTrigger value="members" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">存取治理</TabsTrigger>
+              <TabsTrigger value="specs" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">技術規格</TabsTrigger>
             </TabsList>
 
             <TabsContent value="capabilities" className="space-y-6 animate-in fade-in duration-300">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                  <Box className="w-4 h-4" /> 註冊能力單元
+                  <Box className="w-4 h-4" /> 已掛載單元
                 </h3>
                 <Button size="sm" variant="outline" className="h-8 gap-2 font-bold text-[9px] uppercase tracking-widest" onClick={() => setIsAddCapOpen(true)}>
                   <Plus className="w-3 h-3" /> 掛載能力
@@ -222,7 +221,7 @@ function WorkspaceContent() {
                     <CardHeader className="pb-4">
                       <div className="flex items-center justify-between mb-4">
                         <div className="p-2.5 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-                          {getIcon(cap.type)}
+                          {getIcon(cap.id)}
                         </div>
                         <Badge variant="outline" className="text-[9px] uppercase font-bold px-1.5 bg-background">
                           {cap.status === 'stable' ? 'PRODUCTION' : 'BETA'}
@@ -239,6 +238,13 @@ function WorkspaceContent() {
                     </CardFooter>
                   </Card>
                 ))}
+                {(workspace.capabilities || []).length === 0 && (
+                  <div className="col-span-full p-20 text-center border-2 border-dashed rounded-3xl opacity-20">
+                    <Box className="w-12 h-12 mx-auto mb-4" />
+                    <p className="text-xs font-bold uppercase tracking-widest">此空間尚未掛載任何能力</p>
+                    <Button variant="link" onClick={() => setIsAddCapOpen(true)} className="mt-2 text-primary font-bold">立即掛載</Button>
+                  </div>
+                )}
               </div>
             </TabsContent>
 
@@ -369,16 +375,30 @@ function WorkspaceContent() {
         <DialogContent className="rounded-2xl">
           <DialogHeader>
             <DialogTitle className="font-headline text-2xl">掛載原子能力</DialogTitle>
+            <DialogDescription>選取要堆疊至此維度空間的技術單元。</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-1 gap-4 py-4">
-            {['ui', 'api', 'data'].map((type) => (
-              <Button key={type} variant="outline" className="justify-start h-20 gap-4 rounded-2xl hover:bg-primary/5 group" onClick={() => handleAddCapability(type as any)}>
+            {[
+              { id: 'files', name: '檔案空間', icon: <FileText className="w-6 h-6" />, desc: '文檔資產管理單元' },
+              { id: 'tasks', name: '原子任務', icon: <ListTodo className="w-6 h-6" />, desc: '行動目標追蹤單元' },
+              { id: 'issues', name: '議題追蹤', icon: <AlertCircle className="w-6 h-6" />, desc: '技術衝突回報單元' },
+              { id: 'daily', name: '每日動態', icon: <MessageSquare className="w-6 h-6" />, desc: '技術協作日誌牆' },
+            ].map((cap) => (
+              <Button 
+                key={cap.id} 
+                variant="outline" 
+                className={`justify-start h-20 gap-4 rounded-2xl hover:bg-primary/5 group ${mountedCapIds.includes(cap.id) ? 'opacity-50 grayscale pointer-events-none' : ''}`} 
+                onClick={() => handleAddCapability(cap.id)}
+              >
                 <div className="p-3 bg-primary/10 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground">
-                  {type === 'ui' ? <Layout className="w-6 h-6" /> : type === 'api' ? <Code className="w-6 h-6" /> : <Database className="w-6 h-6" />}
+                  {cap.icon}
                 </div>
                 <div className="text-left">
-                  <p className="text-sm font-bold uppercase">{type.toUpperCase()} 單元</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">掛載新的技術規範擴展維度功能</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold uppercase">{cap.name}</p>
+                    {mountedCapIds.includes(cap.id) && <Badge className="text-[8px] h-3.5 px-1 bg-green-500/20 text-green-600 border-none">已掛載</Badge>}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{cap.desc}</p>
                 </div>
               </Button>
             ))}
