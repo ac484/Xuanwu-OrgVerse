@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, ReactNode } from 'react';
@@ -6,7 +5,7 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth } from 'firebase/auth';
 import { FirebaseStorage } from 'firebase/storage';
-import { FirebaseErrorListener } from '@/components/firebase-error-listener';
+import { FirebaseErrorListener } from '@/components/dashboard/firebase-error-listener';
 
 interface FirebaseContextType {
   app: FirebaseApp;
