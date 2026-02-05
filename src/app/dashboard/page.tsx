@@ -9,13 +9,17 @@ import { RecentWorkspaces } from "./_components/recent-workspaces";
 import { RecentOrganizations } from "./_components/recent-organizations";
 import { PermissionConstellation } from "./_components/permission-constellation";
 import { useState, useEffect, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Grid3X3, History, ArrowUpRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 /**
  * DashboardPage - 職責：維度脈動主控台
- * 優化：統一 UI 名稱與底層資料結構，提升認知一致性。
+ * 優化：加入治理中心快捷入口，提升核心功能可見性。
  */
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   const organizations = useAppStore(state => state.organizations);
   const activeOrgId = useAppStore(state => state.activeOrgId);
@@ -38,7 +42,7 @@ export default function DashboardPage() {
   if (!mounted || !activeOrg) return null;
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto animate-in fade-in duration-700">
+    <div className="space-y-8 max-w-7xl mx-auto animate-in fade-in duration-700 pb-20">
       <PageHeader 
         title="維度中心" 
         description="管理當前維度的架構狀態、節點演進與身份共振。"
@@ -59,6 +63,42 @@ export default function DashboardPage() {
           </div>
         </div>
       </PageHeader>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Button 
+          variant="outline" 
+          className="h-24 rounded-3xl border-border/60 bg-card/50 hover:bg-primary/5 hover:border-primary/40 flex items-center justify-between px-8 group transition-all"
+          onClick={() => router.push('/dashboard/organizations/matrix')}
+        >
+          <div className="flex items-center gap-4 text-left">
+            <div className="p-3 bg-primary/10 rounded-2xl text-primary group-hover:bg-primary group-hover:text-white transition-all">
+              <Grid3X3 className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-lg font-bold font-headline">權限共振矩陣</p>
+              <p className="text-xs text-muted-foreground">視覺化管理團隊與空間的授權映射。</p>
+            </div>
+          </div>
+          <ArrowUpRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+        </Button>
+
+        <Button 
+          variant="outline" 
+          className="h-24 rounded-3xl border-border/60 bg-card/50 hover:bg-primary/5 hover:border-primary/40 flex items-center justify-between px-8 group transition-all"
+          onClick={() => router.push('/dashboard/organizations/audit')}
+        >
+          <div className="flex items-center gap-4 text-left">
+            <div className="p-3 bg-primary/10 rounded-2xl text-primary group-hover:bg-primary group-hover:text-white transition-all">
+              <History className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-lg font-bold font-headline">維度脈動日誌</p>
+              <p className="text-xs text-muted-foreground">追蹤維度內所有的架構演進與數位紀錄。</p>
+            </div>
+          </div>
+          <ArrowUpRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+        </Button>
+      </div>
 
       <StatCards orgId={activeOrg.id} orgName={activeOrg.name} />
 

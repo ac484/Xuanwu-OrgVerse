@@ -18,7 +18,8 @@ import {
   Users,
   Settings2,
   Box,
-  Handshake
+  Handshake,
+  History
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -148,6 +149,13 @@ export function DashboardSidebar() {
                         <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organizations/external'}>
                           <Link href="/dashboard/organizations/external" className="flex items-center gap-2">
                             <GlobeLock className="w-3 h-3" /> 外部閘道
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organizations/audit'}>
+                          <Link href="/dashboard/organizations/audit" className="flex items-center gap-2">
+                            <History className="w-3 h-3" /> 維度脈動
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
