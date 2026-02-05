@@ -12,17 +12,17 @@ export function StatCards({ orgName }: { orgName: string }) {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <Card className="border-border/60 shadow-sm hover:shadow-md transition-all">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Logical Sovereignty</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">邏輯主權</CardTitle>
           <ShieldCheck className="w-4 h-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold font-headline">Absolute Isolation</div>
+          <div className="text-2xl font-bold font-headline">絕對隔離</div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            Data strictly layered within {orgName} boundaries.
+            數據嚴格分層於 {orgName} 邊界內。
           </p>
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between text-[9px] uppercase font-bold tracking-tighter">
-              <span>Encryption Integrity</span>
+              <span>加密完整性</span>
               <span>99.9%</span>
             </div>
             <Progress value={99.9} className="h-1" />
@@ -32,13 +32,13 @@ export function StatCards({ orgName }: { orgName: string }) {
 
       <Card className="border-border/60 shadow-sm hover:shadow-md transition-all">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Dimension Resonance</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">維度共振</CardTitle>
           <Activity className="w-4 h-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold font-headline">Active Stream</div>
+          <div className="text-2xl font-bold font-headline">活躍串流</div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            Real-time collaboration across active endpoints.
+            當前端點間的即時協作狀態。
           </p>
           <div className="flex items-center gap-1 mt-4">
             {[1, 2, 3, 4].map(i => (
@@ -55,17 +55,17 @@ export function StatCards({ orgName }: { orgName: string }) {
 
       <Card className="border-border/60 shadow-sm hover:shadow-md transition-all">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Growth Vector</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">成長向量</CardTitle>
           <Layers className="w-4 h-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold font-headline">+12% Established</div>
+          <div className="text-2xl font-bold font-headline">+12% 已建立</div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            Expansion from last cycle benchmarks.
+            相較於上個週期的基準擴張。
           </p>
           <div className="mt-4 flex items-center gap-2 text-primary">
             <Zap className="w-4 h-4 fill-primary" />
-            <span className="text-[10px] font-bold uppercase tracking-tight">Lightning Access Active</span>
+            <span className="text-[10px] font-bold uppercase tracking-tight">閃電存取已激活</span>
           </div>
         </CardContent>
       </Card>

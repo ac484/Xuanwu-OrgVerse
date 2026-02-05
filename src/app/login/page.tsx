@@ -10,6 +10,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Shield, Fingerprint, Lock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
+/**
+ * 登入頁面 - 職責：身分主權驗證入口
+ */
 export default function LoginPage() {
   const [username, setUsername] = useState("demo");
   const [password, setPassword] = useState("12345");
@@ -21,20 +24,20 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate SSO logic
+    // 模擬 SSO 邏輯
     setTimeout(() => {
       if (username === "demo" && password === "12345") {
-        login({ id: "u1", name: "Demo User", email: "demo@orgverse.io" });
+        login({ id: "u1", name: "展示用戶", email: "demo@orgverse.io" });
         toast({
-          title: "Identity Verified",
-          description: "Global context environment activated.",
+          title: "身分驗證成功",
+          description: "全域上下文環境已激活。",
         });
         router.push("/dashboard");
       } else {
         toast({
           variant: "destructive",
-          title: "Verification Failed",
-          description: "Invalid credentials. Please try demo / 12345.",
+          title: "驗證失敗",
+          description: "無效的認證資訊。請嘗試 demo / 12345。",
         });
         setIsLoading(false);
       }
@@ -56,35 +59,35 @@ export default function LoginPage() {
               <Fingerprint className="w-10 h-10 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-center font-headline">Digital Sovereignty Gateway</CardTitle>
+          <CardTitle className="text-2xl text-center font-headline">數位主權閘道器</CardTitle>
           <CardDescription className="text-center">
-            Sign in to establish your logical presence.
+            請驗證您的身分以建立邏輯存在。
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Digital ID</Label>
+              <Label htmlFor="username">數位身分 ID</Label>
               <div className="relative">
                 <Input 
                   id="username" 
                   value={username} 
                   onChange={(e) => setUsername(e.target.value)} 
-                  placeholder="Username"
+                  placeholder="使用者名稱"
                   className="pl-10"
                 />
                 <Shield className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Security Token</Label>
+              <Label htmlFor="password">安全權杖 (Token)</Label>
               <div className="relative">
                 <Input 
                   id="password" 
                   type="password" 
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
-                  placeholder="Password"
+                  placeholder="密碼"
                   className="pl-10"
                 />
                 <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
@@ -93,10 +96,10 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button className="w-full h-11 text-lg font-medium" disabled={isLoading}>
-              {isLoading ? "Synchronizing Dimensions..." : "Establish Identity"}
+              {isLoading ? "正在同步維度..." : "建立身分共振"}
             </Button>
             <p className="text-xs text-center text-muted-foreground">
-              By continuing, you activate your cross-boundary resonance permissions.
+              登入即表示您同意激活跨維度的權限授權。
             </p>
           </CardFooter>
         </form>

@@ -6,6 +6,9 @@ import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Globe, Shield, Zap } from "lucide-react";
 
+/**
+ * 首頁落地頁 - 職責：展示 OrgVerse 核心價值與入口
+ */
 export default function Home() {
   const { user } = useAppStore();
   const router = useRouter();
@@ -26,28 +29,28 @@ export default function Home() {
         </div>
         
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground font-headline">
-          Welcome to <span className="text-primary">OrgVerse</span>
+          歡迎來到 <span className="text-primary">OrgVerse</span>
         </h1>
         
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          A Narrative of Modern Workspace Architecture. From Single Identity to Multidimensional Organization.
+          現代工作空間架構的全新敘事。從單一身分邁向多維組織的演進。
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12">
           <FeatureCard 
             icon={<Shield className="w-6 h-6" />}
-            title="Digital Sovereignty"
-            description="Establish your unique identity across infinite organizational dimensions."
+            title="數位主權"
+            description="在無限的組織維度中，建立您獨一無二的數位身分。"
           />
           <FeatureCard 
             icon={<Zap className="w-6 h-6" />}
-            title="Fluid Contexts"
-            description="Seamlessly switch between spaces with instant UI adaptation."
+            title="流動上下文"
+            description="在不同空間無縫切換，享受即時的 UI 共振適配。"
           />
           <FeatureCard 
             icon={<Globe className="w-6 h-6" />}
-            title="Cross-Boundary"
-            description="Break silos with precise inter-organizational permission controls."
+            title="跨界協作"
+            description="打破資訊孤島，透過精準的跨維度權限控制協作。"
           />
         </div>
 
@@ -57,7 +60,7 @@ export default function Home() {
             className="rounded-full px-8 h-12 text-lg font-medium group"
             onClick={() => router.push("/login")}
           >
-            Enter the Gateway
+            進入閘道器
             <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
           </Button>
         </div>

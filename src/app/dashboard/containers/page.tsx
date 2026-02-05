@@ -19,7 +19,7 @@ import { CreateContainerDialog } from "./_components/create-container-dialog";
 
 /**
  * ContainersPage - 職責：管理基礎設施列表的導航與篩選
- * 已徹底移除業務分類 (Project/Sandbox)，專注於 CID 展示。
+ * 專注於 CID 展示，體現原子化架構。
  */
 export default function ContainersPage() {
   const { organizations, activeOrgId, containers, deleteContainer } = useAppStore();
@@ -36,8 +36,8 @@ export default function ContainersPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500">
       <PageHeader 
-        title="Logical Containers" 
-        description="Active logical boundaries defined within this dimension."
+        title="邏輯容器" 
+        description="當前維度中定義的活躍邏輯邊界。"
       >
         <div className="flex items-center gap-2">
           <div className="flex items-center border rounded-lg bg-background p-1 shadow-sm border-border/60">
@@ -59,7 +59,7 @@ export default function ContainersPage() {
             </Button>
           </div>
           <Button className="gap-2 shadow-sm font-bold uppercase tracking-widest text-[11px] h-10 px-4" onClick={() => setIsCreateOpen(true)}>
-            <Plus className="w-4 h-4" /> Forge Infrastructure
+            <Plus className="w-4 h-4" /> 建立基礎設施
           </Button>
         </div>
       </PageHeader>
@@ -68,14 +68,14 @@ export default function ContainersPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
-            placeholder="Search by name or context..." 
+            placeholder="搜尋名稱或上下文..." 
             className="pl-10 h-10 bg-background border-border/40 focus-visible:ring-primary/30 rounded-xl"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <Button variant="outline" size="sm" className="h-10 px-4 gap-2 text-xs font-bold uppercase tracking-widest border-border/60 rounded-xl hover:bg-muted/50">
-          <Filter className="w-3.5 h-3.5" /> Filter
+          <Filter className="w-3.5 h-3.5" /> 篩選
         </Button>
       </div>
 
@@ -96,12 +96,12 @@ export default function ContainersPage() {
       ) : (
         <div className="p-24 text-center border-2 border-dashed rounded-3xl bg-muted/5 border-border/40">
           <Terminal className="w-16 h-16 text-muted-foreground mx-auto mb-6 opacity-10" />
-          <h3 className="text-2xl font-bold font-headline mb-2">Technical Void</h3>
+          <h3 className="text-2xl font-bold font-headline mb-2">技術虛無</h3>
           <p className="text-muted-foreground max-w-sm mx-auto mb-8 text-sm">
-            No active logical nodes match your current resonance filters.
+            當前維度中沒有符合條件的邏輯節點。
           </p>
           <Button size="lg" onClick={() => setIsCreateOpen(true)} className="rounded-full px-8 shadow-lg font-bold uppercase tracking-widest text-xs">
-            Forge Initial Node
+            建立初始節點
           </Button>
         </div>
       )}

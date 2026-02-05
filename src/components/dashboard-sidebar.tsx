@@ -8,7 +8,6 @@ import {
   Users, 
   Package, 
   LogOut,
-  Plus,
   Terminal,
   User,
   ChevronUp
@@ -39,6 +38,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+/**
+ * DashboardSidebar - 職責：側邊欄導航，實現「原子化」導覽。
+ */
 export function DashboardSidebar() {
   const { user, logout, activeOrgId, containers } = useAppStore();
   const router = useRouter();
@@ -52,11 +54,11 @@ export function DashboardSidebar() {
   };
 
   const menuItems = [
-    { title: "Overview", icon: LayoutDashboard, href: "/dashboard" },
-    { title: "Logical Containers", icon: Layers, href: "/dashboard/containers" },
-    { title: "Resonance Team", icon: Users, href: "/dashboard/team" },
-    { title: "Capability Specs", icon: Package, href: "/dashboard/blocks" },
-    { title: "Architecture", icon: Settings, href: "/dashboard/settings" },
+    { title: "維度脈動", icon: LayoutDashboard, href: "/dashboard" },
+    { title: "邏輯容器", icon: Layers, href: "/dashboard/containers" },
+    { title: "共鳴團隊", icon: Users, href: "/dashboard/team" },
+    { title: "能力規範", icon: Package, href: "/dashboard/blocks" },
+    { title: "架構設定", icon: Settings, href: "/dashboard/settings" },
   ];
 
   return (
@@ -73,7 +75,7 @@ export function DashboardSidebar() {
       
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Dimension Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>維度導航</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -98,7 +100,7 @@ export function DashboardSidebar() {
 
         <SidebarGroup>
           <div className="flex items-center justify-between px-2 mb-2">
-            <SidebarGroupLabel className="p-0 text-xs font-bold uppercase">Root Infrastructure</SidebarGroupLabel>
+            <SidebarGroupLabel className="p-0 text-xs font-bold uppercase">根基礎設施</SidebarGroupLabel>
           </div>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -118,7 +120,7 @@ export function DashboardSidebar() {
                 </SidebarMenuItem>
               ))}
               {orgContainers.length === 0 && (
-                <p className="text-[10px] text-muted-foreground px-2 italic">No infrastructure established.</p>
+                <p className="text-[10px] text-muted-foreground px-2 italic">尚未建立基礎設施。</p>
               )}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -144,12 +146,12 @@ export function DashboardSidebar() {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="w-[200px]">
-                <DropdownMenuLabel>Identity Sovereignty</DropdownMenuLabel>
+                <DropdownMenuLabel>身分主權設定</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard/settings" className="cursor-pointer flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    <span>Profile Logic</span>
+                    <span>個人邏輯設定</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -158,7 +160,7 @@ export function DashboardSidebar() {
                   className="text-destructive focus:text-destructive cursor-pointer flex items-center gap-2"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span>Sever Identity</span>
+                  <span>中斷身分連線</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

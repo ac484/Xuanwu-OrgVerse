@@ -28,15 +28,15 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       user: null,
       organizations: [
-        { id: 'personal', name: 'Personal Dimension', context: 'Individual infrastructure sandbox', role: 'Owner' },
-        { id: 'acme', name: 'Acme Corp', context: 'Enterprise-grade manufacturing resonance', role: 'Admin' },
+        { id: 'personal', name: '個人維度', context: '個人基礎設施沙盒', role: 'Owner' },
+        { id: 'acme', name: '頂尖企業', context: '企業級製造與生產共振', role: 'Admin' },
       ],
       activeOrgId: 'personal',
       containers: [
         { 
           id: 'c1', 
           orgId: 'personal', 
-          name: 'Primary Node', 
+          name: '主控節點', 
           context: 'runtime-standard-v1',
           scope: ['auth', 'private-data'],
           resolver: 'local-gateway',
@@ -44,13 +44,13 @@ export const useAppStore = create<AppState>()(
         }
       ],
       notifications: [
-        { id: 'n1', title: 'Resonance Established', message: 'Dimension bridge is now active.', type: 'success', read: false, timestamp: Date.now() },
+        { id: 'n1', title: '共振已建立', message: '維度橋接器現已啟用。', type: 'success', read: false, timestamp: Date.now() },
       ],
       teamMembers: [
-        { id: 't1', name: 'Core Architect', role: 'Owner', status: 'active', email: 'architect@orgverse.io' },
+        { id: 't1', name: '核心架構師', role: 'Owner', status: 'active', email: 'architect@orgverse.io' },
       ],
       resourceBlocks: [
-        { id: 'b1', name: 'Identity Resolver', type: 'api', status: 'stable', description: 'Core authentication protocol block.' },
+        { id: 'b1', name: '身分解析器', type: 'api', status: 'stable', description: '核心身分驗證協議區塊。' },
       ],
 
       login: (userData) => set({ user: userData }),
