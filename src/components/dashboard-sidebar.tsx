@@ -14,7 +14,9 @@ import {
   Settings,
   Activity,
   Grid3X3,
-  GlobeLock
+  GlobeLock,
+  Users,
+  Settings2
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -48,6 +50,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 /**
  * DashboardSidebar - 職責：維度導航中樞
+ * 統一了所有選單圖示，確保視覺一致性。
  */
 export function DashboardSidebar() {
   const { user, logout, activeOrgId, workspaces } = useAppStore();
@@ -109,12 +112,16 @@ export function DashboardSidebar() {
                     <SidebarMenuSub>
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/members'}>
-                          <Link href="/dashboard/organization/members">成員名單 (Members)</Link>
+                          <Link href="/dashboard/organization/members" className="flex items-center gap-2">
+                            <Users className="w-3 h-3" /> 成員名單
+                          </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton asChild isActive={pathname.startsWith('/dashboard/organization/teams')}>
-                          <Link href="/dashboard/organization/teams">部門團隊 (Teams)</Link>
+                          <Link href="/dashboard/organization/teams" className="flex items-center gap-2">
+                            <UserCircle className="w-3 h-3" /> 部門團隊
+                          </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
@@ -133,7 +140,9 @@ export function DashboardSidebar() {
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/settings'}>
-                          <Link href="/dashboard/organization/settings">維度設定 (Settings)</Link>
+                          <Link href="/dashboard/organization/settings" className="flex items-center gap-2">
+                            <Settings2 className="w-3 h-3" /> 維度設定
+                          </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     </SidebarMenuSub>
@@ -145,7 +154,7 @@ export function DashboardSidebar() {
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/workspaces')} className="transition-all duration-200">
                   <Link href="/dashboard/workspaces" className="flex items-center gap-3">
                     <Layers className="w-4 h-4" />
-                    <span className="font-semibold">邏輯空間 (Workspaces)</span>
+                    <span className="font-semibold">邏輯空間</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -206,7 +215,7 @@ export function DashboardSidebar() {
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard/settings" className="cursor-pointer flex items-center gap-2 py-2">
                     <UserCircle className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-xs font-medium">用戶面板與用戶設置</span>
+                    <span className="text-xs font-medium">用戶設置</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

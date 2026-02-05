@@ -2,7 +2,7 @@
 
 import { useAppStore } from "@/lib/store";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Bell, Search, Command, Check, Trash2 } from "lucide-react";
+import { Bell, Search, Command, Check, Trash2, Users, Layers, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { 
   Popover, 
@@ -11,13 +11,15 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useState } from "react";
 
 /**
- * DashboardHeader - 職責：處理導航欄的搜尋與通知邏輯
- * 語義已優化為「邏輯空間 (Workspace)」。
+ * DashboardHeader - 職責：處理導航欄的全域搜尋與通知邏輯
+ * 搜尋範圍已擴充至：維度 (Organizations)、空間 (Workspaces)、人員 (Users)
  */
 export function DashboardHeader() {
   const { notifications, markAsRead, clearNotifications } = useAppStore();
+  const [searchQuery, setSearchQuery] = useState("");
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
@@ -27,12 +29,35 @@ export function DashboardHeader() {
         <div className="relative w-full max-w-md group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
-            placeholder="存取邏輯空間 (Workspaces)..." 
-            className="pl-10 pr-10 bg-muted/40 border-none h-9 focus-visible:ring-1"
+            placeholder="搜尋維度、空間或人員..." 
+            className="pl-10 pr-10 bg-muted/40 border-none h-9 focus-visible:ring-1 focus-visible:ring-primary/30"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] text-muted-foreground border rounded px-1.5 py-0.5 bg-background shadow-sm">
             <Command className="w-2.5 h-2.5" /> K
           </div>
+          
+          {/* 搜尋聯想預覽 (Mock) */}
+          {searchQuery && (
+            <div className="absolute top-full left-0 w-full mt-2 bg-card border rounded-xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2">
+              <div className="p-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">搜尋建議</div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-3 p-2 hover:bg-muted rounded-lg cursor-pointer">
+                  <Globe className="w-4 h-4 text-primary" />
+                  <span className="text-sm">搜尋組織 "{searchQuery}"</span>
+                </div>
+                <div className="flex items-center gap-3 p-2 hover:bg-muted rounded-lg cursor-pointer">
+                  <Layers className="w-4 h-4 text-primary" />
+                  <span className="text-sm">搜尋空間 "{searchQuery}"</span>
+                </div>
+                <div className="flex items-center gap-3 p-2 hover:bg-muted rounded-lg cursor-pointer">
+                  <Users className="w-4 h-4 text-primary" />
+                  <span className="text-sm">搜尋人員 "{searchQuery}"</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-3">
@@ -81,11 +106,6 @@ export function DashboardHeader() {
                 )}
               </div>
             </ScrollArea>
-            <div className="p-2 border-t text-center">
-              <Button variant="ghost" size="sm" className="w-full text-[10px] font-bold uppercase tracking-widest">
-                查看維度歷史紀錄
-              </Button>
-            </div>
           </PopoverContent>
         </Popover>
       </div>
