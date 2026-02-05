@@ -34,14 +34,16 @@ export interface Organization {
   teams: Team[];
 }
 
-export interface Capability {
+export interface CapabilitySpec {
   id: string;
   name: string;
   type: 'ui' | 'api' | 'data';
   status: 'stable' | 'beta';
   description: string;
-  requiredProtocol?: string;
-  requiredScope?: string[];
+  icon?: string;
+}
+
+export interface Capability extends CapabilitySpec {
   config?: object;
 }
 

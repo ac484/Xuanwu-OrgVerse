@@ -1,7 +1,6 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, Capability, MemberReference, Team, PulseLog, WorkspaceTask, WorkspaceIssue, WorkspaceDaily, WorkspaceFile } from '@/types/domain';
+import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, Capability, MemberReference, Team, PulseLog, WorkspaceTask, WorkspaceIssue, WorkspaceDaily, WorkspaceFile, CapabilitySpec } from '@/types/domain';
 
 interface AppState {
   user: User | null;
@@ -10,6 +9,7 @@ interface AppState {
   workspaces: Workspace[];
   notifications: Notification[];
   pulseLogs: PulseLog[];
+  capabilitySpecs: CapabilitySpec[];
   
   login: (userData: User) => void;
   logout: () => void;
@@ -74,6 +74,14 @@ export const useAppStore = create<AppState>()(
       workspaces: [],
       notifications: [],
       pulseLogs: [],
+      capabilitySpecs: [
+        { id: 'files', name: '檔案空間', type: 'data', status: 'stable', description: '管理維度內的文檔與資產。' },
+        { id: 'tasks', name: '原子任務', type: 'ui', status: 'stable', description: '追蹤空間內的行動目標。' },
+        { id: 'qa', name: '品質檢驗', type: 'ui', status: 'stable', description: '檢核任務執行品質。' },
+        { id: 'acceptance', name: '最終驗收', type: 'ui', status: 'stable', description: '驗收成果並結案。' },
+        { id: 'issues', name: '議題追蹤', type: 'ui', status: 'stable', description: '處理技術衝突與異常。' },
+        { id: 'daily', name: '每日動態', type: 'ui', status: 'stable', description: '極簡的技術協作日誌牆。' },
+      ],
 
       login: (userData) => set({ user: userData }),
       logout: () => set({ user: null, activeOrgId: 'personal' }),
@@ -115,7 +123,7 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           organizations: state.organizations.map(o => o.id === id ? { ...o, ...updates } : o)
         }));
-        get().addPulseLog({ actor: get().user?.name || 'System', action: '更新維度識別', target: id, type: 'update' });
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '校準維度身分', target: updates.name || id, type: 'update' });
       },
 
       deleteOrganization: (id) => set((state) => {
@@ -138,16 +146,21 @@ export const useAppStore = create<AppState>()(
             members: [...(o.members || []), { ...member, id: `m-${Math.random().toString(36).substring(2, 6)}`, status: 'active' }]
           } : o)
         }));
-        get().addPulseLog({ actor: get().user?.name || 'System', action: '同步身分', target: member.name, type: 'create' });
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '身分共振激活', target: member.name, type: 'create' });
       },
 
-      removeOrgMember: (orgId, memberId) => set((state) => ({
-        organizations: state.organizations.map(o => o.id === orgId ? {
-          ...o,
-          members: (o.members || []).filter(m => m.id !== memberId),
-          teams: (o.teams || []).map(t => ({ ...t, memberIds: (t.memberIds || []).filter(mid => mid !== memberId) }))
-        } : o)
-      })),
+      removeOrgMember: (orgId, memberId) => set((state) => {
+        const org = state.organizations.find(o => o.id === orgId);
+        const member = org?.members.find(m => m.id === memberId);
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '身分註銷', target: member?.name || memberId, type: 'delete' });
+        return {
+          organizations: state.organizations.map(o => o.id === orgId ? {
+            ...o,
+            members: (o.members || []).filter(m => m.id !== memberId),
+            teams: (o.teams || []).map(t => ({ ...t, memberIds: (t.memberIds || []).filter(mid => mid !== memberId) }))
+          } : o)
+        };
+      }),
 
       updateOrgMember: (orgId, memberId, updates) => set((state) => ({
         organizations: state.organizations.map(o => o.id === orgId ? {
@@ -163,15 +176,20 @@ export const useAppStore = create<AppState>()(
             teams: [...(o.teams || []), { ...team, id: `team-${Math.random().toString(36).substring(2, 6)}`, memberIds: [] }]
           } : o)
         }));
-        get().addPulseLog({ actor: get().user?.name || 'System', action: '定義團隊', target: team.name, type: 'create' });
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '定義部門團隊', target: team.name, type: 'create' });
       },
 
-      removeOrgTeam: (orgId, teamId) => set((state) => ({
-        organizations: state.organizations.map(o => o.id === orgId ? {
-          ...o,
-          teams: (o.teams || []).filter(t => t.id !== teamId)
-        } : o)
-      })),
+      removeOrgTeam: (orgId, teamId) => set((state) => {
+        const org = state.organizations.find(o => o.id === orgId);
+        const team = org?.teams.find(t => t.id === teamId);
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '團隊架構移除', target: team?.name || teamId, type: 'delete' });
+        return {
+          organizations: state.organizations.map(o => o.id === orgId ? {
+            ...o,
+            teams: (o.teams || []).filter(t => t.id !== teamId)
+          } : o)
+        };
+      }),
 
       addMemberToTeam: (orgId, teamId, memberId) => set((state) => ({
         organizations: state.organizations.map(o => o.id === orgId ? {
@@ -207,21 +225,20 @@ export const useAppStore = create<AppState>()(
             files: []
           }]
         }));
-        get().addPulseLog({ actor: get().user?.name || 'System', action: '初始化空間', target: workspace.name, type: 'create' });
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '初始化邏輯空間', target: workspace.name, type: 'create' });
       },
 
       updateWorkspace: (id, updates) => {
         set((state) => ({
           workspaces: state.workspaces.map(w => w.id === id ? { ...w, ...updates } : w)
         }));
-        get().addPulseLog({ actor: get().user?.name || 'System', action: '更新空間規格', target: id, type: 'update' });
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '校準空間規格', target: updates.name || id, type: 'update' });
       },
 
       deleteWorkspace: (id) => set((state) => {
-        const remaining = state.workspaces.filter(w => w.id !== id);
-        return {
-          workspaces: remaining
-        };
+        const ws = state.workspaces.find(w => w.id === id);
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '空間銷毀協議執行', target: ws?.name || id, type: 'delete' });
+        return { workspaces: state.workspaces.filter(w => w.id !== id) };
       }),
 
       addCapabilityToWorkspace: (workspaceId, capability) => {
@@ -238,12 +255,17 @@ export const useAppStore = create<AppState>()(
         get().addPulseLog({ actor: get().user?.name || 'System', action: '掛載原子能力', target: capability.name, type: 'update' });
       },
 
-      removeCapabilityFromWorkspace: (workspaceId, capabilityId) => set((state) => ({
-        workspaces: state.workspaces.map(w => w.id === workspaceId ? {
-          ...w,
-          capabilities: (w.capabilities || []).filter(c => c.id !== capabilityId)
-        } : w)
-      })),
+      removeCapabilityFromWorkspace: (workspaceId, capabilityId) => set((state) => {
+        const ws = state.workspaces.find(w => w.id === workspaceId);
+        const cap = ws?.capabilities.find(c => c.id === capabilityId);
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '卸載原子能力', target: cap?.name || capabilityId, type: 'delete' });
+        return {
+          workspaces: state.workspaces.map(w => w.id === workspaceId ? {
+            ...w,
+            capabilities: (w.capabilities || []).filter(c => c.id !== capabilityId)
+          } : w)
+        };
+      }),
 
       toggleTeamAccessToWorkspace: (workspaceId, teamId) => {
         set((state) => ({
@@ -260,25 +282,33 @@ export const useAppStore = create<AppState>()(
         const ws = get().workspaces.find(w => w.id === workspaceId);
         get().addPulseLog({ 
           actor: get().user?.name || 'System', 
-          action: '切換團隊共振', 
+          action: '切換團隊共振狀態', 
           target: ws?.name || workspaceId, 
           type: 'access' 
         });
       },
 
-      addWorkspaceMember: (workspaceId, member) => set((state) => ({
-        workspaces: state.workspaces.map(w => w.id === workspaceId ? {
-          ...w,
-          members: Array.from(new Set([...(w.members || []), member]))
-        } : w)
-      })),
+      addWorkspaceMember: (workspaceId, member) => {
+        set((state) => ({
+          workspaces: state.workspaces.map(w => w.id === workspaceId ? {
+            ...w,
+            members: Array.from(new Set([...(w.members || []), member]))
+          } : w)
+        }));
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '授權空間存取', target: member.name, type: 'access' });
+      },
 
-      removeWorkspaceMember: (workspaceId, memberId) => set((state) => ({
-        workspaces: state.workspaces.map(w => w.id === workspaceId ? {
-          ...w,
-          members: (w.members || []).filter(m => m.id !== memberId)
-        } : w)
-      })),
+      removeWorkspaceMember: (workspaceId, memberId) => {
+        const ws = get().workspaces.find(w => w.id === workspaceId);
+        const member = ws?.members.find(m => m.id === memberId);
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '撤銷空間存取', target: member?.name || memberId, type: 'access' });
+        set((state) => ({
+          workspaces: state.workspaces.map(w => w.id === workspaceId ? {
+            ...w,
+            members: (w.members || []).filter(m => m.id !== memberId)
+          } : w)
+        }));
+      },
 
       addTaskToWorkspace: (workspaceId, task) => set((state) => ({
         workspaces: state.workspaces.map(w => w.id === workspaceId ? {
@@ -287,12 +317,17 @@ export const useAppStore = create<AppState>()(
         } : w)
       })),
 
-      updateTaskStatus: (workspaceId, taskId, status) => set((state) => ({
-        workspaces: state.workspaces.map(w => w.id === workspaceId ? {
-          ...w,
-          tasks: (w.tasks || []).map(t => t.id === taskId ? { ...t, status } : t)
-        } : w)
-      })),
+      updateTaskStatus: (workspaceId, taskId, status) => {
+        const ws = get().workspaces.find(w => w.id === workspaceId);
+        const task = ws?.tasks?.find(t => t.id === taskId);
+        get().addPulseLog({ actor: get().user?.name || 'System', action: `更新任務狀態: ${status}`, target: task?.title || taskId, type: 'update' });
+        set((state) => ({
+          workspaces: state.workspaces.map(w => w.id === workspaceId ? {
+            ...w,
+            tasks: (w.tasks || []).map(t => t.id === taskId ? { ...t, status } : t)
+          } : w)
+        }));
+      },
 
       addIssueToWorkspace: (workspaceId, issue) => set((state) => ({
         workspaces: state.workspaces.map(w => w.id === workspaceId ? {
