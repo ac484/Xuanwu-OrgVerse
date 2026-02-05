@@ -81,14 +81,24 @@ export interface WorkspaceTask {
   type: string;
   priority: 'low' | 'medium' | 'high';
   quantity: number;
+  unit: string;
   unitPrice: number;
   subtotal: number; // 自動計算: Quantity * UnitPrice
+  taxRate: number; // 稅率 %
+  total: number; // 含稅總額
+  progress: number; // 進度 0-100
+  weight: number; // 權重
   location?: string;
   space?: string;
   startTime?: any;
   endTime?: any;
+  actualStartTime?: any;
+  actualEndTime?: any;
   status: 'todo' | 'completed' | 'verified' | 'accepted';
   dependencies: string[]; // 相依任務 ID 陣列
+  attachments?: string[];
+  completedBy?: string;
+  completedAt?: any;
   createdAt: any;
 }
 
@@ -111,7 +121,7 @@ export interface WorkspaceFileVersion {
   versionId: string;
   versionNumber: number;
   versionName: string;
-  size: string;
+  size: number;
   uploadedBy: string;
   createdAt: any;
 }
