@@ -82,13 +82,21 @@ export interface WorkspaceDaily {
   timestamp: number;
 }
 
+export interface WorkspaceFileVersion {
+  versionId: string;
+  versionNumber: number;
+  versionName: string;
+  size: string;
+  uploadedBy: string;
+  createdAt: any;
+}
+
 export interface WorkspaceFile {
   id: string;
   name: string;
-  size: string;
-  type: string;
-  uploadedBy: string;
-  timestamp: number;
+  currentVersionId: string;
+  versions: WorkspaceFileVersion[];
+  updatedAt: any;
 }
 
 export interface Workspace {
