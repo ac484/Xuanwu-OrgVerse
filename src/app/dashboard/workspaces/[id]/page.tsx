@@ -16,15 +16,13 @@ import {
   Code,
   Layers,
   Plus,
-  UserPlus,
   Trash2,
   Eye,
   EyeOff,
   Box,
   Layout,
   Activity,
-  Users,
-  AlertTriangle
+  Users
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
@@ -33,7 +31,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { WorkspaceProvider, useWorkspace } from "./workspace-context";
 
@@ -59,8 +56,6 @@ function WorkspaceContent() {
     pulseLogs,
     updateWorkspace, 
     addCapabilityToWorkspace, 
-    addWorkspaceMember, 
-    removeWorkspaceMember, 
     removeCapabilityFromWorkspace,
     deleteWorkspace
   } = useAppStore();
@@ -73,8 +68,8 @@ function WorkspaceContent() {
   const router = useRouter();
 
   const activeOrg = organizations.find(o => o.id === activeOrgId);
-  const localPulse = pulseLogs.filter(log => log.target.includes(workspace.name)).slice(0, 5);
-  const assignedTeams = activeOrg?.teams?.filter(t => workspace?.teamIds?.includes(t.id)) || [];
+  const localPulse = (pulseLogs || []).filter(log => log.target.includes(workspace.name)).slice(0, 5);
+  const assignedTeams = activeOrg?.teams?.filter(t => (workspace?.teamIds || []).includes(t.id)) || [];
 
   const [editName, setEditName] = useState("");
   const [editVisibility, setEditVisibility] = useState<"visible" | "hidden">("visible");
@@ -121,6 +116,12 @@ function WorkspaceContent() {
     emitEvent("掛載原子能力", caps[capType].name);
     setIsAddCapOpen(false);
     toast({ title: "原子能力已掛載" });
+  };
+
+  const handleDeleteWorkspace = () => {
+    deleteWorkspace(workspace.id);
+    router.push("/dashboard/workspaces");
+    toast({ title: "空間已銷毀", description: "該空間的所有技術規格已抹除。" });
   };
 
   const getIcon = (type: string) => {
@@ -199,7 +200,7 @@ function WorkspaceContent() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex flex-wrap gap-1.5">
-                      {scope.map(s => (
+                      {(scope || []).map(s => (
                         <Badge key={s} variant="secondary" className="text-[9px] uppercase tracking-tighter py-0">{s}</Badge>
                       ))}
                     </div>
@@ -234,7 +235,7 @@ function WorkspaceContent() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {workspace.capabilities.map((cap) => (
+                {(workspace.capabilities || []).map((cap) => (
                   <Card key={cap.id} className="border-border/60 hover:border-primary/40 transition-all group bg-card/40 backdrop-blur-sm shadow-sm overflow-hidden">
                     <CardHeader className="pb-4">
                       <div className="flex items-center justify-between mb-4">
@@ -291,7 +292,7 @@ function WorkspaceContent() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-border/40">
-                {localPulse.map((log) => (
+                {(localPulse || []).map((log) => (
                   <div key={log.id} className="p-3 hover:bg-muted/30 transition-colors">
                     <p className="text-[10px] font-bold leading-tight">
                       <span className="text-primary">{log.action}</span>
@@ -308,7 +309,115 @@ function WorkspaceContent() {
         </div>
       </div>
 
-      {/* 彈窗組件 ... (省略部分與之前一致的 Dialog) */}
+      {/* 彈窗：空間設定 */}
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-headline text-2xl">空間主權設定</DialogTitle>
+            <DialogDescription>調整此邏輯空間的識別資訊與可見性治理策略。</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label>空間名稱</Label>
+              <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
+            </div>
+            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border">
+              <div className="space-y-0.5">
+                <Label>空間可見性</Label>
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight">
+                  {editVisibility === 'visible' ? '公開顯示於維度目錄' : '受限隔離模式'}
+                </p>
+              </div>
+              <Switch 
+                checked={editVisibility === 'visible'} 
+                onCheckedChange={(checked) => setEditVisibility(checked ? 'visible' : 'hidden')} 
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsSettingsOpen(false)}>取消</Button>
+            <Button onClick={handleUpdateSettings}>儲存變動</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 彈窗：調整規格 */}
+      <Dialog open={isSpecsOpen} onOpenChange={setIsSpecsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-headline text-2xl">重定義技術規格</DialogTitle>
+            <DialogDescription>修改此空間的通訊協議與資源授權範疇。</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label>存取協議 (Protocol)</Label>
+              <Input value={editProtocol} onChange={(e) => setEditProtocol(e.target.value)} placeholder="例如: gRPC-Web / RESTful-v2" />
+            </div>
+            <div className="space-y-2">
+              <Label>授權範疇 (Scope)</Label>
+              <Input value={editScope} onChange={(e) => setEditScope(e.target.value)} placeholder="以逗號分隔，例如: auth, compute, storage" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsSpecsOpen(false)}>取消</Button>
+            <Button onClick={handleUpdateSpecs}>確認重定義</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 彈窗：註冊原子能力 */}
+      <Dialog open={isAddCapOpen} onOpenChange={setIsAddCapOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-headline text-2xl">註冊原子能力</DialogTitle>
+            <DialogDescription>在此空間中掛載新的技術規範單元。</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 gap-3 py-4">
+            <Button variant="outline" className="justify-start h-16 gap-4" onClick={() => handleAddCapability('ui')}>
+              <div className="p-2 bg-primary/10 rounded-lg text-primary"><Layout className="w-5 h-5" /></div>
+              <div className="text-left">
+                <p className="text-sm font-bold">UI 視覺單元</p>
+                <p className="text-[10px] text-muted-foreground uppercase">掛載原子化前端組件</p>
+              </div>
+            </Button>
+            <Button variant="outline" className="justify-start h-16 gap-4" onClick={() => handleAddCapability('api')}>
+              <div className="p-2 bg-primary/10 rounded-lg text-primary"><Code className="w-5 h-5" /></div>
+              <div className="text-left">
+                <p className="text-sm font-bold">API 邏輯接口</p>
+                <p className="text-[10px] text-muted-foreground uppercase">掛載標準化交換協議</p>
+              </div>
+            </Button>
+            <Button variant="outline" className="justify-start h-16 gap-4" onClick={() => handleAddCapability('data')}>
+              <div className="p-2 bg-primary/10 rounded-lg text-primary"><Database className="w-5 h-5" /></div>
+              <div className="text-left">
+                <p className="text-sm font-bold">DATA 數據帳本</p>
+                <p className="text-[10px] text-muted-foreground uppercase">掛載持久化存儲單元</p>
+              </div>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 彈窗：銷毀確認 */}
+      <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-destructive">銷毀空間確認</DialogTitle>
+            <DialogDescription>
+              此操作將永久移除空間「{workspace.name}」及其下屬的所有能力配置。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground italic">
+              一旦執行，所有與此空間關聯的技術規格與身分共振將永久消失。
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteConfirmOpen(false)}>取消</Button>
+            <Button variant="destructive" onClick={handleDeleteWorkspace}>啟動銷毀程序</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
