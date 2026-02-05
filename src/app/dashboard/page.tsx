@@ -4,18 +4,18 @@ import { useAppStore } from "@/lib/store";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCards } from "./_components/stat-cards";
-import { RecentContainers } from "./_components/recent-containers";
+import { RecentWorkspaces } from "./_components/recent-workspaces";
 import { PermissionConstellation } from "./_components/permission-constellation";
 
 /**
  * DashboardPage - 職責：作為儀表板的佈局協調者
- * 將具體業務功能拆分為獨立組件，實現高內聚與原子化。
+ * 展示當前維度的活躍狀態與核心節點。
  */
 export default function DashboardPage() {
-  const { organizations, activeOrgId, containers } = useAppStore();
+  const { organizations, activeOrgId, workspaces } = useAppStore();
   
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
-  const orgContainers = containers.filter(c => c.orgId === activeOrgId);
+  const orgWorkspaces = workspaces.filter(w => w.orgId === activeOrgId);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto animate-in fade-in duration-700">
@@ -37,8 +37,8 @@ export default function DashboardPage() {
       >
         <div className="flex items-center gap-4 bg-muted/40 p-4 rounded-2xl border border-border/50 shadow-sm">
           <div className="flex flex-col items-center px-4 border-r border-border/50">
-            <span className="text-2xl font-bold font-headline">{orgContainers.length}</span>
-            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">基礎設施</span>
+            <span className="text-2xl font-bold font-headline">{orgWorkspaces.length}</span>
+            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">邏輯節點</span>
           </div>
           <div className="flex flex-col items-center px-4">
             <span className="text-[10px] text-muted-foreground uppercase font-bold mb-1">存取層級</span>
@@ -50,7 +50,7 @@ export default function DashboardPage() {
       <StatCards orgName={activeOrg.name} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <RecentContainers containers={orgContainers} />
+        <RecentWorkspaces workspaces={orgWorkspaces} />
         <PermissionConstellation currentRole={activeOrg.role} />
       </div>
     </div>

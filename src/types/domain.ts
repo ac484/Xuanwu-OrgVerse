@@ -16,10 +16,10 @@ export interface Organization {
 }
 
 /**
- * Logical Container (Workspace)
- * 職責：純粹的基礎設施定義，定義運行上下文與資源邊界。
+ * Workspace (邏輯容器)
+ * 職責：定義純粹的技術邊界與運行上下文。
  */
-export interface Container {
+export interface Workspace {
   id: string;
   orgId: string;
   name: string;

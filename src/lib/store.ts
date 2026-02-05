@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, Organization, Container, ThemeConfig, UserRole, Notification, TeamMember, ResourceBlock } from '@/types/domain';
+import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, TeamMember, ResourceBlock } from '@/types/domain';
 
 interface AppState {
   user: User | null;
   organizations: Organization[];
   activeOrgId: string | null;
-  containers: Container[];
+  workspaces: Workspace[];
   notifications: Notification[];
   teamMembers: TeamMember[];
   resourceBlocks: ResourceBlock[];
@@ -16,8 +16,8 @@ interface AppState {
   setActiveOrg: (id: string) => void;
   addOrganization: (org: Omit<Organization, 'id' | 'role'>) => void;
   updateOrgTheme: (id: string, theme: ThemeConfig) => void;
-  addContainer: (container: Omit<Container, 'id'>) => void;
-  deleteContainer: (id: string) => void;
+  addWorkspace: (workspace: Omit<Workspace, 'id'>) => void;
+  deleteWorkspace: (id: string) => void;
   addNotification: (notif: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   markAsRead: (id: string) => void;
   clearNotifications: () => void;
@@ -32,11 +32,11 @@ export const useAppStore = create<AppState>()(
         { id: 'acme', name: '頂尖企業', context: '企業級製造與生產共振', role: 'Admin' },
       ],
       activeOrgId: 'personal',
-      containers: [
+      workspaces: [
         { 
-          id: 'c1', 
+          id: 'w1', 
           orgId: 'personal', 
-          name: '主控節點', 
+          name: '主控空間', 
           context: 'runtime-standard-v1',
           scope: ['auth', 'private-data'],
           resolver: 'local-gateway',
@@ -67,12 +67,12 @@ export const useAppStore = create<AppState>()(
         organizations: state.organizations.map(o => o.id === id ? { ...o, theme } : o)
       })),
       
-      addContainer: (container) => set((state) => ({
-        containers: [...state.containers, { ...container, id: `cid-${Math.random().toString(36).substring(2, 6)}` }]
+      addWorkspace: (workspace) => set((state) => ({
+        workspaces: [...state.workspaces, { ...workspace, id: `ws-${Math.random().toString(36).substring(2, 6)}` }]
       })),
 
-      deleteContainer: (id) => set((state) => ({
-        containers: state.containers.filter(c => c.id !== id)
+      deleteWorkspace: (id) => set((state) => ({
+        workspaces: state.workspaces.filter(w => w.id !== id)
       })),
 
       addNotification: (notif) => set((state) => ({

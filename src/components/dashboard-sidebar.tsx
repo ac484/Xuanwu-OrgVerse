@@ -39,14 +39,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 /**
- * DashboardSidebar - 職責：側邊欄導航，實現「原子化」導覽。
+ * DashboardSidebar - 職責：側邊欄導航，管理空間與能力的入口。
  */
 export function DashboardSidebar() {
-  const { user, logout, activeOrgId, containers } = useAppStore();
+  const { user, logout, activeOrgId, workspaces } = useAppStore();
   const router = useRouter();
   const pathname = usePathname();
   
-  const orgContainers = containers.filter(c => c.orgId === activeOrgId);
+  const orgWorkspaces = workspaces.filter(w => w.orgId === activeOrgId);
 
   const handleLogout = () => {
     logout();
@@ -55,7 +55,7 @@ export function DashboardSidebar() {
 
   const menuItems = [
     { title: "維度脈動", icon: LayoutDashboard, href: "/dashboard" },
-    { title: "邏輯容器", icon: Layers, href: "/dashboard/containers" },
+    { title: "邏輯容器", icon: Layers, href: "/dashboard/workspaces" },
     { title: "共鳴團隊", icon: Users, href: "/dashboard/team" },
     { title: "能力規範", icon: Package, href: "/dashboard/blocks" },
     { title: "架構設定", icon: Settings, href: "/dashboard/settings" },
@@ -100,27 +100,27 @@ export function DashboardSidebar() {
 
         <SidebarGroup>
           <div className="flex items-center justify-between px-2 mb-2">
-            <SidebarGroupLabel className="p-0 text-xs font-bold uppercase">根基礎設施</SidebarGroupLabel>
+            <SidebarGroupLabel className="p-0 text-xs font-bold uppercase">空間節點</SidebarGroupLabel>
           </div>
           <SidebarGroupContent>
             <SidebarMenu>
-              {orgContainers.map((container) => (
-                <SidebarMenuItem key={container.id}>
-                  <SidebarMenuButton asChild isActive={pathname === `/dashboard/containers/${container.id}`} className="group">
-                    <Link href={`/dashboard/containers/${container.id}`} className="flex items-center justify-between w-full">
+              {orgWorkspaces.map((workspace) => (
+                <SidebarMenuItem key={workspace.id}>
+                  <SidebarMenuButton asChild isActive={pathname === `/dashboard/workspaces/${workspace.id}`} className="group">
+                    <Link href={`/dashboard/workspaces/${workspace.id}`} className="flex items-center justify-between w-full">
                       <div className="flex items-center gap-2 truncate">
                         <Terminal className="w-3 h-3 text-primary/60 group-hover:text-primary" />
-                        <span className="truncate">{container.name}</span>
+                        <span className="truncate">{workspace.name}</span>
                       </div>
                       <Badge variant="outline" className="text-[8px] h-3.5 px-1 uppercase group-hover:border-primary group-hover:text-primary transition-colors">
-                        CID: {container.id.slice(0, 3)}
+                        ID: {workspace.id.slice(0, 3)}
                       </Badge>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              {orgContainers.length === 0 && (
-                <p className="text-[10px] text-muted-foreground px-2 italic">尚未建立基礎設施。</p>
+              {orgWorkspaces.length === 0 && (
+                <p className="text-[10px] text-muted-foreground px-2 italic">尚未建立空間節點。</p>
               )}
             </SidebarMenu>
           </SidebarGroupContent>
