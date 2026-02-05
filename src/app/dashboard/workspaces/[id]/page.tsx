@@ -17,18 +17,22 @@ import {
   Code,
   Layers,
   Info,
-  Plus
+  Plus,
+  Users,
+  UserPlus,
+  Trash2,
+  Mail
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 
 /**
  * WorkspaceDetailPage
- * 職責：作為邏輯空間的主機，管理其「基礎設施定義」與「專屬能力註冊表」。
+ * 職責：管理邏輯空間的「基礎設施」、「原子能力註冊表」以及「成員存取權」。
  */
 export default function WorkspaceDetailPage() {
   const { id } = useParams();
-  const { workspaces, addSpecToWorkspace } = useAppStore();
+  const { workspaces, addSpecToWorkspace, addWorkspaceMember, removeWorkspaceMember } = useAppStore();
   const router = useRouter();
 
   const workspace = workspaces.find(w => w.id === id);
@@ -53,6 +57,18 @@ export default function WorkspaceDetailPage() {
     toast({
       title: "規格已註冊",
       description: "新的技術規範已添加至此空間的註冊表中。"
+    });
+  };
+
+  const handleAddMember = () => {
+    addWorkspaceMember(workspace.id, {
+      name: "空間操作員",
+      email: `operator-${Math.random().toString(36).slice(-4)}@orgverse.io`,
+      role: 'Member'
+    });
+    toast({
+      title: "權限已授予",
+      description: "新成員現在具備此邏輯空間的存取權。"
     });
   };
 
@@ -96,6 +112,7 @@ export default function WorkspaceDetailPage() {
         <TabsList className="bg-muted/40 p-1 border border-border/50">
           <TabsTrigger value="infra" className="text-[10px] font-bold uppercase tracking-widest px-6">基礎設施定義</TabsTrigger>
           <TabsTrigger value="specs" className="text-[10px] font-bold uppercase tracking-widest px-6">專屬原子能力 (Specs)</TabsTrigger>
+          <TabsTrigger value="members" className="text-[10px] font-bold uppercase tracking-widest px-6">成員管理</TabsTrigger>
         </TabsList>
 
         <TabsContent value="infra" className="space-y-6">
@@ -116,10 +133,10 @@ export default function WorkspaceDetailPage() {
                 <div>
                   <p className="text-[9px] text-muted-foreground uppercase font-bold mb-2">資源邊界</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {workspace.scope.map(s => (
+                    {workspace.scope?.map(s => (
                       <Badge key={s} variant="secondary" className="text-[9px] uppercase tracking-tighter py-0">{s}</Badge>
                     ))}
-                    {workspace.scope.length === 0 && <span className="text-[10px] text-muted-foreground italic">未定義資源範圍。</span>}
+                    {(!workspace.scope || workspace.scope.length === 0) && <span className="text-[10px] text-muted-foreground italic">未定義資源範圍。</span>}
                   </div>
                 </div>
               </CardContent>
@@ -157,7 +174,7 @@ export default function WorkspaceDetailPage() {
             </Button>
           </div>
 
-          {workspace.specs.length > 0 ? (
+          {workspace.specs?.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {workspace.specs.map((block) => (
                 <Card key={block.id} className="border-border/60 hover:border-primary/40 transition-all group bg-card/40 backdrop-blur-sm shadow-sm overflow-hidden">
@@ -187,13 +204,66 @@ export default function WorkspaceDetailPage() {
               <Terminal className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-10" />
               <h3 className="text-xl font-bold font-headline">規格目錄為空</h3>
               <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-8">
-                此空間目前尚未註冊任何原子能力規範。您可以定義符合此空間 Context 與 Policy 的技術規格。
+                此空間目前尚未註冊任何原子能力規範。
               </p>
               <Button onClick={handleQuickAddSpec} className="font-bold text-[10px] uppercase tracking-widest h-10 px-6">
                 定義首個規格
               </Button>
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="members" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold uppercase tracking-widest">空間存取名單</h3>
+            <Button size="sm" variant="outline" className="h-8 gap-2 font-bold text-[9px] uppercase tracking-widest" onClick={handleAddMember}>
+              <UserPlus className="w-3 h-3" /> 分配成員
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {workspace.members?.map((member) => (
+              <Card key={member.id} className="border-border/60 hover:shadow-md transition-all bg-card/40 backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary text-xs font-bold">
+                      {member.name[0]}
+                    </div>
+                    <div className="overflow-hidden">
+                      <p className="text-xs font-bold truncate">{member.name}</p>
+                      <p className="text-[10px] text-muted-foreground truncate">{member.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="outline" className="text-[8px] uppercase tracking-tighter bg-background">
+                      {member.role}
+                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary">
+                        <Mail className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeWorkspaceMember(workspace.id, member.id)}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+
+            {(!workspace.members || workspace.members.length === 0) && (
+              <div className="col-span-full p-12 text-center border-2 border-dashed rounded-3xl bg-muted/5 border-border/40">
+                <Users className="w-10 h-10 text-muted-foreground mx-auto mb-4 opacity-10" />
+                <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">無分配人員</p>
+                <p className="text-[10px] text-muted-foreground/60 mt-1">此空間目前完全由系統自動化治理。</p>
+              </div>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>

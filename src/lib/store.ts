@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, TeamMember, ResourceBlock } from '@/types/domain';
+import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, ResourceBlock, MemberReference } from '@/types/domain';
 
 /**
  * AppState - 職責：維度狀態管理核心
- * 已實現 Workspace 與 Specs 的深度整合。
+ * 實現 Organization 與 Workspace 雙層級成員管理。
  */
 interface AppState {
   user: User | null;
@@ -12,16 +12,26 @@ interface AppState {
   activeOrgId: string | null;
   workspaces: Workspace[];
   notifications: Notification[];
-  teamMembers: TeamMember[];
   
   login: (userData: User) => void;
   logout: () => void;
   setActiveOrg: (id: string) => void;
-  addOrganization: (org: Omit<Organization, 'id' | 'role'>) => void;
+  addOrganization: (org: Omit<Organization, 'id' | 'role' | 'members'>) => void;
   updateOrgTheme: (id: string, theme: ThemeConfig) => void;
-  addWorkspace: (workspace: Omit<Workspace, 'id' | 'specs'>) => void;
+  
+  // Organization Members
+  addOrgMember: (orgId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
+  removeOrgMember: (orgId: string, memberId: string) => void;
+  
+  // Workspace Actions
+  addWorkspace: (workspace: Omit<Workspace, 'id' | 'specs' | 'members'>) => void;
   deleteWorkspace: (id: string) => void;
   addSpecToWorkspace: (workspaceId: string, spec: Omit<ResourceBlock, 'id'>) => void;
+  
+  // Workspace Members
+  addWorkspaceMember: (workspaceId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
+  removeWorkspaceMember: (workspaceId: string, memberId: string) => void;
+  
   addNotification: (notif: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   markAsRead: (id: string) => void;
   clearNotifications: () => void;
@@ -32,12 +42,19 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       user: null,
       organizations: [
-        { id: 'personal', name: '個人維度', context: '個人基礎設施沙盒', role: 'Owner' },
+        { 
+          id: 'personal', 
+          name: '個人維度', 
+          context: '個人基礎設施沙盒', 
+          role: 'Owner',
+          members: [
+            { id: 'm1', name: '展示用戶', email: 'demo@orgverse.io', role: 'Owner', status: 'active' }
+          ]
+        },
       ],
       activeOrgId: 'personal',
       workspaces: [],
       notifications: [],
-      teamMembers: [],
 
       login: (userData) => set({ user: userData }),
       logout: () => set({ user: null, activeOrgId: 'personal' }),
@@ -45,19 +62,45 @@ export const useAppStore = create<AppState>()(
       
       addOrganization: (org) => set((state) => {
         const id = `org-${Math.random().toString(36).substring(2, 7)}`;
-        const newOrg = { ...org, id, role: 'Owner' as UserRole };
+        const newOrg = { 
+          ...org, 
+          id, 
+          role: 'Owner' as UserRole,
+          members: state.user ? [{ 
+            id: 'm-owner', 
+            name: state.user.name, 
+            email: state.user.email, 
+            role: 'Owner' as UserRole, 
+            status: 'active' as const 
+          }] : []
+        };
         return { organizations: [...state.organizations, newOrg], activeOrgId: id };
       }),
       
       updateOrgTheme: (id, theme) => set((state) => ({
         organizations: state.organizations.map(o => o.id === id ? { ...o, theme } : o)
       })),
+
+      addOrgMember: (orgId, member) => set((state) => ({
+        organizations: state.organizations.map(o => o.id === orgId ? {
+          ...o,
+          members: [...o.members, { ...member, id: `m-${Math.random().toString(36).substring(2, 6)}`, status: 'offline' }]
+        } : o)
+      })),
+
+      removeOrgMember: (orgId, memberId) => set((state) => ({
+        organizations: state.organizations.map(o => o.id === orgId ? {
+          ...o,
+          members: o.members.filter(m => m.id !== memberId)
+        } : o)
+      })),
       
       addWorkspace: (workspace) => set((state) => ({
         workspaces: [...state.workspaces, { 
           ...workspace, 
           id: `ws-${Math.random().toString(36).substring(2, 6)}`,
-          specs: [] // 初始空間不帶任何規範
+          specs: [],
+          members: [] 
         }]
       })),
 
@@ -69,6 +112,20 @@ export const useAppStore = create<AppState>()(
         workspaces: state.workspaces.map(w => w.id === workspaceId ? {
           ...w,
           specs: [...w.specs, { ...spec, id: `spec-${Math.random().toString(36).substring(2, 6)}` }]
+        } : w)
+      })),
+
+      addWorkspaceMember: (workspaceId, member) => set((state) => ({
+        workspaces: state.workspaces.map(w => w.id === workspaceId ? {
+          ...w,
+          members: [...w.members, { ...member, id: `wm-${Math.random().toString(36).substring(2, 6)}`, status: 'offline' }]
+        } : w)
+      })),
+
+      removeWorkspaceMember: (workspaceId, memberId) => set((state) => ({
+        workspaces: state.workspaces.map(w => w.id === workspaceId ? {
+          ...w,
+          members: w.members.filter(m => m.id !== memberId)
         } : w)
       })),
 

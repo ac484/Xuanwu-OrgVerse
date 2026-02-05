@@ -6,6 +6,14 @@ export interface ThemeConfig {
   accent: string;
 }
 
+export interface MemberReference {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  status: 'active' | 'away' | 'offline';
+}
+
 export interface Organization {
   id: string;
   name: string;
@@ -13,6 +21,7 @@ export interface Organization {
   isExternal?: boolean;
   role: UserRole;
   theme?: ThemeConfig;
+  members: MemberReference[];
 }
 
 /**
@@ -42,6 +51,7 @@ export interface Workspace {
   resolver: string;  // 數據解析路徑
   policy: string;    // 安全與存取策略
   specs: ResourceBlock[]; // 該空間專屬的原子能力目錄
+  members: MemberReference[]; // 該空間專屬的成員
 }
 
 export interface User {
@@ -57,12 +67,4 @@ export interface Notification {
   type: 'info' | 'alert' | 'success';
   read: boolean;
   timestamp: number;
-}
-
-export interface TeamMember {
-  id: string;
-  name: string;
-  role: UserRole;
-  status: 'active' | 'away' | 'offline';
-  email: string;
 }
