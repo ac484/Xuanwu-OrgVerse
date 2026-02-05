@@ -3,7 +3,7 @@
 import { useWorkspace } from "../../workspace-context";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, Send, Clock } from "lucide-react";
+import { MessageSquare, Send, Clock, MapPin } from "lucide-react";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { useFirebase } from "@/firebase/provider";
@@ -16,7 +16,7 @@ import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/e
 export function WorkspaceDaily() {
   const { workspace, emitEvent } = useWorkspace();
   const { db } = useFirebase();
-  const { user } = useAppStore();
+  const { user, activeOrgId } = useAppStore();
   const [content, setContent] = useState("");
 
   const logsQuery = useMemo(() => {
@@ -30,12 +30,15 @@ export function WorkspaceDaily() {
   const { data: logs } = useCollection<any>(logsQuery);
 
   const handlePost = () => {
-    if (!content.trim()) return;
+    if (!content.trim() || !activeOrgId) return;
     
     const logData = {
       content,
       author: user?.name || "未知人員",
-      timestamp: serverTimestamp()
+      timestamp: serverTimestamp(),
+      orgId: activeOrgId, // 全域追蹤標記
+      workspaceId: workspace.id,
+      workspaceName: workspace.name // 冗餘存儲以利全域展示
     };
 
     const logsCol = collection(db, "workspaces", workspace.id, "dailyLogs");
@@ -58,7 +61,7 @@ export function WorkspaceDaily() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="space-y-3">
         <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-          <MessageSquare className="w-4 h-4" /> 每日動態牆
+          <MessageSquare className="w-4 h-4" /> 空間動態牆
         </h3>
         <div className="relative">
           <Textarea 

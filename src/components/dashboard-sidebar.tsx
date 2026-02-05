@@ -18,7 +18,8 @@ import {
   Settings2,
   Box,
   Handshake,
-  History
+  History,
+  MessageSquare
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -146,9 +147,9 @@ export function DashboardSidebar() {
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/external'}>
-                          <Link href="/dashboard/organization/external" className="flex items-center gap-2">
-                            <GlobeLock className="w-3 h-3" /> 外部閘道
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/daily'}>
+                          <Link href="/dashboard/organization/daily" className="flex items-center gap-2">
+                            <MessageSquare className="w-3 h-3" /> 維度動態
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
