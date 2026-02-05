@@ -10,7 +10,7 @@ import { useState, useEffect } from "react";
 
 /**
  * DashboardPage - 職責：維度脈動主控台
- * 僅負責佈局與展示組織子單元的活躍狀態。
+ * 負責佈局與展示組織子單元的活躍狀態。
  */
 export default function DashboardPage() {
   const { organizations, activeOrgId, workspaces } = useAppStore();

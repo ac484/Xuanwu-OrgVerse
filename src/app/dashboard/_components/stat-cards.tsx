@@ -16,9 +16,9 @@ export function StatCards({ orgName }: { orgName: string }) {
           <ShieldCheck className="w-4 h-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold font-headline">絕對隔離</div>
+          <div className="text-2xl font-bold font-headline">空間隔離</div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            數據嚴格分層於 {orgName} 邊界內。
+            數據嚴格分層於 {orgName} 維度內。
           </p>
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between text-[9px] uppercase font-bold tracking-tighter">
@@ -38,7 +38,7 @@ export function StatCards({ orgName }: { orgName: string }) {
         <CardContent>
           <div className="text-2xl font-bold font-headline">活躍串流</div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            當前端點間的即時協作狀態。
+            當前空間端點間的即時協作狀態。
           </p>
           <div className="flex items-center gap-1 mt-4">
             {[1, 2, 3, 4].map(i => (
@@ -61,7 +61,7 @@ export function StatCards({ orgName }: { orgName: string }) {
         <CardContent>
           <div className="text-2xl font-bold font-headline">+12% 已建立</div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            相較於上個週期的基準擴張。
+            相較於上個週期的基準空間擴張。
           </p>
           <div className="mt-4 flex items-center gap-2 text-primary">
             <Zap className="w-4 h-4 fill-primary" />

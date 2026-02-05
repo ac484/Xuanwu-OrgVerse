@@ -45,7 +45,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 /**
  * DashboardSidebar - 職責：維度導航中樞
- * 統一管理組織人員 (Members/Teams) 與 邏輯空間 (Workspaces)。
+ * 統一管理組織成員 (Members/Teams) 與 邏輯空間 (Workspaces)。
  */
 export function DashboardSidebar() {
   const { user, logout, activeOrgId, workspaces } = useAppStore();
