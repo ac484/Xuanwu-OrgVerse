@@ -22,7 +22,10 @@ import {
   Box,
   Layout,
   Activity,
-  Users
+  Users,
+  FileText,
+  Search,
+  UploadCloud
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
@@ -182,9 +185,80 @@ function WorkspaceContent() {
           <Tabs defaultValue="capabilities" className="space-y-6">
             <TabsList className="bg-muted/40 p-1 border border-border/50">
               <TabsTrigger value="capabilities" className="text-[10px] font-bold uppercase tracking-widest px-6">能力堆疊</TabsTrigger>
+              <TabsTrigger value="documents" className="text-[10px] font-bold uppercase tracking-widest px-6">維度文檔</TabsTrigger>
               <TabsTrigger value="members" className="text-[10px] font-bold uppercase tracking-widest px-6">存取治理</TabsTrigger>
               <TabsTrigger value="specs" className="text-[10px] font-bold uppercase tracking-widest px-6">技術規格</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="capabilities" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold uppercase tracking-widest">原子能力堆疊</h3>
+                <Button size="sm" variant="outline" className="h-8 gap-2 font-bold text-[9px] uppercase tracking-widest" onClick={() => setIsAddCapOpen(true)}>
+                  <Plus className="w-3 h-3" /> 註冊能力
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {(workspace.capabilities || []).map((cap) => (
+                  <Card key={cap.id} className="border-border/60 hover:border-primary/40 transition-all group bg-card/40 backdrop-blur-sm shadow-sm overflow-hidden">
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="p-2.5 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                          {getIcon(cap.type)}
+                        </div>
+                        <Badge variant="outline" className="text-[9px] uppercase font-bold">
+                          {cap.status === 'stable' ? '穩定版' : '測試版'}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-lg font-headline">{cap.name}</CardTitle>
+                      <CardDescription className="text-[11px] mt-1">{cap.description}</CardDescription>
+                    </CardHeader>
+                    <CardFooter className="border-t border-border/10 flex justify-between items-center py-4 bg-muted/5">
+                      <span className="text-[9px] font-mono text-muted-foreground">ID: {cap.id.toUpperCase()}</span>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => removeCapabilityFromWorkspace(workspace.id, cap.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+                {(workspace.capabilities || []).length === 0 && (
+                  <div className="col-span-full p-20 text-center border-2 border-dashed rounded-3xl bg-muted/5 border-border/40">
+                    <Layers className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-10" />
+                    <p className="text-sm text-muted-foreground">尚未在空間中掛載原子化能力。</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="documents" className="space-y-6">
+              <WorkspaceDocuments />
+            </TabsContent>
+
+            <TabsContent value="members" className="space-y-8">
+              <section className="space-y-4">
+                <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                  <Users className="w-4 h-4 text-primary" /> 共振團隊
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {assignedTeams.map(team => (
+                    <div key={team.id} className="p-4 bg-primary/5 border border-primary/10 rounded-xl flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg text-primary"><Users className="w-4 h-4" /></div>
+                        <div>
+                          <p className="text-xs font-bold">{team.name}</p>
+                          <p className="text-[9px] text-muted-foreground">{(team.memberIds || []).length} 名成員共振中</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {assignedTeams.length === 0 && (
+                    <div className="col-span-full p-8 border-2 border-dashed rounded-xl text-center opacity-40">
+                      <p className="text-xs font-bold uppercase tracking-widest">無團隊掛載</p>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </TabsContent>
 
             <TabsContent value="specs" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -224,61 +298,6 @@ function WorkspaceContent() {
                   </CardContent>
                 </Card>
               </div>
-            </TabsContent>
-
-            <TabsContent value="capabilities" className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold uppercase tracking-widest">原子能力堆疊</h3>
-                <Button size="sm" variant="outline" className="h-8 gap-2 font-bold text-[9px] uppercase tracking-widest" onClick={() => setIsAddCapOpen(true)}>
-                  <Plus className="w-3 h-3" /> 註冊能力
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {(workspace.capabilities || []).map((cap) => (
-                  <Card key={cap.id} className="border-border/60 hover:border-primary/40 transition-all group bg-card/40 backdrop-blur-sm shadow-sm overflow-hidden">
-                    <CardHeader className="pb-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="p-2.5 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
-                          {getIcon(cap.type)}
-                        </div>
-                        <Badge variant="outline" className="text-[9px] uppercase font-bold">
-                          {cap.status === 'stable' ? '穩定版' : '測試版'}
-                        </Badge>
-                      </div>
-                      <CardTitle className="text-lg font-headline">{cap.name}</CardTitle>
-                      <CardDescription className="text-[11px] mt-1">{cap.description}</CardDescription>
-                    </CardHeader>
-                    <CardFooter className="border-t border-border/10 flex justify-between items-center py-4 bg-muted/5">
-                      <span className="text-[9px] font-mono text-muted-foreground">ID: {cap.id.toUpperCase()}</span>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => removeCapabilityFromWorkspace(workspace.id, cap.id)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="members" className="space-y-8">
-              <section className="space-y-4">
-                <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                  <Users className="w-4 h-4 text-primary" /> 共振團隊
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {assignedTeams.map(team => (
-                    <div key={team.id} className="p-4 bg-primary/5 border border-primary/10 rounded-xl flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg text-primary"><Users className="w-4 h-4" /></div>
-                        <div>
-                          <p className="text-xs font-bold">{team.name}</p>
-                          <p className="text-[9px] text-muted-foreground">{(team.memberIds || []).length} 名成員共振中</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
             </TabsContent>
           </Tabs>
         </div>
@@ -418,6 +437,91 @@ function WorkspaceContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+/**
+ * WorkspaceDocuments - 職責：管理空間內的文檔資產 (作為 Atomic Capability 的 UI  manifestation)
+ */
+function WorkspaceDocuments() {
+  const { workspace, emitEvent, scope } = useWorkspace();
+  const [search, setSearch] = useState("");
+  
+  // 模擬文檔資料 (未來可對接 Firestore)
+  const mockDocs = [
+    { id: 'doc-1', name: '維度架構規格書.pdf', type: 'SPEC', size: '1.2MB', author: 'System' },
+    { id: 'doc-2', name: '存取協議治理草案.docx', type: 'GOV', size: '450KB', author: 'Admin' },
+  ];
+
+  const handleRegisterDoc = () => {
+    emitEvent("文檔資產註冊", "新規格草案.pdf");
+    toast({
+      title: "文檔已註冊",
+      description: "新的文檔規格已掛載至空間存儲範疇。",
+    });
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-500">
+      <div className="flex items-center justify-between gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input 
+            placeholder="在空間範疇內搜尋文檔..." 
+            className="pl-10 h-10 bg-muted/20 border-border/40"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Button className="gap-2 font-bold uppercase text-[10px] tracking-widest h-10" onClick={handleRegisterDoc}>
+          <UploadCloud className="w-4 h-4" /> 註冊文檔
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3">
+        {mockDocs.map(doc => (
+          <div key={doc.id} className="p-4 bg-card border border-border/60 rounded-xl hover:bg-primary/5 transition-all group flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-2.5 bg-muted rounded-lg group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold">{doc.name}</h4>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className="text-[8px] h-3.5 px-1 font-bold">{doc.type}</Badge>
+                  <span className="text-[10px] text-muted-foreground font-mono">{doc.size}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-right hidden sm:block">
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">註冊者</p>
+                <p className="text-[10px] font-medium">{doc.author}</p>
+              </div>
+              <Button variant="ghost" size="sm" className="h-8 text-[10px] font-bold uppercase tracking-widest text-primary">
+                檢視
+              </Button>
+            </div>
+          </div>
+        ))}
+        {mockDocs.length === 0 && (
+          <div className="p-20 text-center border-2 border-dashed rounded-3xl opacity-20">
+            <FileText className="w-12 h-12 mx-auto mb-4" />
+            <p className="text-xs font-bold uppercase tracking-[0.2em]">無文檔資產</p>
+          </div>
+        )}
+      </div>
+
+      <div className="p-4 bg-muted/30 border rounded-2xl flex items-start gap-3">
+        <Box className="w-4 h-4 text-primary mt-0.5" />
+        <div className="space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-primary">授權範疇檢查 (Scope Check)</p>
+          <p className="text-[10px] text-muted-foreground leading-relaxed">
+            此空間當前具備 [{(scope || []).join(", ")}] 範疇。所有文檔操作均需符合協議與範疇限制。
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
