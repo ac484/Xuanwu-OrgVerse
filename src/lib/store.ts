@@ -28,39 +28,29 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       user: null,
       organizations: [
-        { id: 'personal', name: 'Personal Space', context: 'Individual creative sandbox', role: 'Owner' },
-        { id: 'acme', name: 'Acme Corp', context: 'Industrial manufacturing global leader', role: 'Admin' },
-        { id: 'design-collective', name: 'Design Collective', context: 'Collaborative art and design group', role: 'Guest', isExternal: true },
+        { id: 'personal', name: 'Personal Dimension', context: 'Individual infrastructure sandbox', role: 'Owner' },
+        { id: 'acme', name: 'Acme Corp', context: 'Enterprise-grade manufacturing resonance', role: 'Admin' },
       ],
       activeOrgId: 'personal',
       containers: [
         { 
-          id: 'p1', 
+          id: 'c1', 
           orgId: 'personal', 
-          name: 'Core Runtime', 
-          context: 'user-default-context',
-          scope: ['profile', 'private-data'],
-          resolver: 'standard-resolver',
-          policy: 'private-isolation'
-        },
-        { 
-          id: 'a1', 
-          orgId: 'acme', 
-          name: 'Supply Chain Hub', 
-          context: 'enterprise-node-v4',
-          scope: ['inventory', 'logistics', 'partners'],
-          resolver: 'federated-resolver',
-          policy: 'zero-trust-policy'
+          name: 'Primary Node', 
+          context: 'runtime-standard-v1',
+          scope: ['auth', 'private-data'],
+          resolver: 'local-gateway',
+          policy: 'strict-isolation'
         }
       ],
       notifications: [
-        { id: 'n1', title: 'System Activation', message: 'Dimension resonance is now stable.', type: 'success', read: false, timestamp: Date.now() },
+        { id: 'n1', title: 'Resonance Established', message: 'Dimension bridge is now active.', type: 'success', read: false, timestamp: Date.now() },
       ],
       teamMembers: [
-        { id: 't1', name: 'Sarah Connor', role: 'Admin', status: 'active', email: 'sarah@orgverse.io' },
+        { id: 't1', name: 'Core Architect', role: 'Owner', status: 'active', email: 'architect@orgverse.io' },
       ],
       resourceBlocks: [
-        { id: 'b1', name: 'Logic Engine v2', type: 'api', status: 'stable', description: 'Core computational logic block.' },
+        { id: 'b1', name: 'Identity Resolver', type: 'api', status: 'stable', description: 'Core authentication protocol block.' },
       ],
 
       login: (userData) => set({ user: userData }),
@@ -78,7 +68,7 @@ export const useAppStore = create<AppState>()(
       })),
       
       addContainer: (container) => set((state) => ({
-        containers: [...state.containers, { ...container, id: Math.random().toString(36).substring(2, 11) }]
+        containers: [...state.containers, { ...container, id: `cid-${Math.random().toString(36).substring(2, 6)}` }]
       })),
 
       deleteContainer: (id) => set((state) => ({
