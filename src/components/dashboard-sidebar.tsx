@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -54,7 +53,7 @@ import { useMemo } from "react";
 
 /**
  * DashboardSidebar - 職責：全站導航與空間快速切換
- * 術語校準：統一使用單數「organization」路由。
+ * 術語校準：統一使用單數「organization」路徑。
  */
 export function DashboardSidebar() {
   const router = useRouter();
