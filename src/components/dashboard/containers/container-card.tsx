@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Box, MoreVertical } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface ContainerCardProps {
   container: Container;
@@ -13,10 +14,16 @@ interface ContainerCardProps {
 
 /**
  * ContainerCard - 職責：標準化的容器網格展示元件
+ * 提供點擊導航與動作選單。
  */
 export function ContainerCard({ container, onAction }: ContainerCardProps) {
+  const router = useRouter();
+
   return (
-    <Card className="group border-border/60 hover:shadow-lg hover:border-primary/40 transition-all duration-300 cursor-pointer bg-card/60 backdrop-blur-sm">
+    <Card 
+      className="group border-border/60 hover:shadow-lg hover:border-primary/40 transition-all duration-300 cursor-pointer bg-card/60 backdrop-blur-sm"
+      onClick={() => router.push(`/dashboard/containers/${container.id}`)}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="p-2.5 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
