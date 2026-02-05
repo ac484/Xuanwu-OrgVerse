@@ -1,9 +1,9 @@
 "use client";
 
 import { useAppStore } from "@/lib/store";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Layers, ShieldCheck, Activity, Users, ArrowUpRight, Zap, Package } from "lucide-react";
+import { Layers, ShieldCheck, Activity, ArrowUpRight, Zap, Package } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 export default function DashboardPage() {
@@ -69,7 +69,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">Active Stream</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Real-time collaboration across 4 endpoints.
+              Real-time collaboration across active endpoints.
             </p>
             <div className="flex items-center gap-1 mt-4">
               {[1, 2, 3, 4].map(i => (
