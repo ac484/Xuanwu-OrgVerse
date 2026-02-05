@@ -12,13 +12,14 @@ import { Zap, Shield, AlertTriangle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { useFirebase } from "@/firebase/provider";
+import { doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 
-/**
- * OrganizationSettingsPage - 職責：管理維度（組織）的核心架構參數
- * 已補全：維度銷毀協議邏輯。
- */
 export default function OrganizationSettingsPage() {
-  const { organizations, activeOrgId, updateOrganization, deleteOrganization, updateOrgTheme } = useAppStore();
+  const { organizations, activeOrgId } = useAppStore();
+  const { db } = useFirebase();
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   
@@ -41,19 +42,30 @@ export default function OrganizationSettingsPage() {
   if (!mounted || !activeOrg) return null;
 
   const handleSave = () => {
-    updateOrganization(activeOrg.id, { name, description });
-    toast({
-      title: "維度主權更新成功",
-      description: "維度識別參數已同步至全域環境。",
-    });
+    const orgRef = doc(db, "organizations", activeOrg.id);
+    const updates = { name, description };
+    
+    updateDoc(orgRef, updates)
+      .then(() => {
+        toast({ title: "維度主權更新成功", description: "維度識別參數已同步至全域環境。" });
+      })
+      .catch(async () => {
+        const error = new FirestorePermissionError({
+          path: orgRef.path,
+          operation: 'update',
+          requestResourceData: updates
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', error);
+      });
   };
 
   const handleRecalibrate = () => {
-    updateOrgTheme(activeOrg.id, undefined); 
-    toast({
-      title: "色彩共振校準中",
-      description: "正在根據新的維度識別描述重新計算 UI 色彩。",
-    });
+    const orgRef = doc(db, "organizations", activeOrg.id);
+    // 移除 theme 觸發 UIAdapter 重新計算
+    updateDoc(orgRef, { theme: null })
+      .then(() => {
+        toast({ title: "色彩共振校準中", description: "正在重新計算 UI 色彩。" });
+      });
   };
 
   const handleDelete = () => {
@@ -62,13 +74,20 @@ export default function OrganizationSettingsPage() {
       return;
     }
 
-    if (confirm(`確定要銷毀維度「${activeOrg.name}」嗎？這將移除所有附屬空間與成員授權。`)) {
-      deleteOrganization(activeOrg.id);
-      router.push("/dashboard");
-      toast({
-        title: "維度已銷毀",
-        description: "相關的所有技術規格與身分共振已永久抹除。",
-      });
+    if (confirm(`確定要銷毀維度「${activeOrg.name}」嗎？`)) {
+      const orgRef = doc(db, "organizations", activeOrg.id);
+      deleteDoc(orgRef)
+        .then(() => {
+          router.push("/dashboard");
+          toast({ title: "維度已銷毀" });
+        })
+        .catch(async () => {
+          const error = new FirestorePermissionError({
+            path: orgRef.path,
+            operation: 'delete'
+          } satisfies SecurityRuleContext);
+          errorEmitter.emit('permission-error', error);
+        });
     }
   };
 
@@ -100,12 +119,12 @@ export default function OrganizationSettingsPage() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="org-desc">維度識別描述 (Dimension Identity Description)</Label>
+              <Label htmlFor="org-desc">維度識別描述</Label>
               <Textarea 
                 id="org-desc" 
                 value={description} 
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="描述此維度的業務背景、技術偏好 or 文化特質..."
+                placeholder="描述此維度的業務背景..."
                 className="min-h-[100px]"
               />
               <p className="text-[10px] text-muted-foreground italic">
@@ -130,14 +149,8 @@ export default function OrganizationSettingsPage() {
               <span className="text-[10px] font-bold uppercase tracking-widest">極端安全指令</span>
             </div>
             <CardTitle className="font-headline text-destructive">維度銷毀協議</CardTitle>
-            <CardDescription className="text-destructive/80">
-              永久移除此維度及其下屬的所有空間與成員授權。
-            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-xs font-medium text-destructive mb-4">
-              此操作不可逆。一旦執行，所有與此維度相關的規格與身分共振將永久消失。
-            </p>
             <Button variant="destructive" className="font-bold uppercase tracking-widest text-[10px]" onClick={handleDelete}>
               啟動銷毀程序
             </Button>

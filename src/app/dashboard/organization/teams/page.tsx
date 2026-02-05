@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -18,12 +19,12 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
+import { useFirebase } from "@/firebase/provider";
+import { doc, updateDoc, arrayUnion } from "firebase/firestore";
 
-/**
- * OrganizationTeamsPage - 職責：管理維度內的部門團隊 (Team 清單)
- */
 export default function OrganizationTeamsPage() {
-  const { organizations, activeOrgId, addOrgTeam } = useAppStore();
+  const { organizations, activeOrgId } = useAppStore();
+  const { db } = useFirebase();
   const [mounted, setMounted] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
@@ -38,24 +39,32 @@ export default function OrganizationTeamsPage() {
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
   if (!activeOrg) return null;
 
-  // 防禦性檢查：確保 teams 存在
   const teams = activeOrg.teams || [];
 
   const handleCreateTeam = () => {
     if (!newTeamName.trim()) return;
-    addOrgTeam(activeOrg.id, {
+    
+    const newTeam = {
+      id: `t-${Math.random().toString(36).slice(-4)}`,
       name: newTeamName,
-      description: "自定義的維度技術或業務團隊。"
-    });
-    setNewTeamName("");
-    setIsCreateOpen(false);
+      description: "自定義的維度技術或業務團隊。",
+      memberIds: []
+    };
+
+    const orgRef = doc(db, "organizations", activeOrg.id);
+    updateDoc(orgRef, { teams: arrayUnion(newTeam) })
+      .then(() => {
+        setNewTeamName("");
+        setIsCreateOpen(false);
+        toast({ title: "團隊已建立" });
+      });
   };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500">
       <PageHeader 
         title="部門團隊" 
-        description="管理組織內部的邏輯分組，如技術部、行銷部等。"
+        description="管理組織內部的邏輯分組。"
       >
         <Button className="gap-2 font-bold uppercase text-[11px] tracking-widest h-10" onClick={() => setIsCreateOpen(true)}>
           <Plus className="w-4 h-4" /> 建立團隊
@@ -73,11 +82,9 @@ export default function OrganizationTeamsPage() {
               <CardDescription className="text-xs">{team.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-[10px] font-bold">
-                  {(team.memberIds || []).length} 名成員
-                </Badge>
-              </div>
+              <Badge variant="secondary" className="text-[10px] font-bold">
+                {(team.memberIds || []).length} 名成員
+              </Badge>
             </CardContent>
             <CardFooter className="border-t py-4 flex justify-between items-center bg-muted/5">
               <span className="text-[9px] font-mono text-muted-foreground">ID: {team.id.toUpperCase()}</span>
@@ -101,13 +108,10 @@ export default function OrganizationTeamsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="font-headline text-2xl">建立團隊</DialogTitle>
-            <DialogDescription>定義一個新的組織子單元，用於聚合特定成員。</DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
-            <div className="space-y-2">
-              <Label>團隊名稱</Label>
-              <Input value={newTeamName} onChange={(e) => setNewTeamName(e.target.value)} placeholder="例如: 雲端技術架構組" />
-            </div>
+            <Label>團隊名稱</Label>
+            <Input value={newTeamName} onChange={(e) => setNewTeamName(e.target.value)} placeholder="例如: 雲端技術架構組" />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateOpen(false)}>取消</Button>

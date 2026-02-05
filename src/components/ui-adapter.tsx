@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState, useRef } from "react";
@@ -5,13 +6,12 @@ import { useAppStore } from "@/lib/store";
 import { adaptUIColorToOrgContext } from "@/ai/flows/adapt-ui-color-to-org-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { hexToHsl } from "@/lib/utils";
+import { useFirebase } from "@/firebase/provider";
+import { doc, updateDoc } from "firebase/firestore";
 
-/**
- * UIAdapter acts as a middleware component that listens to the active organization
- * and applies AI-driven theme transformations.
- */
 export function UIAdapter({ children }: { children: React.ReactNode }) {
-  const { organizations, activeOrgId, updateOrgTheme } = useAppStore();
+  const { organizations, activeOrgId } = useAppStore();
+  const { db } = useFirebase();
   const [isAdapting, setIsAdapting] = useState(false);
   const adaptingId = useRef<string | null>(null);
 
@@ -26,15 +26,19 @@ export function UIAdapter({ children }: { children: React.ReactNode }) {
       
       try {
         const result = await adaptUIColorToOrgContext({ 
-          organizationContext: activeOrg.description 
+          organizationContext: activeOrg.description || "General business workspace"
         });
         
         if (result && adaptingId.current === activeOrg.id) {
-          updateOrgTheme(activeOrg.id, {
+          const orgRef = doc(db, "organizations", activeOrg.id);
+          const themeUpdates = {
             primary: result.primaryColor,
             background: result.backgroundColor,
             accent: result.accentColor,
-          });
+          };
+          
+          // 真正的雲端持久化寫入
+          updateDoc(orgRef, { theme: themeUpdates });
         }
       } catch (error) {
         console.error("Theme adaptation failed:", error);
@@ -45,7 +49,7 @@ export function UIAdapter({ children }: { children: React.ReactNode }) {
     }
 
     adaptTheme();
-  }, [activeOrgId, activeOrg?.description, activeOrg?.theme, updateOrgTheme]);
+  }, [activeOrgId, activeOrg?.description, activeOrg?.theme, db]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -63,13 +67,7 @@ export function UIAdapter({ children }: { children: React.ReactNode }) {
   if (isAdapting) {
     return (
       <div className="flex flex-col gap-6 p-8 max-w-7xl mx-auto">
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-14 w-14 rounded-2xl" />
-          <div className="space-y-2">
-            <Skeleton className="h-6 w-[300px]" />
-            <Skeleton className="h-4 w-[250px]" />
-          </div>
-        </div>
+        <Skeleton className="h-14 w-[300px] rounded-2xl" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Skeleton className="h-[160px] w-full rounded-2xl" />
           <Skeleton className="h-[160px] w-full rounded-2xl" />

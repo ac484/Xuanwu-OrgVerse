@@ -1,5 +1,6 @@
+
 import { create } from 'zustand';
-import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, Capability, MemberReference, Team, PulseLog, WorkspaceTask, WorkspaceIssue, WorkspaceDaily, WorkspaceFile, CapabilitySpec } from '@/types/domain';
+import { User, Organization, Workspace, Notification, CapabilitySpec, PulseLog } from '@/types/domain';
 
 interface AppState {
   user: User | null;
@@ -16,19 +17,16 @@ interface AppState {
   updateUser: (updates: Partial<User>) => void;
   setActiveOrg: (id: string) => void;
   
-  // Data Sync (Local State Management for UI Responsiveness)
+  // Data Sync
   setOrganizations: (orgs: Organization[]) => void;
   setWorkspaces: (workspaces: Workspace[]) => void;
   
-  // These will now trigger Firestore writes in the components, 
-  // but we keep the store for global UI state
   addPulseLog: (log: Omit<PulseLog, 'id' | 'timestamp' | 'orgId'>) => void;
   addNotification: (notif: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   markAsRead: (id: string) => void;
   clearNotifications: () => void;
 }
 
-// 注意：我們移除了 persist 中間件，確保資料不跨帳號殘留
 export const useAppStore = create<AppState>()((set, get) => ({
   user: null,
   organizations: [],

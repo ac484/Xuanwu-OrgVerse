@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -8,19 +9,15 @@ import { Button } from "@/components/ui/button";
 import { UserPlus, Trash2, Mail } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useState, useEffect, useMemo } from "react";
+import { useFirebase } from "@/firebase/provider";
+import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 
-/**
- * OrganizationMembersPage - 職責：管理維度內的完整人員名單 (Member 清單)
- * 極速響應：優化 Store 訂閱模式，避免因脈動日誌導致的無效渲染。
- */
 export default function OrganizationMembersPage() {
   const [mounted, setMounted] = useState(false);
-  
-  // 精準選擇器：僅訂閱必要數據與 Actions
-  const organizations = useAppStore(state => state.organizations);
-  const activeOrgId = useAppStore(state => state.activeOrgId);
-  const removeOrgMember = useAppStore(state => state.removeOrgMember);
-  const addOrgMember = useAppStore(state => state.addOrgMember);
+  const { organizations, activeOrgId } = useAppStore();
+  const { db } = useFirebase();
 
   useEffect(() => {
     setMounted(true);
@@ -37,24 +34,35 @@ export default function OrganizationMembersPage() {
 
   const handleRecruitMember = () => {
     const newId = `m-${Math.random().toString(36).slice(-4)}`;
-    addOrgMember(activeOrg.id, {
+    const newMember = {
+      id: newId,
       name: "新進研究員",
       email: `user-${newId}@orgverse.io`,
-      role: 'Member'
-    });
-    toast({ 
-      title: "身分共振激活", 
-      description: "新的數位身分已成功同步至維度名單。" 
-    });
+      role: 'Member',
+      status: 'active'
+    };
+
+    const orgRef = doc(db, "organizations", activeOrg.id);
+    updateDoc(orgRef, { members: arrayUnion(newMember) })
+      .then(() => {
+        toast({ title: "身分共振激活", description: "新的數位身分已成功同步至維度名單。" });
+      })
+      .catch(async () => {
+        const error = new FirestorePermissionError({
+          path: orgRef.path,
+          operation: 'update',
+          requestResourceData: { members: 'arrayUnion' }
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', error);
+      });
   };
 
-  const handleDismissMember = (id: string, name: string) => {
-    removeOrgMember(activeOrg.id, id);
-    toast({ 
-      title: "身分註銷", 
-      description: `成員 ${name} 的數位權限已從此維度移除。`,
-      variant: "destructive"
-    });
+  const handleDismissMember = (member: any) => {
+    const orgRef = doc(db, "organizations", activeOrg.id);
+    updateDoc(orgRef, { members: arrayRemove(member) })
+      .then(() => {
+        toast({ title: "身分註銷", description: `成員 ${member.name} 已移除。`, variant: "destructive" });
+      });
   };
 
   return (
@@ -100,7 +108,7 @@ export default function OrganizationMembersPage() {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => handleDismissMember(member.id, member.name)}
+                  onClick={() => handleDismissMember(member)}
                   disabled={member.role === 'Owner'}
                   className="h-8 hover:text-destructive hover:bg-destructive/5"
                 >
