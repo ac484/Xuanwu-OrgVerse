@@ -50,14 +50,17 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 /**
  * DashboardSidebar - 職責：維度導航中樞
- * 統一了所有選單圖示，確保視覺一致性。
+ * 已實作「空間可見性」過濾邏輯，隱藏的空間不會出現在快速切換清單。
  */
 export function DashboardSidebar() {
   const { user, logout, activeOrgId, workspaces } = useAppStore();
   const router = useRouter();
   const pathname = usePathname();
   
-  const orgWorkspaces = workspaces.filter(w => w.orgId === activeOrgId);
+  // 關鍵修正：只在側邊欄顯示 visibility === 'visible' 的空間
+  const orgWorkspaces = (workspaces || []).filter(w => 
+    w.orgId === activeOrgId && w.visibility === 'visible'
+  );
 
   const handleLogout = () => {
     logout();
@@ -94,7 +97,7 @@ export function DashboardSidebar() {
                 <SidebarMenuButton asChild isActive={pathname === '/dashboard/organization/audit'} className="transition-all duration-200">
                   <Link href="/dashboard/organization/audit" className="flex items-center gap-3">
                     <Activity className="w-4 h-4" />
-                    <span className="font-semibold">審計串流</span>
+                    <span className="font-semibold">維度脈動日誌</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

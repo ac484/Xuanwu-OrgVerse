@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 /**
  * DashboardHeader - 職責：處理導航欄的全域搜尋與通知邏輯
  * 實作真實數據檢索：維度 (Organizations)、空間 (Workspaces)、人員 (Members)
+ * 已過濾隱藏空間 (Hidden Workspaces)
  */
 export function DashboardHeader() {
   const { 
@@ -68,8 +69,10 @@ export function DashboardHeader() {
     organizations: organizations.filter(o => 
       o.name.toLowerCase().includes(searchQuery.toLowerCase())
     ).slice(0, 3),
+    // 關鍵修正：加入 visibility === 'visible' 的過濾
     workspaces: (workspaces || []).filter(w => 
       w.orgId === activeOrgId && 
+      w.visibility === 'visible' && 
       w.name.toLowerCase().includes(searchQuery.toLowerCase())
     ).slice(0, 3),
     members: (activeOrg?.members || []).filter(m =>
