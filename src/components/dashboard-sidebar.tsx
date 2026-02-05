@@ -9,7 +9,8 @@ import {
   LogOut,
   Terminal,
   ChevronUp,
-  Fingerprint
+  Fingerprint,
+  UserCircle
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -39,7 +40,6 @@ import {
 
 /**
  * DashboardSidebar - 職責：維度導航中樞
- * 已移除所有舊有 Container 與 Blocks 語義入口。
  */
 export function DashboardSidebar() {
   const { user, logout, activeOrgId, workspaces } = useAppStore();
@@ -146,12 +146,12 @@ export function DashboardSidebar() {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="w-[220px] shadow-xl border-border/60">
-                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest opacity-60">身分主權設定</DropdownMenuLabel>
+                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest opacity-60">身分主權中心</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard/settings" className="cursor-pointer flex items-center gap-2 py-2">
-                    <Settings className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-xs font-medium">架構參數與策略</span>
+                    <UserCircle className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-xs font-medium">用戶面板與用戶設置</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
