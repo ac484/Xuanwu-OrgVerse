@@ -8,8 +8,8 @@ import { RecentWorkspaces } from "./_components/recent-workspaces";
 import { PermissionConstellation } from "./_components/permission-constellation";
 
 /**
- * DashboardPage - 職責：作為儀表板的佈局協調者
- * 展示當前維度的活躍狀態與核心節點。
+ * DashboardPage - 職責：維度脈動主控台
+ * 僅負責佈局與展示邏輯空間的活躍狀態。
  */
 export default function DashboardPage() {
   const { organizations, activeOrgId, workspaces } = useAppStore();
@@ -20,29 +20,22 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto animate-in fade-in duration-700">
       <PageHeader 
-        title="組織脈動" 
+        title="維度脈動" 
         description={activeOrg.context}
         badge={
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="border-primary/30 text-primary uppercase text-[10px] tracking-widest font-bold bg-primary/5 px-2 py-1">
-              維度: {activeOrg.name}
-            </Badge>
-            {activeOrg.isExternal && (
-              <Badge variant="secondary" className="text-[10px] uppercase font-bold bg-accent/20 text-accent-foreground border-accent/30">
-                外部資源
-              </Badge>
-            )}
-          </div>
+          <Badge variant="outline" className="border-primary/30 text-primary uppercase text-[10px] tracking-widest font-bold bg-primary/5 px-2 py-1">
+            當前維度: {activeOrg.name}
+          </Badge>
         }
       >
-        <div className="flex items-center gap-4 bg-muted/40 p-4 rounded-2xl border border-border/50 shadow-sm">
-          <div className="flex flex-col items-center px-4 border-r border-border/50">
-            <span className="text-2xl font-bold font-headline">{orgWorkspaces.length}</span>
-            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">邏輯節點</span>
+        <div className="flex items-center gap-6 bg-muted/40 p-4 rounded-2xl border border-border/50">
+          <div className="text-center px-4 border-r border-border/50">
+            <p className="text-2xl font-bold font-headline">{orgWorkspaces.length}</p>
+            <p className="text-[10px] text-muted-foreground uppercase font-bold">活躍空間</p>
           </div>
-          <div className="flex flex-col items-center px-4">
-            <span className="text-[10px] text-muted-foreground uppercase font-bold mb-1">存取層級</span>
-            <Badge className="font-headline bg-primary text-primary-foreground shadow-sm px-3">{activeOrg.role}</Badge>
+          <div className="text-center px-4">
+            <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">主權級別</p>
+            <Badge className="font-headline">{activeOrg.role}</Badge>
           </div>
         </div>
       </PageHeader>

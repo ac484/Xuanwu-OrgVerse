@@ -29,28 +29,27 @@ export const useAppStore = create<AppState>()(
       user: null,
       organizations: [
         { id: 'personal', name: '個人維度', context: '個人基礎設施沙盒', role: 'Owner' },
-        { id: 'acme', name: '頂尖企業', context: '企業級製造與生產共振', role: 'Admin' },
+        { id: 'acme', name: '企業架構', context: '高併發邏輯叢集', role: 'Admin' },
       ],
       activeOrgId: 'personal',
       workspaces: [
         { 
-          id: 'w1', 
+          id: 'ws-root', 
           orgId: 'personal', 
-          name: '主控空間', 
-          context: 'runtime-standard-v1',
-          scope: ['auth', 'private-data'],
-          resolver: 'local-gateway',
-          policy: 'strict-isolation'
+          name: '主控節點', 
+          context: 'runtime-core-v1',
+          scope: ['auth', 'internal-bus'],
+          resolver: 'standard-resolver-v1',
+          policy: 'zero-trust-default'
         }
       ],
-      notifications: [
-        { id: 'n1', title: '共振已建立', message: '維度橋接器現已啟用。', type: 'success', read: false, timestamp: Date.now() },
-      ],
+      notifications: [],
       teamMembers: [
-        { id: 't1', name: '核心架構師', role: 'Owner', status: 'active', email: 'architect@orgverse.io' },
+        { id: 't1', name: '全域管理員', role: 'Owner', status: 'active', email: 'admin@orgverse.io' },
       ],
       resourceBlocks: [
-        { id: 'b1', name: '身分解析器', type: 'api', status: 'stable', description: '核心身分驗證協議區塊。' },
+        { id: 'b1', name: '身分共鳴模組', type: 'api', status: 'stable', description: '處理跨維度身分識別的原子化單元。' },
+        { id: 'b2', name: '資源監測模組', type: 'component', status: 'beta', description: '即時可視化邏輯容器內資源流向。' },
       ],
 
       login: (userData) => set({ user: userData }),
@@ -90,6 +89,6 @@ export const useAppStore = create<AppState>()(
 
       clearNotifications: () => set({ notifications: [] }),
     }),
-    { name: 'orgverse-storage' }
+    { name: 'orgverse-v2-storage' }
   )
 );
