@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, Capability, MemberReference, Team, PulseLog, WorkspaceTask, WorkspaceIssue, WorkspaceDaily, WorkspaceFile } from '@/types/domain';
@@ -43,7 +44,7 @@ interface AppState {
   removeWorkspaceMember: (workspaceId: string, memberId: string) => void;
 
   addTaskToWorkspace: (workspaceId: string, task: Omit<WorkspaceTask, 'id'>) => void;
-  toggleTaskStatus: (workspaceId: string, taskId: string) => void;
+  updateTaskStatus: (workspaceId: string, taskId: string, status: WorkspaceTask['status']) => void;
   addIssueToWorkspace: (workspaceId: string, issue: Omit<WorkspaceIssue, 'id'>) => void;
   addDailyLogToWorkspace: (workspaceId: string, log: Omit<WorkspaceDaily, 'id' | 'timestamp'>) => void;
   addFileToWorkspace: (workspaceId: string, file: Omit<WorkspaceFile, 'id' | 'timestamp'>) => void;
@@ -279,10 +280,10 @@ export const useAppStore = create<AppState>()(
         } : w)
       })),
 
-      toggleTaskStatus: (workspaceId, taskId) => set((state) => ({
+      updateTaskStatus: (workspaceId, taskId, status) => set((state) => ({
         workspaces: state.workspaces.map(w => w.id === workspaceId ? {
           ...w,
-          tasks: (w.tasks || []).map(t => t.id === taskId ? { ...t, status: t.status === 'todo' ? 'done' : 'todo' } : t)
+          tasks: (w.tasks || []).map(t => t.id === taskId ? { ...t, status } : t)
         } : w)
       })),
 

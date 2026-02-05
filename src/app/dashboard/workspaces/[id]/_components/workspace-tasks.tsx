@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useWorkspace } from "../workspace-context";
@@ -5,13 +6,14 @@ import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ListTodo, Plus, CheckCircle2, Circle } from "lucide-react";
+import { ListTodo, Plus, CheckCircle2, Circle, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 export function WorkspaceTasks() {
   const { workspace, emitEvent } = useWorkspace();
-  const { addTaskToWorkspace, toggleTaskStatus } = useAppStore();
+  const { addTaskToWorkspace, updateTaskStatus } = useAppStore();
   const [newTask, setNewTask] = useState("");
 
   const handleAddTask = (e: React.FormEvent) => {
@@ -23,7 +25,7 @@ export function WorkspaceTasks() {
     toast({ title: "任務已新增" });
   };
 
-  const tasks = workspace.tasks || [];
+  const tasks = (workspace.tasks || []).filter(t => t.status === 'todo' || t.status === 'completed');
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -49,19 +51,25 @@ export function WorkspaceTasks() {
         {tasks.map(task => (
           <div 
             key={task.id} 
-            className={`flex items-center gap-3 p-4 border rounded-2xl transition-all ${task.status === 'done' ? 'bg-muted/30 opacity-60 border-transparent' : 'bg-card/40 border-border/60'}`}
+            className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${task.status === 'completed' ? 'bg-muted/30 opacity-60 border-transparent' : 'bg-card/40 border-border/60'}`}
           >
-            <Checkbox 
-              checked={task.status === 'done'} 
-              onCheckedChange={() => {
-                toggleTaskStatus(workspace.id, task.id);
-                emitEvent(task.status === 'todo' ? "完成任務" : "重啟任務", task.title);
-              }}
-              className="rounded-full"
-            />
-            <span className={`text-sm font-medium ${task.status === 'done' ? 'line-through' : ''}`}>
-              {task.title}
-            </span>
+            <div className="flex items-center gap-3">
+              <Checkbox 
+                checked={task.status === 'completed'} 
+                onCheckedChange={() => {
+                  const nextStatus = task.status === 'todo' ? 'completed' : 'todo';
+                  updateTaskStatus(workspace.id, task.id, nextStatus);
+                  emitEvent(nextStatus === 'completed' ? "完成任務" : "重啟任務", task.title);
+                }}
+                className="rounded-full"
+              />
+              <span className={`text-sm font-medium ${task.status === 'completed' ? 'line-through' : ''}`}>
+                {task.title}
+              </span>
+            </div>
+            {task.status === 'completed' && (
+              <Badge variant="outline" className="text-[8px] uppercase tracking-tighter">待品檢 (QA)</Badge>
+            )}
           </div>
         ))}
         {tasks.length === 0 && (

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -26,7 +27,9 @@ import {
   FileText,
   ListTodo,
   AlertCircle,
-  MessageSquare
+  MessageSquare,
+  ShieldCheck,
+  Trophy
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
@@ -44,6 +47,8 @@ import { WorkspaceTasks } from "./_components/workspace-tasks";
 import { WorkspaceIssues } from "./_components/workspace-issues";
 import { WorkspaceDaily } from "./_components/workspace-daily";
 import { WorkspaceMembersManagement } from "./_components/workspace-members-management";
+import { WorkspaceQA } from "./_components/workspace-qa";
+import { WorkspaceAcceptance } from "./_components/workspace-acceptance";
 
 /**
  * WorkspaceDetailPage - 職責：深度管理特定的邏輯空間
@@ -128,6 +133,8 @@ function WorkspaceContent() {
     const capTemplates: Record<string, any> = {
       'files': { name: '檔案空間', type: 'data', description: '管理維度內的文檔與資產。' },
       'tasks': { name: '原子任務', type: 'ui', description: '追蹤空間內的行動目標。' },
+      'qa': { name: '品質檢驗', type: 'ui', description: '檢核任務執行品質。' },
+      'acceptance': { name: '最終驗收', type: 'ui', description: '驗收成果並結案。' },
       'issues': { name: '議題追蹤', type: 'ui', description: '回報並處理技術衝突。' },
       'daily': { name: '每日動態', type: 'ui', description: '極簡的技術協作日誌牆。' },
     };
@@ -145,6 +152,8 @@ function WorkspaceContent() {
     switch (id) {
       case 'files': return <FileText className="w-5 h-5" />;
       case 'tasks': return <ListTodo className="w-5 h-5" />;
+      case 'qa': return <ShieldCheck className="w-5 h-5" />;
+      case 'acceptance': return <Trophy className="w-5 h-5" />;
       case 'issues': return <AlertCircle className="w-5 h-5" />;
       case 'daily': return <MessageSquare className="w-5 h-5" />;
       default: return <Layers className="w-5 h-5" />;
@@ -208,6 +217,8 @@ function WorkspaceContent() {
               <TabsTrigger value="capabilities" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">能力清單</TabsTrigger>
               {mountedCapIds.includes('files') && <TabsTrigger value="files" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">檔案</TabsTrigger>}
               {mountedCapIds.includes('tasks') && <TabsTrigger value="tasks" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">任務</TabsTrigger>}
+              {mountedCapIds.includes('qa') && <TabsTrigger value="qa" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">品檢</TabsTrigger>}
+              {mountedCapIds.includes('acceptance') && <TabsTrigger value="acceptance" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">驗收</TabsTrigger>}
               {mountedCapIds.includes('issues') && <TabsTrigger value="issues" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">議題</TabsTrigger>}
               {mountedCapIds.includes('daily') && <TabsTrigger value="daily" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">動態牆</TabsTrigger>}
               <TabsTrigger value="members" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">存取治理</TabsTrigger>
@@ -258,6 +269,8 @@ function WorkspaceContent() {
 
             <TabsContent value="files"><WorkspaceFiles /></TabsContent>
             <TabsContent value="tasks"><WorkspaceTasks /></TabsContent>
+            <TabsContent value="qa"><WorkspaceQA /></TabsContent>
+            <TabsContent value="acceptance"><WorkspaceAcceptance /></TabsContent>
             <TabsContent value="issues"><WorkspaceIssues /></TabsContent>
             <TabsContent value="daily"><WorkspaceDaily /></TabsContent>
             <TabsContent value="members"><WorkspaceMembersManagement /></TabsContent>
@@ -389,6 +402,8 @@ function WorkspaceContent() {
             {[
               { id: 'files', name: '檔案空間', icon: <FileText className="w-6 h-6" />, desc: '文檔資產管理單元' },
               { id: 'tasks', name: '原子任務', icon: <ListTodo className="w-6 h-6" />, desc: '行動目標追蹤單元' },
+              { id: 'qa', name: '品質檢驗', icon: <ShieldCheck className="w-6 h-6" />, desc: '檢核任務執行品質' },
+              { id: 'acceptance', name: '最終驗收', icon: <Trophy className="w-6 h-6" />, desc: '驗收成果並結案' },
               { id: 'issues', name: '議題追蹤', icon: <AlertCircle className="w-6 h-6" />, desc: '技術衝突回報單元' },
               { id: 'daily', name: '每日動態', icon: <MessageSquare className="w-6 h-6" />, desc: '技術協作日誌牆' },
             ].map((cap) => (

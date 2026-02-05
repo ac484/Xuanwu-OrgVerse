@@ -1,3 +1,4 @@
+
 export type UserRole = 'Owner' | 'Admin' | 'Member' | 'Guest';
 
 export interface ThemeConfig {
@@ -48,7 +49,7 @@ export interface Capability {
 export interface WorkspaceTask {
   id: string;
   title: string;
-  status: 'todo' | 'done';
+  status: 'todo' | 'completed' | 'verified' | 'accepted';
   assignee?: string;
 }
 
