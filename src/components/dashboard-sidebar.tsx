@@ -4,14 +4,14 @@ import { useAppStore } from "@/lib/store";
 import { 
   LayoutDashboard, 
   Layers, 
-  Users, 
   LogOut,
   Terminal,
   ChevronUp,
   Fingerprint,
   UserCircle,
   FolderTree,
-  ChevronRight
+  ChevronRight,
+  Users
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -97,7 +97,7 @@ export function DashboardSidebar() {
                     <SidebarMenuSub>
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/members'}>
-                          <Link href="/dashboard/organization/members">成員清單 (Members)</Link>
+                          <Link href="/dashboard/organization/members">成員名單 (Members)</Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>

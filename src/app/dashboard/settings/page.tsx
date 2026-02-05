@@ -6,8 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Shield, Lock, Users, Zap, AlertTriangle, User, Mail, Bell } from "lucide-react";
+import { User, Bell, AlertTriangle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 
@@ -15,8 +14,7 @@ import { toast } from "@/hooks/use-toast";
  * SettingsPage - 職責：用戶中心，管理個人身分與環境偏好
  */
 export default function SettingsPage() {
-  const { user, organizations, activeOrgId } = useAppStore();
-  const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
+  const { user } = useAppStore();
 
   const handleSave = () => {
     toast({
@@ -71,7 +69,7 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-base">自動適配 UI 共振</Label>
-                <p className="text-sm text-muted-foreground">進入不同組織維度時，自動調用 AI 生成專屬色彩。 (UIAdapter)</p>
+                <p className="text-sm text-muted-foreground">進入不同組織維度時，自動調用 AI 生成專屬色彩。</p>
               </div>
               <Switch defaultChecked />
             </div>
@@ -82,14 +80,6 @@ export default function SettingsPage() {
                 <p className="text-sm text-muted-foreground">當邏輯空間有新的技術規格掛載或成員變動時接收提醒。</p>
               </div>
               <Switch defaultChecked />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-base">極致效能模式</Label>
-                <p className="text-sm text-muted-foreground">關閉部分動態視覺共振效果，以提升在低端節點的運行速度。</p>
-              </div>
-              <Switch />
             </div>
           </CardContent>
         </Card>
