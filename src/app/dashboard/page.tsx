@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -11,7 +10,7 @@ import { useState, useEffect } from "react";
 
 /**
  * DashboardPage - 職責：維度脈動主控台
- * 優化點：移除冗餘的容器組件引用，統一使用 Workspace 術語。
+ * 優化點：全面統一術語，並將指標與真實數據連動。
  */
 export default function DashboardPage() {
   const { organizations, activeOrgId, workspaces } = useAppStore();
@@ -49,7 +48,7 @@ export default function DashboardPage() {
         </div>
       </PageHeader>
 
-      <StatCards orgName={activeOrg.name} workspaceCount={orgWorkspaces.length} />
+      <StatCards orgId={activeOrg.id} orgName={activeOrg.name} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <RecentWorkspaces workspaces={orgWorkspaces} />

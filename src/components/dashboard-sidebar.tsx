@@ -11,7 +11,6 @@ import {
   UserCircle,
   FolderTree,
   ChevronRight,
-  Settings,
   Activity,
   Grid3X3,
   GlobeLock,
@@ -50,14 +49,13 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 /**
  * DashboardSidebar - 職責：維度導航中樞
- * 已實作「空間可見性」過濾邏輯，隱藏的空間不會出現在快速切換清單。
+ * 已優化：路徑與功能完全對齊原子化閉環。
  */
 export function DashboardSidebar() {
   const { user, logout, activeOrgId, workspaces } = useAppStore();
   const router = useRouter();
   const pathname = usePathname();
   
-  // 關鍵修正：只在側邊欄顯示 visibility === 'visible' 的空間
   const orgWorkspaces = (workspaces || []).filter(w => 
     w.orgId === activeOrgId && w.visibility === 'visible'
   );
@@ -85,7 +83,7 @@ export function DashboardSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard'} className="transition-all duration-200">
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard'}>
                   <Link href="/dashboard" className="flex items-center gap-3">
                     <LayoutDashboard className="w-4 h-4" />
                     <span className="font-semibold">維度脈動</span>
@@ -94,7 +92,7 @@ export function DashboardSidebar() {
               </SidebarMenuItem>
 
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard/organization/audit'} className="transition-all duration-200">
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard/organization/audit'}>
                   <Link href="/dashboard/organization/audit" className="flex items-center gap-3">
                     <Activity className="w-4 h-4" />
                     <span className="font-semibold">維度脈動日誌</span>
@@ -105,7 +103,7 @@ export function DashboardSidebar() {
               <Collapsible defaultOpen className="group/collapsible">
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton className="transition-all duration-200">
+                    <SidebarMenuButton>
                       <FolderTree className="w-4 h-4" />
                       <span className="font-semibold">組織架構</span>
                       <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
@@ -154,7 +152,7 @@ export function DashboardSidebar() {
               </Collapsible>
 
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/workspaces')} className="transition-all duration-200">
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/workspaces')}>
                   <Link href="/dashboard/workspaces" className="flex items-center gap-3">
                     <Layers className="w-4 h-4" />
                     <span className="font-semibold">邏輯空間</span>
@@ -173,10 +171,10 @@ export function DashboardSidebar() {
             <SidebarMenu>
               {orgWorkspaces.map((workspace) => (
                 <SidebarMenuItem key={workspace.id}>
-                  <SidebarMenuButton asChild isActive={pathname === `/dashboard/workspaces/${workspace.id}`} className="group">
+                  <SidebarMenuButton asChild isActive={pathname === `/dashboard/workspaces/${workspace.id}`}>
                     <Link href={`/dashboard/workspaces/${workspace.id}`} className="flex items-center justify-between w-full">
                       <div className="flex items-center gap-2 truncate">
-                        <Terminal className="w-3 h-3 text-primary/60 group-hover:text-primary transition-colors" />
+                        <Terminal className="w-3 h-3 text-primary/60" />
                         <span className="truncate text-xs font-medium">{workspace.name}</span>
                       </div>
                       <Badge variant="outline" className="text-[8px] h-3.5 px-1 uppercase">{workspace.id.slice(-3).toUpperCase()}</Badge>

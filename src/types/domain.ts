@@ -1,4 +1,3 @@
-
 export type UserRole = 'Owner' | 'Admin' | 'Member' | 'Guest';
 
 export interface ThemeConfig {
