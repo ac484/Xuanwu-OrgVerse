@@ -27,7 +27,8 @@ import {
   ShieldCheck, 
   Trophy, 
   AlertCircle, 
-  MessageSquare 
+  MessageSquare,
+  Landmark
 } from "lucide-react";
 
 interface WorkspaceDialogsProps {
@@ -129,6 +130,7 @@ export function WorkspaceDialogs({ openStates, onOpenChange }: WorkspaceDialogsP
       'tasks': { id: 'tasks', name: '原子任務', type: 'ui', description: '追蹤空間內的行動目標。', status: 'stable' },
       'qa': { id: 'qa', name: '品質檢驗', type: 'ui', description: '檢核任務執行品質。', status: 'stable' },
       'acceptance': { id: 'acceptance', name: '最終驗收', type: 'ui', description: '驗收成果並結案。', status: 'stable' },
+      'finance': { id: 'finance', name: '財務核算', type: 'ui', description: '處理資金撥付與清算單元。', status: 'beta' },
       'issues': { id: 'issues', name: '議題追蹤', type: 'ui', description: '處理技術衝突與異常。', status: 'stable' },
       'daily': { id: 'daily', name: '每日動態', type: 'ui', description: '極簡的技術協作日誌牆。', status: 'stable' },
     };
@@ -138,7 +140,7 @@ export function WorkspaceDialogs({ openStates, onOpenChange }: WorkspaceDialogsP
       const wsRef = doc(db, "workspaces", workspace.id);
       updateDoc(wsRef, { capabilities: arrayUnion(template) })
         .then(() => {
-          emitEvent("掛載原子能力", template.name); // 關鍵修復：觸發脈動日誌
+          emitEvent("掛載原子能力", template.name); 
           onOpenChange('capabilities', false);
           toast({ title: `${template.name} 已掛載` });
         })
@@ -202,24 +204,25 @@ export function WorkspaceDialogs({ openStates, onOpenChange }: WorkspaceDialogsP
       </Dialog>
 
       <Dialog open={openStates.capabilities} onOpenChange={(o) => onOpenChange('capabilities', o)}>
-        <DialogContent className="rounded-2xl">
+        <DialogContent className="rounded-2xl max-w-2xl">
           <DialogHeader>
             <DialogTitle className="font-headline text-2xl">掛載原子能力</DialogTitle>
             <DialogDescription>選取要堆疊至此空間的技術單元。</DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-1 gap-4 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             {[
               { id: 'files', name: '檔案空間', icon: <FileText className="w-6 h-6" />, desc: '文檔資產管理單元' },
               { id: 'tasks', name: '原子任務', icon: <ListTodo className="w-6 h-6" />, desc: '行動目標追蹤單元' },
               { id: 'qa', name: '品質檢驗', icon: <ShieldCheck className="w-6 h-6" />, desc: '檢核任務執行品質' },
               { id: 'acceptance', name: '最終驗收', icon: <Trophy className="w-6 h-6" />, desc: '驗收成果並結案' },
-              { id: 'issues', name: '議題追蹤', icon: <AlertCircle className="w-6 h-6" />, desc: '技術衝突回報單元' },
+              { id: 'finance', name: '財務核算', icon: <Landmark className="w-6 h-6" />, desc: '驗收後撥付與預算追蹤' },
+              { id: 'issues', name: '議題追蹤', icon: <AlertCircle className="w-6 h-6" />, desc: '治理衝突與異常處理' },
               { id: 'daily', name: '每日動態', icon: <MessageSquare className="w-6 h-6" />, desc: '技術協作日誌牆' },
             ].map((cap) => (
               <Button 
                 key={cap.id} 
                 variant="outline" 
-                className={`justify-start h-20 gap-4 rounded-2xl hover:bg-primary/5 group ${mountedCapIds.includes(cap.id) ? 'opacity-50 grayscale pointer-events-none' : ''}`} 
+                className={`justify-start h-24 gap-4 rounded-2xl hover:bg-primary/5 group ${mountedCapIds.includes(cap.id) ? 'opacity-50 grayscale pointer-events-none' : ''}`} 
                 onClick={() => handleAddCapability(cap.id)}
               >
                 <div className="p-3 bg-primary/10 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground">
@@ -230,7 +233,7 @@ export function WorkspaceDialogs({ openStates, onOpenChange }: WorkspaceDialogsP
                     <p className="text-sm font-bold uppercase">{cap.name}</p>
                     {mountedCapIds.includes(cap.id) && <Badge className="text-[8px] h-3.5 px-1 bg-green-500/20 text-green-600 border-none">已掛載</Badge>}
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{cap.desc}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 whitespace-normal leading-tight">{cap.desc}</p>
                 </div>
               </Button>
             ))}

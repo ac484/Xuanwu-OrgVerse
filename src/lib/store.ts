@@ -7,7 +7,7 @@ interface AppState {
   activeOrgId: string | null;
   workspaces: Workspace[];
   notifications: Notification[];
-  pulseLogs: PulseLog[]; // 全域審計快照
+  pulseLogs: PulseLog[]; 
   capabilitySpecs: CapabilitySpec[];
   
   // Actions
@@ -16,7 +16,7 @@ interface AppState {
   updateUser: (updates: Partial<User>) => void;
   setActiveOrg: (id: string) => void;
   
-  // Data Sync (由 Firestore 監聽器驅動)
+  // Data Sync
   setOrganizations: (orgs: Organization[]) => void;
   setWorkspaces: (workspaces: Workspace[]) => void;
   setPulseLogs: (logs: PulseLog[]) => void;
@@ -26,10 +26,6 @@ interface AppState {
   clearNotifications: () => void;
 }
 
-/**
- * useAppStore - 職責：維度資料的實時快照儲存。
- * 最佳化重點：僅作為數據容器，不包含任何業務邏輯寫入，確保資料流單向且透明。
- */
 export const useAppStore = create<AppState>()((set, get) => ({
   user: null,
   organizations: [],
@@ -42,6 +38,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
     { id: 'tasks', name: '原子任務', type: 'ui', status: 'stable', description: '追蹤空間內的行動目標。' },
     { id: 'qa', name: '品質檢驗', type: 'ui', status: 'stable', description: '檢核任務執行品質。' },
     { id: 'acceptance', name: '最終驗收', type: 'ui', status: 'stable', description: '驗收成果並結案。' },
+    { id: 'finance', name: '財務核算', type: 'ui', status: 'beta', description: '追蹤驗收完成後的資金撥付與預算清算。' },
     { id: 'issues', name: '議題追蹤', type: 'ui', status: 'stable', description: '處理技術衝突與異常。' },
     { id: 'daily', name: '每日動態', type: 'ui', status: 'stable', description: '極簡的技術協作日誌牆。' },
   ],

@@ -53,6 +53,7 @@ export interface WorkspaceTask {
   title: string;
   status: 'todo' | 'completed' | 'verified' | 'accepted';
   assignee?: string;
+  budgetImpact?: number; // 新增：財務預算影響
 }
 
 export interface WorkspaceIssue {
@@ -60,6 +61,7 @@ export interface WorkspaceIssue {
   title: string;
   priority: 'low' | 'medium' | 'high';
   status: 'open' | 'closed';
+  type?: 'technical' | 'financial' | 'operational'; // 新增：議題類型
 }
 
 export interface WorkspaceDaily {
@@ -76,6 +78,15 @@ export interface WorkspaceFile {
   type: string;
   uploadedBy: string;
   timestamp: number;
+}
+
+export interface WorkspaceFinance {
+  id: string;
+  amount: number;
+  description: string;
+  type: 'payment' | 'refund' | 'allocation';
+  status: 'pending' | 'settled';
+  timestamp: any;
 }
 
 export interface Workspace {
@@ -112,7 +123,7 @@ export interface Notification {
 export interface PulseLog {
   id: string;
   orgId: string;
-  workspaceId?: string; // 新增：用於精準過濾空間脈動
+  workspaceId?: string; 
   timestamp: any;
   actor: string;
   action: string;

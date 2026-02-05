@@ -33,10 +33,10 @@ import { WorkspaceQA } from "./_components/workspace-qa";
 import { WorkspaceAcceptance } from "./_components/workspace-acceptance";
 import { WorkspaceCapabilities } from "./_components/workspace-capabilities";
 import { WorkspaceDialogs } from "./_components/workspace-dialogs";
+import { WorkspaceFinance } from "./_components/workspace-finance";
 
 /**
  * WorkspaceDetailPage - 職責：作為空間治理的容器頁面。
- * 術語對齊：統一使用「空間 (Space)」描述 Workspace。
  */
 export default function WorkspaceDetailPage() {
   const { id } = useParams();
@@ -132,6 +132,7 @@ function WorkspaceContent() {
               {mountedCapIds.includes('tasks') && <TabsTrigger value="tasks" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">任務</TabsTrigger>}
               {mountedCapIds.includes('qa') && <TabsTrigger value="qa" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">品檢</TabsTrigger>}
               {mountedCapIds.includes('acceptance') && <TabsTrigger value="acceptance" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">驗收</TabsTrigger>}
+              {mountedCapIds.includes('finance') && <TabsTrigger value="finance" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">財務核算</TabsTrigger>}
               {mountedCapIds.includes('issues') && <TabsTrigger value="issues" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">議題</TabsTrigger>}
               {mountedCapIds.includes('daily') && <TabsTrigger value="daily" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">動態牆</TabsTrigger>}
               <TabsTrigger value="members" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">存取治理</TabsTrigger>
@@ -146,6 +147,7 @@ function WorkspaceContent() {
             <TabsContent value="tasks"><WorkspaceTasks /></TabsContent>
             <TabsContent value="qa"><WorkspaceQA /></TabsContent>
             <TabsContent value="acceptance"><WorkspaceAcceptance /></TabsContent>
+            <TabsContent value="finance"><WorkspaceFinance /></TabsContent>
             <TabsContent value="issues"><WorkspaceIssues /></TabsContent>
             <TabsContent value="daily"><WorkspaceDaily /></TabsContent>
             <TabsContent value="members"><WorkspaceMembersManagement /></TabsContent>

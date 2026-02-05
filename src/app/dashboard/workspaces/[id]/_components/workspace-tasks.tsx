@@ -4,7 +4,7 @@ import { useWorkspace } from "../workspace-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ListTodo, Plus, CloudDownload, Globe } from "lucide-react";
+import { ListTodo, Plus, CloudDownload, Globe, DollarSign } from "lucide-react";
 import { useState, useRef, useMemo } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,7 @@ export function WorkspaceTasks() {
   const { workspace, emitEvent } = useWorkspace();
   const { db, storage } = useFirebase();
   const [newTask, setNewTask] = useState("");
+  const [budget, setBudget] = useState("0");
   const [isCloudImportOpen, setIsCloudImportOpen] = useState(false);
   const [cloudPath, setCloudPath] = useState("specs/default-tasks.json");
   const [isCloudLoading, setIsCloudLoading] = useState(false);
@@ -50,14 +51,16 @@ export function WorkspaceTasks() {
     const taskData = {
       title: newTask,
       status: 'todo',
+      budgetImpact: Number(budget) || 0,
       createdAt: serverTimestamp()
     };
 
     const tasksCol = collection(db, "workspaces", workspace.id, "tasks");
     addDoc(tasksCol, taskData)
       .then(() => {
-        emitEvent("建立空間任務", newTask);
+        emitEvent("建立空間任務", `${newTask} (預算: $${budget})`);
         setNewTask("");
+        setBudget("0");
         toast({ title: "任務已新增" });
       })
       .catch(async (error) => {
@@ -101,7 +104,8 @@ export function WorkspaceTasks() {
         json.forEach(t => {
           addDoc(tasksCol, { 
             title: t.title, 
-            status: t.status || 'todo', 
+            status: t.status || 'todo',
+            budgetImpact: t.budgetImpact || 0,
             createdAt: serverTimestamp() 
           });
         });
@@ -134,14 +138,28 @@ export function WorkspaceTasks() {
         </div>
       </div>
 
-      <form onSubmit={handleAddTask} className="flex gap-2">
-        <Input 
-          placeholder="輸入新的任務目標..." 
-          value={newTask} 
-          onChange={(e) => setNewTask(e.target.value)}
-          className="bg-card/40 border-border/60 rounded-xl"
-        />
-        <Button type="submit" size="icon" className="shrink-0 rounded-xl">
+      <form onSubmit={handleAddTask} className="flex gap-2 items-end bg-card/40 border border-border/60 p-4 rounded-2xl shadow-sm">
+        <div className="flex-1 space-y-2">
+          <Label className="text-[10px] font-bold uppercase opacity-60">任務目標</Label>
+          <Input 
+            placeholder="輸入新的任務目標..." 
+            value={newTask} 
+            onChange={(e) => setNewTask(e.target.value)}
+            className="bg-background border-border/40 rounded-xl"
+          />
+        </div>
+        <div className="w-32 space-y-2">
+          <Label className="text-[10px] font-bold uppercase opacity-60 flex items-center gap-1">
+            <DollarSign className="w-3 h-3" /> 預算影響
+          </Label>
+          <Input 
+            type="number"
+            value={budget} 
+            onChange={(e) => setBudget(e.target.value)}
+            className="bg-background border-border/40 rounded-xl"
+          />
+        </div>
+        <Button type="submit" size="icon" className="shrink-0 rounded-xl h-10 w-10">
           <Plus className="w-5 h-5" />
         </Button>
       </form>
@@ -154,17 +172,23 @@ export function WorkspaceTasks() {
           >
             <div className="flex items-center gap-3">
               <Checkbox 
-                checked={task.status === 'completed'} 
+                checked={task.status === 'completed' || task.status === 'verified' || task.status === 'accepted'} 
                 onCheckedChange={() => handleUpdateStatus(task.id, task.status, task.title)}
+                disabled={task.status === 'verified' || task.status === 'accepted'}
                 className="rounded-full"
               />
-              <span className={`text-sm font-medium ${task.status === 'completed' ? 'line-through' : ''}`}>
-                {task.title}
-              </span>
+              <div className="flex flex-col">
+                <span className={`text-sm font-medium ${task.status !== 'todo' ? 'line-through opacity-60' : ''}`}>
+                  {task.title}
+                </span>
+                <span className="text-[10px] font-mono text-primary font-bold mt-0.5">BUDGET: ${task.budgetImpact || 0}</span>
+              </div>
             </div>
-            {task.status === 'completed' && (
-              <Badge variant="outline" className="text-[8px] uppercase tracking-tighter">待品檢 (QA)</Badge>
-            )}
+            <div className="flex items-center gap-2">
+              {task.status === 'completed' && <Badge variant="outline" className="text-[8px] uppercase tracking-tighter bg-primary/5 text-primary">待品檢 (QA)</Badge>}
+              {task.status === 'verified' && <Badge variant="outline" className="text-[8px] uppercase tracking-tighter bg-amber-500/5 text-amber-600 border-amber-500/20">待驗收 (UAT)</Badge>}
+              {task.status === 'accepted' && <Badge variant="outline" className="text-[8px] uppercase tracking-tighter bg-green-500/5 text-green-600 border-green-500/20">已結案 (FIN)</Badge>}
+            </div>
           </div>
         ))}
         {(!tasks || tasks.length === 0) && (
