@@ -15,6 +15,10 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
+import { useFirebase } from "@/firebase/provider";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 
 interface CreateWorkspaceDialogProps {
   open: boolean;
@@ -24,30 +28,46 @@ interface CreateWorkspaceDialogProps {
 }
 
 export function CreateWorkspaceDialog({ open, onOpenChange, activeOrgName, activeOrgId }: CreateWorkspaceDialogProps) {
-  const { addWorkspace } = useAppStore();
+  const { db } = useFirebase();
+  const { user } = useAppStore();
   const [name, setName] = useState("");
   const [isVisible, setIsVisible] = useState(true);
 
   const handleCreate = () => {
-    if (!name.trim()) return;
-    addWorkspace({
+    if (!name.trim() || !user) return;
+
+    const workspaceData = {
       name,
       orgId: activeOrgId,
+      ownerId: user.id,
       visibility: isVisible ? 'visible' : 'hidden',
-      boundary: ['驗證', '運算'],
-      protocol: '標準存取協議'
-    });
-    setName("");
-    onOpenChange(false);
-    toast({
-      title: "邏輯空間已建立",
-      description: `${name} 現已成為 ${activeOrgName} 中的一個技術節點。`,
-    });
+      protocol: '標準存取協議',
+      scope: ['驗證', '運算'],
+      createdAt: serverTimestamp(),
+      capabilities: []
+    };
+
+    // 遵循規範：非阻塞寫入，不使用 await
+    const colRef = collection(db, "workspaces");
+    addDoc(colRef, workspaceData)
+      .then(() => {
+        setName("");
+        onOpenChange(false);
+        toast({ title: "邏輯空間已建立", description: `${name} 已同步至雲端。` });
+      })
+      .catch(async (error) => {
+        const permissionError = new FirestorePermissionError({
+          path: 'workspaces',
+          operation: 'create',
+          requestResourceData: workspaceData
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="rounded-2xl">
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">建立邏輯空間</DialogTitle>
           <DialogDescription>
@@ -61,10 +81,11 @@ export function CreateWorkspaceDialog({ open, onOpenChange, activeOrgName, activ
               value={name} 
               onChange={(e) => setName(e.target.value)} 
               placeholder="例如: 核心解析空間" 
+              className="rounded-xl"
             />
           </div>
           
-          <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-border/60">
+          <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-border/60">
             <div className="space-y-0.5">
               <Label className="text-base">空間可見性</Label>
               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">
@@ -79,7 +100,7 @@ export function CreateWorkspaceDialog({ open, onOpenChange, activeOrgName, activ
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
-          <Button onClick={handleCreate}>確認建立</Button>
+          <Button onClick={handleCreate} className="rounded-xl">確認建立</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

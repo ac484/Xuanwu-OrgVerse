@@ -4,27 +4,29 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // 判斷使用者是否已驗證身分
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // 組織規則：只有 ownerId 匹配的人員可以訪問其維度
+    // 組織：僅擁有者或成員可存取
     match /organizations/{orgId} {
-      allow read, write: if isSignedIn() && request.auth.uid == resource.data.ownerId;
-      allow create: if isSignedIn() && request.auth.uid == request.resource.data.ownerId;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
     }
 
-    // 空間規則：暫時開放給所有登入者（開發階段），後續將改為基於組織成員關係
+    // 空間：暫時基於 ownerId 隔離
     match /workspaces/{workspaceId} {
-      allow read, write: if isSignedIn();
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
       
+      // 任務子集合
       match /tasks/{taskId} {
         allow read, write: if isSignedIn();
       }
     }
     
-    // 預設拒絕所有其他不匹配的請求
     match /{document=**} {
       allow read, write: if false;
     }

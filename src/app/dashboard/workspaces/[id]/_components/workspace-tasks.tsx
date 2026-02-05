@@ -1,18 +1,19 @@
-
 "use client";
 
 import { useWorkspace } from "../workspace-context";
-import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ListTodo, Plus, Download, Upload, CloudDownload, Trash2, Globe } from "lucide-react";
+import { ListTodo, Plus, Download, Upload, CloudDownload, Globe } from "lucide-react";
 import { useState, useRef } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
 import { useFirebase } from "@/firebase/provider";
+import { useCollection } from "@/firebase";
+import { collection, addDoc, updateDoc, doc, serverTimestamp, query, orderBy } from "firebase/firestore";
 import { ref, getDownloadURL } from "firebase/storage";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 import { 
   Dialog, 
   DialogContent, 
@@ -25,9 +26,7 @@ import { Label } from "@/components/ui/label";
 
 export function WorkspaceTasks() {
   const { workspace, emitEvent } = useWorkspace();
-  const { storage } = useFirebase();
-  const { addTaskToWorkspace, updateTaskStatus, importTasksToWorkspace } = useAppStore();
-  
+  const { db, storage } = useFirebase();
   const [newTask, setNewTask] = useState("");
   const [isCloudImportOpen, setIsCloudImportOpen] = useState(false);
   const [cloudPath, setCloudPath] = useState("specs/default-tasks.json");
@@ -35,50 +34,56 @@ export function WorkspaceTasks() {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // 使用真正的 Firestore 實時偵聽子集合
+  const tasksQuery = query(
+    collection(db, "workspaces", workspace.id, "tasks"),
+    orderBy("createdAt", "asc")
+  );
+  const { data: tasks } = useCollection<any>(tasksQuery);
+
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTask.trim()) return;
-    addTaskToWorkspace(workspace.id, { title: newTask, status: 'todo' });
-    emitEvent("建立空間任務", newTask);
-    setNewTask("");
-    toast({ title: "任務已新增" });
-  };
 
-  const handleExport = () => {
-    const tasks = workspace.tasks || [];
-    if (tasks.length === 0) {
-      toast({ title: "無可匯出的數據", description: "請先建立任務後再執行匯出。" });
-      return;
-    }
-
-    const dataStr = JSON.stringify(tasks, null, 2);
-    const blob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `tasks_${workspace.name.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-    
-    emitEvent("匯出任務規格", `${tasks.length} 項任務`);
-    toast({ title: "規格匯出成功", description: "JSON 規格檔案已下載。" });
-  };
-
-  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const json = JSON.parse(event.target?.result as string);
-        processImport(json);
-      } catch (err) {
-        toast({ variant: "destructive", title: "導入失敗", description: "不相容的 JSON 格式。" });
-      }
+    const taskData = {
+      title: newTask,
+      status: 'todo',
+      createdAt: serverTimestamp()
     };
-    reader.readAsText(file);
-    e.target.value = "";
+
+    const tasksCol = collection(db, "workspaces", workspace.id, "tasks");
+    addDoc(tasksCol, taskData)
+      .then(() => {
+        emitEvent("建立空間任務", newTask);
+        setNewTask("");
+        toast({ title: "任務已新增" });
+      })
+      .catch(async (error) => {
+        const permissionError = new FirestorePermissionError({
+          path: `workspaces/${workspace.id}/tasks`,
+          operation: 'create',
+          requestResourceData: taskData
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      });
+  };
+
+  const handleUpdateStatus = (taskId: string, currentStatus: string, title: string) => {
+    const nextStatus = currentStatus === 'todo' ? 'completed' : 'todo';
+    const taskRef = doc(db, "workspaces", workspace.id, "tasks", taskId);
+
+    updateDoc(taskRef, { status: nextStatus })
+      .then(() => {
+        emitEvent(nextStatus === 'completed' ? "完成任務" : "重啟任務", title);
+      })
+      .catch(async (error) => {
+        const permissionError = new FirestorePermissionError({
+          path: taskRef.path,
+          operation: 'update',
+          requestResourceData: { status: nextStatus }
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+      });
   };
 
   const handleCloudImport = async () => {
@@ -89,46 +94,33 @@ export function WorkspaceTasks() {
       const response = await fetch(url);
       const json = await response.json();
       
-      processImport(json);
-      setIsCloudImportOpen(false);
+      if (Array.isArray(json)) {
+        const tasksCol = collection(db, "workspaces", workspace.id, "tasks");
+        json.forEach(t => {
+          addDoc(tasksCol, { 
+            title: t.title, 
+            status: t.status || 'todo', 
+            createdAt: serverTimestamp() 
+          });
+        });
+        emitEvent("匯入任務規格", `${json.length} 項任務`);
+        toast({ title: "任務導入成功" });
+        setIsCloudImportOpen(false);
+      }
     } catch (err: any) {
-      toast({ 
-        variant: "destructive", 
-        title: "雲端匯入失敗", 
-        description: "找不到檔案或權限不足。" 
-      });
+      toast({ variant: "destructive", title: "雲端匯入失敗", description: "請確認權限或檔案路徑。" });
     } finally {
       setIsCloudLoading(false);
     }
   };
 
-  const processImport = (json: any[]) => {
-    if (Array.isArray(json)) {
-      importTasksToWorkspace(workspace.id, json);
-      emitEvent("匯入任務規格", `${json.length} 項任務`);
-      toast({ 
-        title: "任務導入成功", 
-        description: `已成功同步 ${json.length} 項任務目標。` 
-      });
-    }
-  };
-
-  const tasks = (workspace.tasks || []).filter(t => t.status === 'todo' || t.status === 'completed');
-
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-          <ListTodo className="w-4 h-4" /> 原子任務清單
+          <ListTodo className="w-4 h-4" /> 原子任務清單 (Cloud Sync)
         </h3>
         <div className="flex items-center gap-2">
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            className="hidden" 
-            accept=".json" 
-            onChange={handleImport} 
-          />
           <Button 
             variant="ghost" 
             size="sm" 
@@ -136,22 +128,6 @@ export function WorkspaceTasks() {
             onClick={() => setIsCloudImportOpen(true)}
           >
             <CloudDownload className="w-3.5 h-3.5 mr-1.5" /> 雲端匯入
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload className="w-3.5 h-3.5 mr-1.5" /> 本地匯入
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary"
-            onClick={handleExport}
-          >
-            <Download className="w-3.5 h-3.5 mr-1.5" /> 匯出規格
           </Button>
         </div>
       </div>
@@ -169,7 +145,7 @@ export function WorkspaceTasks() {
       </form>
 
       <div className="space-y-2">
-        {tasks.map(task => (
+        {tasks?.map(task => (
           <div 
             key={task.id} 
             className={`flex items-center justify-between p-4 border rounded-2xl transition-all ${task.status === 'completed' ? 'bg-muted/30 opacity-60 border-transparent' : 'bg-card/40 border-border/60'}`}
@@ -177,11 +153,7 @@ export function WorkspaceTasks() {
             <div className="flex items-center gap-3">
               <Checkbox 
                 checked={task.status === 'completed'} 
-                onCheckedChange={() => {
-                  const nextStatus = task.status === 'todo' ? 'completed' : 'todo';
-                  updateTaskStatus(workspace.id, task.id, nextStatus);
-                  emitEvent(nextStatus === 'completed' ? "完成任務" : "重啟任務", task.title);
-                }}
+                onCheckedChange={() => handleUpdateStatus(task.id, task.status, task.title)}
                 className="rounded-full"
               />
               <span className={`text-sm font-medium ${task.status === 'completed' ? 'line-through' : ''}`}>
@@ -193,9 +165,9 @@ export function WorkspaceTasks() {
             )}
           </div>
         ))}
-        {tasks.length === 0 && (
+        {(!tasks || tasks.length === 0) && (
           <div className="p-12 text-center border-2 border-dashed rounded-2xl opacity-20">
-            <p className="text-xs font-bold uppercase tracking-widest">尚無待辦事項</p>
+            <p className="text-xs font-bold uppercase tracking-widest">尚無同步任務</p>
           </div>
         )}
       </div>
@@ -207,7 +179,7 @@ export function WorkspaceTasks() {
               <Globe className="w-6 h-6 text-primary" /> 雲端規格匯入
             </DialogTitle>
             <DialogDescription>
-              從 Firebase Storage 獲取預定義的技術規格檔案。
+              從 Firebase Storage 獲取 JSON 技術規格檔案。
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
@@ -217,14 +189,14 @@ export function WorkspaceTasks() {
                 value={cloudPath} 
                 onChange={(e) => setCloudPath(e.target.value)} 
                 placeholder="例如: specs/engineering-tasks.json" 
+                className="rounded-xl"
               />
-              <p className="text-[10px] text-muted-foreground italic">請確保檔案具備公開讀取權限或已配置對應的安全性規則。</p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCloudImportOpen(false)}>取消</Button>
-            <Button onClick={handleCloudImport} disabled={isCloudLoading}>
-              {isCloudLoading ? "正在同步..." : "啟動遷移"}
+            <Button onClick={handleCloudImport} disabled={isCloudLoading} className="rounded-xl">
+              {isCloudLoading ? "同步中..." : "啟動遷移"}
             </Button>
           </DialogFooter>
         </DialogContent>
