@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, Plus, FolderTree, ArrowRight, UserPlus } from "lucide-react";
+import { Users, Plus, FolderTree, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { 
   Dialog, 
@@ -38,6 +38,9 @@ export default function OrganizationTeamsPage() {
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
   if (!activeOrg) return null;
 
+  // 防禦性檢查：確保 teams 存在
+  const teams = activeOrg.teams || [];
+
   const handleCreateTeam = () => {
     if (!newTeamName.trim()) return;
     addOrgTeam(activeOrg.id, {
@@ -60,7 +63,7 @@ export default function OrganizationTeamsPage() {
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {activeOrg.teams.map((team) => (
+        {teams.map((team) => (
           <Card key={team.id} className="border-border/60 hover:border-primary/40 transition-all cursor-pointer group" onClick={() => router.push(`/dashboard/organization/teams/${team.id}`)}>
             <CardHeader>
               <div className="p-2.5 w-fit bg-primary/5 rounded-xl text-primary mb-2 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
@@ -72,7 +75,7 @@ export default function OrganizationTeamsPage() {
             <CardContent>
               <div className="flex items-center gap-2">
                 <Badge variant="secondary" className="text-[10px] font-bold">
-                  {team.memberIds.length} 名成員
+                  {(team.memberIds || []).length} 名成員
                 </Badge>
               </div>
             </CardContent>

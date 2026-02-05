@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, Mail, UserPlus, MoreVertical, Trash2 } from "lucide-react";
+import { UserPlus, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 
@@ -24,6 +24,9 @@ export default function OrganizationMembersPage() {
 
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
   if (!activeOrg) return null;
+
+  // 防禦性檢查：確保 members 存在
+  const members = activeOrg.members || [];
 
   const handleAddMember = () => {
     addOrgMember(activeOrg.id, {
@@ -46,12 +49,12 @@ export default function OrganizationMembersPage() {
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {activeOrg.members.map((member) => (
+        {members.map((member) => (
           <Card key={member.id} className="border-border/60 bg-card/50 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                  {member.name[0]}
+                  {member.name?.[0] || 'U'}
                 </div>
                 <div>
                   <CardTitle className="text-sm font-bold">{member.name}</CardTitle>
