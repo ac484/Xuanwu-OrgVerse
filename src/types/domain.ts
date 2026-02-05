@@ -50,10 +50,21 @@ export interface Capability extends CapabilitySpec {
 
 export interface WorkspaceTask {
   id: string;
-  title: string;
+  parentId?: string; // WBS 父節點
+  name: string;
+  description?: string;
+  type: string;
+  priority: 'low' | 'medium' | 'high';
+  quantity: number;
+  unitPrice: number;
+  subtotal: number; // 自動計算: Quantity * UnitPrice
+  location?: string;
+  space?: string;
+  startTime?: any;
+  endTime?: any;
   status: 'todo' | 'completed' | 'verified' | 'accepted';
-  assignee?: string;
-  budgetImpact?: number; // 新增：財務預算影響
+  dependencies: string[]; // 相依任務 ID 陣列
+  createdAt: any;
 }
 
 export interface WorkspaceIssue {
@@ -61,7 +72,7 @@ export interface WorkspaceIssue {
   title: string;
   priority: 'low' | 'medium' | 'high';
   status: 'open' | 'closed';
-  type?: 'technical' | 'financial' | 'operational'; // 新增：議題類型
+  type?: 'technical' | 'financial' | 'operational';
 }
 
 export interface WorkspaceDaily {
@@ -78,15 +89,6 @@ export interface WorkspaceFile {
   type: string;
   uploadedBy: string;
   timestamp: number;
-}
-
-export interface WorkspaceFinance {
-  id: string;
-  amount: number;
-  description: string;
-  type: 'payment' | 'refund' | 'allocation';
-  status: 'pending' | 'settled';
-  timestamp: any;
 }
 
 export interface Workspace {
