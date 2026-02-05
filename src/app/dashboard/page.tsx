@@ -3,7 +3,7 @@
 import { useAppStore } from "@/lib/store";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Layers, ShieldCheck, Activity, Users, ArrowUpRight, Zap } from "lucide-react";
+import { Layers, ShieldCheck, Activity, Users, ArrowUpRight, Zap, Package } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 export default function DashboardPage() {
