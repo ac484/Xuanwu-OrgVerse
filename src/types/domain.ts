@@ -58,6 +58,7 @@ export interface Workspace {
   protocol: string;  
   capabilities: Capability[]; 
   members: MemberReference[]; 
+  teamIds?: string[]; // 關聯的團隊 ID
 }
 
 export interface User {

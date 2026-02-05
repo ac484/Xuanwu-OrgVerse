@@ -16,9 +16,7 @@ import {
   Database,
   Code,
   Layers,
-  Info,
   Plus,
-  Users,
   UserPlus,
   Trash2,
   Eye,
@@ -29,20 +27,32 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 
 export default function WorkspaceDetailPage() {
   const { id } = useParams();
-  const { workspaces, addCapabilityToWorkspace, addWorkspaceMember, removeWorkspaceMember, removeCapabilityFromWorkspace } = useAppStore();
+  const { workspaces, updateWorkspace, addCapabilityToWorkspace, addWorkspaceMember, removeWorkspaceMember, removeCapabilityFromWorkspace } = useAppStore();
   const [mounted, setMounted] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const router = useRouter();
+
+  const workspace = workspaces.find(w => w.id === id);
+  
+  const [editName, setEditName] = useState("");
+  const [editVisibility, setEditVisibility] = useState<"visible" | "hidden">("visible");
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (workspace) {
+      setEditName(workspace.name);
+      setEditVisibility(workspace.visibility);
+    }
+  }, [workspace]);
 
   if (!mounted) return null;
-
-  const workspace = workspaces.find(w => w.id === id);
 
   if (!workspace) {
     return (
@@ -54,9 +64,18 @@ export default function WorkspaceDetailPage() {
     );
   }
 
+  const handleUpdateSettings = () => {
+    updateWorkspace(workspace.id, {
+      name: editName,
+      visibility: editVisibility
+    });
+    setIsSettingsOpen(false);
+    toast({ title: "空間規格已同步", description: "新的治理解析路徑已生效。" });
+  };
+
   const capabilities = workspace.capabilities || [];
   const members = workspace.members || [];
-  const boundary = workspace.boundary || [];
+  const scope = workspace.scope || [];
 
   const handleQuickAddCapability = () => {
     addCapabilityToWorkspace(workspace.id, {
@@ -99,13 +118,13 @@ export default function WorkspaceDetailPage() {
             </Badge>
             <Badge variant="outline" className="text-[9px] uppercase font-bold flex items-center gap-1">
               {workspace.visibility === 'visible' ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-              {workspace.visibility === 'visible' ? '可見' : '受限'}
+              {workspace.visibility === 'visible' ? '可見' : '隱藏'}
             </Badge>
           </div>
         }
       >
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase text-[10px] tracking-widest">
+          <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase text-[10px] tracking-widest" onClick={() => setIsSettingsOpen(true)}>
             <Settings className="w-3.5 h-3.5" /> 空間設定
           </Button>
           <Button size="sm" className="h-9 gap-2 font-bold uppercase text-[10px] tracking-widest" onClick={() => toast({ title: "同步成功", description: "維度共振已重新校準。" })}>
@@ -127,7 +146,7 @@ export default function WorkspaceDetailPage() {
               <CardHeader>
                 <CardTitle className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 text-primary">
                   <Globe className="w-3.5 h-3.5" />
-                  資源邊界 (Boundary)
+                  授權範疇 (Authorized Scope)
                 </CardTitle>
                 <CardDescription className="text-xs">定義此空間子單元的邏輯邊界與資源範疇。</CardDescription>
               </CardHeader>
@@ -135,10 +154,10 @@ export default function WorkspaceDetailPage() {
                 <div>
                   <p className="text-[9px] text-muted-foreground uppercase font-bold mb-2">已授權範圍</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {boundary.map(s => (
+                    {scope.map(s => (
                       <Badge key={s} variant="secondary" className="text-[9px] uppercase tracking-tighter py-0">{s}</Badge>
                     ))}
-                    {boundary.length === 0 && <span className="text-[10px] text-muted-foreground italic">未定義資源邊界。</span>}
+                    {scope.length === 0 && <span className="text-[10px] text-muted-foreground italic">未定義範疇。</span>}
                   </div>
                 </div>
               </CardContent>
@@ -173,7 +192,7 @@ export default function WorkspaceDetailPage() {
           {capabilities.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {capabilities.map((cap) => (
-                <Card key={cap.id} className="border-border/60 hover:border-primary/40 transition-all group bg-card/40 backdrop-blur-sm shadow-sm">
+                <Card key={cap.id} className="border-border/60 hover:border-primary/40 transition-all group bg-card/40 backdrop-blur-sm shadow-sm overflow-hidden">
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between mb-4">
                       <div className="p-2.5 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
@@ -244,6 +263,44 @@ export default function WorkspaceDetailPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-headline text-2xl text-primary">空間規格校準</DialogTitle>
+            <DialogDescription>
+              修改此邏輯空間的識別名稱與維度可見性策略。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label>空間名稱</Label>
+              <Input 
+                value={editName} 
+                onChange={(e) => setEditName(e.target.value)} 
+                placeholder="例如: 核心解析空間" 
+              />
+            </div>
+            
+            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border border-border/60">
+              <div className="space-y-0.5">
+                <Label className="text-base">維度可見性</Label>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">
+                  {editVisibility === 'visible' ? '已掛載於維度目錄' : '處於受限隔離模式'}
+                </p>
+              </div>
+              <Switch 
+                checked={editVisibility === 'visible'} 
+                onCheckedChange={(checked) => setEditVisibility(checked ? 'visible' : 'hidden')} 
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsSettingsOpen(false)}>取消</Button>
+            <Button onClick={handleUpdateSettings}>確認更新</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

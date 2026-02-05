@@ -29,10 +29,13 @@ interface AppState {
   addMemberToTeam: (orgId: string, teamId: string, memberId: string) => void;
   removeMemberFromTeam: (orgId: string, teamId: string, memberId: string) => void;
   
-  addWorkspace: (workspace: Omit<Workspace, 'id' | 'capabilities' | 'members'>) => void;
+  addWorkspace: (workspace: Omit<Workspace, 'id' | 'capabilities' | 'members' | 'teamIds'>) => void;
+  updateWorkspace: (id: string, updates: Partial<Workspace>) => void;
   deleteWorkspace: (id: string) => void;
   addCapabilityToWorkspace: (workspaceId: string, capability: Omit<Capability, 'id'>) => void;
   removeCapabilityFromWorkspace: (workspaceId: string, capabilityId: string) => void;
+  
+  toggleTeamAccessToWorkspace: (workspaceId: string, teamId: string) => void;
   
   addWorkspaceMember: (workspaceId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
   removeWorkspaceMember: (workspaceId: string, memberId: string) => void;
@@ -175,10 +178,18 @@ export const useAppStore = create<AppState>()(
             ...workspace, 
             id: `ws-${Math.random().toString(36).substring(2, 6)}`,
             capabilities: [],
-            members: [] 
+            members: [],
+            teamIds: []
           }]
         }));
         get().addPulseLog({ actor: get().user?.name || 'System', action: '初始化空間', target: workspace.name, type: 'create' });
+      },
+
+      updateWorkspace: (id, updates) => {
+        set((state) => ({
+          workspaces: state.workspaces.map(w => w.id === id ? { ...w, ...updates } : w)
+        }));
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '更新空間規格', target: id, type: 'update' });
       },
 
       deleteWorkspace: (id) => set((state) => ({
@@ -201,6 +212,27 @@ export const useAppStore = create<AppState>()(
           capabilities: (w.capabilities || []).filter(c => c.id !== capabilityId)
         } : w)
       })),
+
+      toggleTeamAccessToWorkspace: (workspaceId, teamId) => {
+        set((state) => ({
+          workspaces: state.workspaces.map(w => {
+            if (w.id !== workspaceId) return w;
+            const currentTeams = w.teamIds || [];
+            const isAssigned = currentTeams.includes(teamId);
+            return {
+              ...w,
+              teamIds: isAssigned ? currentTeams.filter(id => id !== teamId) : [...currentTeams, teamId]
+            };
+          })
+        }));
+        const ws = get().workspaces.find(w => w.id === workspaceId);
+        get().addPulseLog({ 
+          actor: get().user?.name || 'System', 
+          action: '切換團隊共振', 
+          target: ws?.name || workspaceId, 
+          type: 'access' 
+        });
+      },
 
       addWorkspaceMember: (workspaceId, member) => set((state) => ({
         workspaces: state.workspaces.map(w => w.id === workspaceId ? {
