@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -5,17 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCards } from "./_components/stat-cards";
 import { RecentWorkspaces } from "./_components/recent-workspaces";
+import { RecentOrganizations } from "./_components/recent-organizations";
 import { PermissionConstellation } from "./_components/permission-constellation";
 import { useState, useEffect, useMemo } from "react";
 
 /**
  * DashboardPage - 職責：維度脈動主控台
- * 優化點：全面使用精準選擇器與衍生狀態記憶化，確保極速響應。
+ * 優化：統一 UI 名稱與底層資料結構，提升認知一致性。
  */
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
 
-  // 精準選擇器：僅訂閱維度清單、活動維度 ID 與空間列表
   const organizations = useAppStore(state => state.organizations);
   const activeOrgId = useAppStore(state => state.activeOrgId);
   const workspaces = useAppStore(state => state.workspaces);
@@ -24,13 +25,11 @@ export default function DashboardPage() {
     setMounted(true);
   }, []);
 
-  // 記憶化當前維度資料
   const activeOrg = useMemo(() => 
     organizations.find(o => o.id === activeOrgId) || organizations[0],
     [organizations, activeOrgId]
   );
 
-  // 記憶化當前維度的空間清單
   const orgWorkspaces = useMemo(() => 
     (workspaces || []).filter(w => w.orgId === activeOrgId),
     [workspaces, activeOrgId]
@@ -41,8 +40,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto animate-in fade-in duration-700">
       <PageHeader 
-        title="維度脈動" 
-        description="管理當前維度的架構狀態與空間演進。"
+        title="維度中心" 
+        description="管理當前維度的架構狀態、節點演進與身份共振。"
         badge={
           <Badge variant="outline" className="border-primary/30 text-primary uppercase text-[10px] tracking-widest font-bold bg-primary/5 px-2 py-1">
             當前維度: {activeOrg.name}
@@ -52,7 +51,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-6 bg-muted/40 p-4 rounded-2xl border border-border/50 shadow-sm backdrop-blur-sm">
           <div className="text-center px-4 border-r border-border/50">
             <p className="text-2xl font-bold font-headline">{orgWorkspaces.length}</p>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold">邏輯空間</p>
+            <p className="text-[10px] text-muted-foreground uppercase font-bold">空間節點</p>
           </div>
           <div className="text-center px-4">
             <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">主權級別</p>
@@ -62,6 +61,8 @@ export default function DashboardPage() {
       </PageHeader>
 
       <StatCards orgId={activeOrg.id} orgName={activeOrg.name} />
+
+      <RecentOrganizations organizations={organizations} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <RecentWorkspaces workspaces={orgWorkspaces} />
