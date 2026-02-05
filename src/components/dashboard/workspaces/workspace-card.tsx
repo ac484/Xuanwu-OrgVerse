@@ -17,6 +17,8 @@ interface WorkspaceCardProps {
  */
 export function WorkspaceCard({ workspace, onAction }: WorkspaceCardProps) {
   const router = useRouter();
+  
+  // 防禦性處理：確保屬性始終存在
   const displayScope = workspace?.scope || [];
 
   return (

@@ -26,14 +26,18 @@ export default function OrganizationTeamDetailPage() {
   if (!mounted) return null;
 
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
-  const team = activeOrg?.teams.find(t => t.id === id);
+  const team = activeOrg?.teams?.find(t => t.id === id);
 
   if (!team) return <div className="p-20 text-center">團隊不存在。</div>;
 
+  // 防禦性檢查：確保陣列屬性存在
+  const allMembers = activeOrg.members || [];
+  const teamMemberIds = team.memberIds || [];
+
   // 獲取該團隊內的成員詳細資料
-  const teamMembers = activeOrg.members.filter(m => team.memberIds.includes(m.id));
+  const teamMembers = allMembers.filter(m => teamMemberIds.includes(m.id));
   // 獲取不在該團隊內的其餘組織成員
-  const otherOrgMembers = activeOrg.members.filter(m => !team.memberIds.includes(m.id));
+  const otherOrgMembers = allMembers.filter(m => !teamMemberIds.includes(m.id));
 
   const handleAddMember = (memberId: string) => {
     addMemberToTeam(activeOrg.id, team.id, memberId);
@@ -63,7 +67,7 @@ export default function OrganizationTeamDetailPage() {
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
-                      {member.name[0]}
+                      {member.name?.[0] || 'U'}
                     </div>
                     <div>
                       <p className="text-xs font-bold">{member.name}</p>
@@ -98,7 +102,7 @@ export default function OrganizationTeamDetailPage() {
                 <div key={member.id} className="flex items-center justify-between group">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-background border flex items-center justify-center text-[10px]">
-                      {member.name[0]}
+                      {member.name?.[0] || 'U'}
                     </div>
                     <span className="text-xs font-medium">{member.name}</span>
                   </div>

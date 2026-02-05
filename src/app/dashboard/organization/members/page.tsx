@@ -43,9 +43,9 @@ export default function OrganizationMembersPage() {
         title="維度成員名單" 
         description={`管理隸屬於 ${activeOrg.name} 的所有個人身分。`}
       >
-        <Button className="gap-2 font-bold uppercase text-[11px] tracking-widest h-10" onClick={handleAddMember}>
+        <button className="flex items-center gap-2 bg-primary text-primary-foreground px-4 h-10 rounded-md font-bold uppercase text-[11px] tracking-widest hover:bg-primary/90 transition-colors shadow-sm" onClick={handleAddMember}>
           <UserPlus className="w-4 h-4" /> 邀請成員
-        </Button>
+        </button>
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

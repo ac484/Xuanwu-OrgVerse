@@ -91,38 +91,38 @@ export const useAppStore = create<AppState>()(
       addOrgMember: (orgId, member) => set((state) => ({
         organizations: state.organizations.map(o => o.id === orgId ? {
           ...o,
-          members: [...o.members, { ...member, id: `m-${Math.random().toString(36).substring(2, 6)}`, status: 'offline' }]
+          members: [...(o.members || []), { ...member, id: `m-${Math.random().toString(36).substring(2, 6)}`, status: 'offline' }]
         } : o)
       })),
 
       removeOrgMember: (orgId, memberId) => set((state) => ({
         organizations: state.organizations.map(o => o.id === orgId ? {
           ...o,
-          members: o.members.filter(m => m.id !== memberId),
-          teams: o.teams.map(t => ({ ...t, memberIds: t.memberIds.filter(mid => mid !== memberId) }))
+          members: (o.members || []).filter(m => m.id !== memberId),
+          teams: (o.teams || []).map(t => ({ ...t, memberIds: (t.memberIds || []).filter(mid => mid !== memberId) }))
         } : o)
       })),
 
       addOrgTeam: (orgId, team) => set((state) => ({
         organizations: state.organizations.map(o => o.id === orgId ? {
           ...o,
-          teams: [...o.teams, { ...team, id: `team-${Math.random().toString(36).substring(2, 6)}`, memberIds: [] }]
+          teams: [...(o.teams || []), { ...team, id: `team-${Math.random().toString(36).substring(2, 6)}`, memberIds: [] }]
         } : o)
       })),
 
       removeOrgTeam: (orgId, teamId) => set((state) => ({
         organizations: state.organizations.map(o => o.id === orgId ? {
           ...o,
-          teams: o.teams.filter(t => t.id !== teamId)
+          teams: (o.teams || []).filter(t => t.id !== teamId)
         } : o)
       })),
 
       addMemberToTeam: (orgId, teamId, memberId) => set((state) => ({
         organizations: state.organizations.map(o => o.id === orgId ? {
           ...o,
-          teams: o.teams.map(t => t.id === teamId ? { 
+          teams: (o.teams || []).map(t => t.id === teamId ? { 
             ...t, 
-            memberIds: Array.from(new Set([...t.memberIds, memberId])) 
+            memberIds: Array.from(new Set([...(t.memberIds || []), memberId])) 
           } : t)
         } : o)
       })),
@@ -130,9 +130,9 @@ export const useAppStore = create<AppState>()(
       removeMemberFromTeam: (orgId, teamId, memberId) => set((state) => ({
         organizations: state.organizations.map(o => o.id === orgId ? {
           ...o,
-          teams: o.teams.map(t => t.id === teamId ? { 
+          teams: (o.teams || []).map(t => t.id === teamId ? { 
             ...t, 
-            memberIds: t.memberIds.filter(mid => mid !== memberId) 
+            memberIds: (t.memberIds || []).filter(mid => mid !== memberId) 
           } : t)
         } : o)
       })),
@@ -153,28 +153,28 @@ export const useAppStore = create<AppState>()(
       addSpecToWorkspace: (workspaceId, spec) => set((state) => ({
         workspaces: state.workspaces.map(w => w.id === workspaceId ? {
           ...w,
-          specs: [...w.specs, { ...spec, id: `spec-${Math.random().toString(36).substring(2, 6)}` }]
+          specs: [...(w.specs || []), { ...spec, id: `spec-${Math.random().toString(36).substring(2, 6)}` }]
         } : w)
       })),
 
       removeSpecFromWorkspace: (workspaceId, specId) => set((state) => ({
         workspaces: state.workspaces.map(w => w.id === workspaceId ? {
           ...w,
-          specs: w.specs.filter(s => s.id !== specId)
+          specs: (w.specs || []).filter(s => s.id !== specId)
         } : w)
       })),
 
       addWorkspaceMember: (workspaceId, member) => set((state) => ({
         workspaces: state.workspaces.map(w => w.id === workspaceId ? {
           ...w,
-          members: [...w.members, { ...member, id: `wm-${Math.random().toString(36).substring(2, 6)}`, status: 'offline' }]
+          members: [...(w.members || []), { ...member, id: `wm-${Math.random().toString(36).substring(2, 6)}`, status: 'offline' }]
         } : w)
       })),
 
       removeWorkspaceMember: (workspaceId, memberId) => set((state) => ({
         workspaces: state.workspaces.map(w => w.id === workspaceId ? {
           ...w,
-          members: w.members.filter(m => m.id !== memberId)
+          members: (w.members || []).filter(m => m.id !== memberId)
         } : w)
       })),
 

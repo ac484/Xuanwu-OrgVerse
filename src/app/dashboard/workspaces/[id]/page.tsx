@@ -55,6 +55,11 @@ export default function WorkspaceDetailPage() {
     );
   }
 
+  // 防禦性檢查
+  const specs = workspace.specs || [];
+  const members = workspace.members || [];
+  const scope = workspace.scope || [];
+
   const handleQuickAddSpec = () => {
     addSpecToWorkspace(workspace.id, {
       name: `新原子能力-${Math.floor(Math.random() * 1000)}`,
@@ -129,10 +134,10 @@ export default function WorkspaceDetailPage() {
                 <div>
                   <p className="text-[9px] text-muted-foreground uppercase font-bold mb-2">已授權資源</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {workspace.scope?.map(s => (
+                    {scope.map(s => (
                       <Badge key={s} variant="secondary" className="text-[9px] uppercase tracking-tighter py-0">{s}</Badge>
                     ))}
-                    {(!workspace.scope || workspace.scope.length === 0) && <span className="text-[10px] text-muted-foreground italic">未定義資源邊界。</span>}
+                    {scope.length === 0 && <span className="text-[10px] text-muted-foreground italic">未定義資源邊界。</span>}
                   </div>
                 </div>
               </CardContent>
@@ -170,9 +175,9 @@ export default function WorkspaceDetailPage() {
             </Button>
           </div>
 
-          {workspace.specs && workspace.specs.length > 0 ? (
+          {specs.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {workspace.specs.map((block) => (
+              {specs.map((block) => (
                 <Card key={block.id} className="border-border/60 hover:border-primary/40 transition-all group bg-card/40 backdrop-blur-sm shadow-sm">
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between mb-4">
@@ -221,12 +226,12 @@ export default function WorkspaceDetailPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {workspace.members && workspace.members.map((member) => (
+            {members.map((member) => (
               <Card key={member.id} className="border-border/60 bg-card/40 backdrop-blur-sm">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary text-xs font-bold">
-                      {member.name[0]}
+                      {member.name?.[0] || 'U'}
                     </div>
                     <div className="overflow-hidden">
                       <p className="text-xs font-bold truncate">{member.name}</p>
@@ -247,7 +252,7 @@ export default function WorkspaceDetailPage() {
               </Card>
             ))}
 
-            {(!workspace.members || workspace.members.length === 0) && (
+            {members.length === 0 && (
               <div className="col-span-full p-12 text-center border-2 border-dashed rounded-3xl bg-muted/5 border-border/40">
                 <Users className="w-10 h-10 text-muted-foreground mx-auto mb-4 opacity-10" />
                 <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">無分配人員</p>
