@@ -15,7 +15,9 @@ import {
   View, 
   BarChart3,
   AlertTriangle,
-  Info
+  Info,
+  MapPin,
+  Box
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -102,7 +104,7 @@ export function WorkspaceTasks() {
     const taxAmount = subtotal * ((Number(editingTask.taxRate) || 0) / 100);
     const total = subtotal + taxAmount;
     
-    // 預算主權驗證：攔截溢出
+    // 預算主權驗證：攔截溢出 (向下約束)
     if (editingTask.parentId) {
       const parent = tasks.find(t => t.id === editingTask.parentId);
       if (parent) {
@@ -117,11 +119,11 @@ export function WorkspaceTasks() {
       }
     }
 
-    // 向上鎖定：父項預算不可低於子項總和
+    // 向上鎖定：父項預算不可低於現有子項總和
     if (editingTask.id) {
       const childSum = tasks.filter(t => t.parentId === editingTask.id).reduce((acc, t) => acc + t.subtotal, 0);
       if (subtotal < childSum) {
-        toast({ variant: "destructive", title: "預算主權衝突", description: "預算上限不可低於現有子項目的金額總和。" });
+        toast({ variant: "destructive", title: "預算主權衝突", description: `預算上限 ($${subtotal}) 不可低於現有子項目的金額總和 ($${childSum})。` });
         return;
       }
     }
@@ -136,7 +138,7 @@ export function WorkspaceTasks() {
 
     if (editingTask.id) {
       await updateDoc(doc(db, "workspaces", workspace.id, "tasks", editingTask.id), finalData as any);
-      emitEvent("校準工程節點", `${editingTask.name} (WBS: ${editingTask.no})`);
+      emitEvent("校準工程節點", `${editingTask.name} [Subtotal: ${subtotal}]`);
     } else {
       await addDoc(collection(db, "workspaces", workspace.id, "tasks"), { ...finalData, createdAt: serverTimestamp() } as any);
       emitEvent("定義 WBS 節點", editingTask.name!);
@@ -188,7 +190,7 @@ export function WorkspaceTasks() {
               )}
               {visibleColumns.has('subtotal') && (
                 <div className="text-right">
-                  <p className="text-[8px] font-black text-muted-foreground uppercase leading-none">預算</p>
+                  <p className="text-[8px] font-black text-muted-foreground uppercase leading-none">預算上限</p>
                   <p className={cn("text-[10px] font-bold", isViolating ? 'text-destructive' : 'text-primary')}>${node.subtotal?.toLocaleString()}</p>
                 </div>
               )}
@@ -198,8 +200,9 @@ export function WorkspaceTasks() {
                   <span className="text-[8px] font-black">{node.progress || 0}%</span>
                 </div>
               )}
+              {visibleColumns.has('location') && <div className="text-[9px] font-bold text-muted-foreground truncate flex items-center gap-1"><MapPin className="w-2.5 h-2.5" />{node.location || '-'}</div>}
               {visibleColumns.has('status') && (
-                <div className={cn("w-2 h-2 rounded-full ml-auto self-center", node.status === 'completed' || node.status === 'accepted' ? 'bg-green-500' : 'bg-amber-500')} />
+                <div className={cn("w-2 h-2 rounded-full ml-auto self-center", node.status === 'completed' || node.status === 'accepted' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-amber-500 animate-pulse')} />
               )}
             </div>
           </div>
@@ -236,7 +239,7 @@ export function WorkspaceTasks() {
           <div>
             <h3 className="text-sm font-black uppercase tracking-widest text-foreground">WBS 工程治理</h3>
             <p className="text-[9px] text-muted-foreground font-bold uppercase flex items-center gap-2">
-              <Clock className="w-3 h-3" /> 實時預算與拓撲監控
+              <Clock className="w-3 h-3" /> 實時預算與拓項監控
             </p>
           </div>
         </div>
@@ -254,6 +257,7 @@ export function WorkspaceTasks() {
               <DropdownMenuCheckboxItem checked={visibleColumns.has('priority')} onCheckedChange={() => toggleColumn('priority')}>優先順序</DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem checked={visibleColumns.has('subtotal')} onCheckedChange={() => toggleColumn('subtotal')}>預算上限</DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem checked={visibleColumns.has('progress')} onCheckedChange={() => toggleColumn('progress')}>作業進度</DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem checked={visibleColumns.has('location')} onCheckedChange={() => toggleColumn('location')}>作業地點</DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem checked={visibleColumns.has('status')} onCheckedChange={() => toggleColumn('status')}>治理狀態</DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -300,8 +304,8 @@ export function WorkspaceTasks() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">權重 (Weight %)</Label>
-              <Input type="number" value={editingTask?.weight} onChange={e => setEditingTask({...editingTask, weight: Number(e.target.value)})} className="h-11 rounded-xl bg-muted/30 border-none" />
+              <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">作業地點 (Location)</Label>
+              <Input value={editingTask?.location || ""} onChange={e => setEditingTask({...editingTask, location: e.target.value})} className="h-11 rounded-xl bg-muted/30 border-none" />
             </div>
 
             <div className="space-y-1.5">

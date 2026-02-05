@@ -55,6 +55,7 @@ import { useMemo } from "react";
 
 /**
  * DashboardSidebar - 職責：全站導航與空間快速切換
+ * 視覺優化：左上角僅顯示 🐢，移除所有品牌文字。
  */
 export function DashboardSidebar() {
   const router = useRouter();
@@ -84,9 +85,9 @@ export function DashboardSidebar() {
   return (
     <Sidebar className="border-r border-border/50">
       <SidebarHeader className="p-4">
-        <Link href="/dashboard" className="flex items-center gap-2 mb-4 px-1 hover:opacity-80 transition-opacity">
-          <div className="text-2xl mr-1">🐢</div>
-          <span className="text-xl font-bold font-headline tracking-tight italic">OrgVerse</span>
+        {/* 左上角純 🐢 Logo */}
+        <Link href="/dashboard" className="flex items-center mb-4 px-1 hover:opacity-80 transition-opacity">
+          <div className="text-3xl select-none">🐢</div>
         </Link>
         <GlobalSwitcher />
       </SidebarHeader>

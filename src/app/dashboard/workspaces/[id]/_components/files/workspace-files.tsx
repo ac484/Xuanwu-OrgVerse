@@ -94,7 +94,7 @@ export function WorkspaceFiles() {
         const newVersion = {
           versionId: Math.random().toString(36).slice(-6),
           versionNumber: nextVer,
-          versionName: `系統自動修訂 #${nextVer}`,
+          versionName: `修訂版本 #${nextVer}`,
           size: 1024 * 1024 * (1 + Math.random() * 4),
           uploadedBy: user?.name || "維度協作者",
           createdAt: new Date().toISOString()
@@ -105,7 +105,7 @@ export function WorkspaceFiles() {
           currentVersionId: newVersion.versionId,
           updatedAt: serverTimestamp()
         }).then(() => {
-          emitEvent("檔案版本共振", `${fileName} (v${nextVer})`);
+          emitEvent("檔案版本迭代", `${fileName} (v${nextVer})`);
           toast({ title: "版本已迭代", description: `${fileName} 已升級至 v${nextVer}。` });
         });
       } else {
@@ -178,7 +178,7 @@ export function WorkspaceFiles() {
                 <div className="col-span-2 text-[10px] font-mono text-muted-foreground uppercase">{formatBytes(current?.size || 0)}</div>
                 <div className="col-span-2 flex flex-col">
                   <span className="text-[10px] font-bold">{current?.uploadedBy}</span>
-                  <span className="text-[9px] text-muted-foreground flex items-center gap-1 font-medium"><Clock className="w-2.5 h-2.5" /> 同步中</span>
+                  <span className="text-[9px] text-muted-foreground flex items-center gap-1 font-medium"><Clock className="w-2.5 h-2.5" /> SYNCED</span>
                 </div>
                 <div className="col-span-1 flex justify-end">
                   <DropdownMenu>
