@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 /**
- * DashboardHeader - 職責：處理導航欄的搜尋與通知邏輯（原子化封裝）
+ * DashboardHeader - 職責：處理導航欄的搜尋與通知邏輯
+ * 語義已優化為「邏輯空間 (Workspace)」。
  */
 export function DashboardHeader() {
   const { notifications, markAsRead, clearNotifications } = useAppStore();
@@ -26,7 +27,7 @@ export function DashboardHeader() {
         <div className="relative w-full max-w-md group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
-            placeholder="Access logical containers..." 
+            placeholder="存取邏輯空間 (Workspaces)..." 
             className="pl-10 pr-10 bg-muted/40 border-none h-9 focus-visible:ring-1"
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] text-muted-foreground border rounded px-1.5 py-0.5 bg-background shadow-sm">
@@ -46,7 +47,7 @@ export function DashboardHeader() {
           </PopoverTrigger>
           <PopoverContent className="w-80 p-0" align="end">
             <div className="p-4 border-b flex items-center justify-between">
-              <h4 className="font-bold text-sm uppercase tracking-widest">Dimension Pulse</h4>
+              <h4 className="font-bold text-sm uppercase tracking-widest">維度脈動</h4>
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={clearNotifications}>
                   <Trash2 className="h-3 w-3" />
@@ -75,14 +76,14 @@ export function DashboardHeader() {
                   </div>
                 )) : (
                   <div className="p-8 text-center text-muted-foreground text-xs italic">
-                    No active resonance detected.
+                    尚未偵測到活動共振。
                   </div>
                 )}
               </div>
             </ScrollArea>
             <div className="p-2 border-t text-center">
               <Button variant="ghost" size="sm" className="w-full text-[10px] font-bold uppercase tracking-widest">
-                View Dimensional History
+                查看維度歷史紀錄
               </Button>
             </div>
           </PopoverContent>

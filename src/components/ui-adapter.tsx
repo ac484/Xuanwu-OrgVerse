@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAppStore } from "@/lib/store";
 import { adaptUIColorToOrgContext } from "@/ai/flows/adapt-ui-color-to-org-context";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,26 +8,31 @@ import { hexToHsl } from "@/lib/utils";
 
 /**
  * UIAdapter acts as a middleware component that listens to the active organization
- * and applies AI-driven theme transformations to the global CSS environment.
+ * and applies AI-driven theme transformations.
+ * Optimized with useRef to prevent redundant adaptation calls.
  */
 export function UIAdapter({ children }: { children: React.ReactNode }) {
   const { organizations, activeOrgId, updateOrgTheme } = useAppStore();
   const [isAdapting, setIsAdapting] = useState(false);
+  const adaptingId = useRef<string | null>(null);
 
   const activeOrg = organizations.find(o => o.id === activeOrgId);
 
-  // Trigger AI adaptation when switching to an organization without a theme
+  // Trigger AI adaptation only when necessary
   useEffect(() => {
     async function adaptTheme() {
-      if (!activeOrg || activeOrg.theme) return;
+      // Guard: Check if org exists, already has a theme, or is currently being adapted
+      if (!activeOrg || activeOrg.theme || adaptingId.current === activeOrg.id) return;
 
+      adaptingId.current = activeOrg.id;
       setIsAdapting(true);
+      
       try {
         const result = await adaptUIColorToOrgContext({ 
           organizationContext: activeOrg.context 
         });
         
-        if (result) {
+        if (result && adaptingId.current === activeOrg.id) {
           updateOrgTheme(activeOrg.id, {
             primary: result.primaryColor,
             background: result.backgroundColor,
@@ -38,27 +43,21 @@ export function UIAdapter({ children }: { children: React.ReactNode }) {
         console.error("Theme adaptation failed:", error);
       } finally {
         setIsAdapting(false);
+        adaptingId.current = null;
       }
     }
 
     adaptTheme();
-  }, [activeOrgId, activeOrg, updateOrgTheme]);
+  }, [activeOrgId, activeOrg?.context, activeOrg?.theme, updateOrgTheme]);
 
-  // Apply HSL-converted CSS variables to the document root
+  // Apply CSS variables to the document root
   useEffect(() => {
+    const root = document.documentElement;
     if (activeOrg?.theme) {
-      const root = document.documentElement;
-      
-      // Update core ShadCN variables
       root.style.setProperty('--primary', hexToHsl(activeOrg.theme.primary));
       root.style.setProperty('--background', hexToHsl(activeOrg.theme.background));
       root.style.setProperty('--accent', hexToHsl(activeOrg.theme.accent));
-      
-      // Optional: Set foregrounds based on luminosity if needed
-      // For now, we rely on standard fallback contrast
     } else {
-      // Reset to defaults if no theme is active (e.g. personal space)
-      const root = document.documentElement;
       root.style.removeProperty('--primary');
       root.style.removeProperty('--background');
       root.style.removeProperty('--accent');
