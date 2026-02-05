@@ -1,9 +1,8 @@
-
 "use client";
 
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -24,22 +23,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [user, router]);
 
+  // 最佳化：記憶化查詢引用，防止偵聽器因重新渲染而重複初始化
+  const orgsQuery = useMemo(() => {
+    if (!user || !db) return null;
+    return query(collection(db, "organizations"), where("ownerId", "==", user.id));
+  }, [user?.id, db]);
+
+  const wsQuery = useMemo(() => {
+    if (!db) return null;
+    return query(collection(db, "workspaces"));
+  }, [db]);
+
   // 同步組織資料
   useEffect(() => {
-    if (!user || !db) return;
-
-    const orgsQuery = query(
-      collection(db, "organizations"), 
-      where("ownerId", "==", user.id)
-    );
+    if (!orgsQuery) return;
 
     const unsubscribe = onSnapshot(
       orgsQuery, 
       (snapshot) => {
-        const orgs = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as any[];
+        const orgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
         setOrganizations(orgs);
       },
       async (serverError) => {
@@ -52,21 +54,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
 
     return () => unsubscribe();
-  }, [user, db, setOrganizations]);
+  }, [orgsQuery, setOrganizations]);
 
   // 同步空間資料
   useEffect(() => {
-    if (!user || !db) return;
+    if (!wsQuery) return;
 
-    const wsQuery = query(collection(db, "workspaces"));
-    
     const unsubscribe = onSnapshot(
       wsQuery, 
       (snapshot) => {
-        const workspaces = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as any[];
+        const workspaces = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
         setWorkspaces(workspaces);
       },
       async (serverError) => {
@@ -79,7 +76,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
 
     return () => unsubscribe();
-  }, [user, db, setWorkspaces]);
+  }, [wsQuery, setWorkspaces]);
 
   if (!user) return null;
 

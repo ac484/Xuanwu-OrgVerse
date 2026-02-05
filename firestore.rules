@@ -1,4 +1,3 @@
-
 rules_version = '2';
 
 service cloud.firestore {
@@ -12,31 +11,32 @@ service cloud.firestore {
       return isSignedIn() && get(/databases/$(database)/documents/organizations/$(orgId)).data.ownerId == request.auth.uid;
     }
 
-    // 組織：僅擁有者或成員可存取
+    // 組織：核心主權校準
     match /organizations/{orgId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
-      allow update, delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isOwner(orgId));
       
-      // 全域脈動日誌
+      // 子集合：審計日誌
       match /pulseLogs/{logId} {
         allow read: if isSignedIn();
         allow create: if isSignedIn();
       }
     }
 
-    // 空間
+    // 空間：遞迴子集合治理
     match /workspaces/{workspaceId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isSignedIn() && (resource.data.ownerId == request.auth.uid || request.resource.data.ownerId == request.auth.uid);
       
-      // 所有子集合 (tasks, issues, files, dailyLogs) 繼承空間權限
+      // 所有原子能力子集合 (tasks, issues, files, dailyLogs) 繼承空間權限
       match /{allSubcollections=**} {
         allow read, write: if isSignedIn();
       }
     }
     
+    // 預設拒絕所有未定義存取
     match /{document=**} {
       allow read, write: if false;
     }

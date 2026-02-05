@@ -1,6 +1,5 @@
-
 import { create } from 'zustand';
-import { User, Organization, Workspace, Notification, CapabilitySpec, PulseLog } from '@/types/domain';
+import { User, Organization, Workspace, Notification, CapabilitySpec } from '@/types/domain';
 
 interface AppState {
   user: User | null;
@@ -16,7 +15,7 @@ interface AppState {
   updateUser: (updates: Partial<User>) => void;
   setActiveOrg: (id: string) => void;
   
-  // Data Sync
+  // Data Sync (只由 Firestore 監聽器呼叫)
   setOrganizations: (orgs: Organization[]) => void;
   setWorkspaces: (workspaces: Workspace[]) => void;
   

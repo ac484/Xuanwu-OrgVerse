@@ -1,15 +1,15 @@
-
 "use client";
 
 import { useAppStore } from "@/lib/store";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, ShieldAlert, Users, Layers, Zap } from "lucide-react";
+import { ShieldCheck, ShieldAlert, Users } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { useFirebase } from "@/firebase/provider";
 import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 
 export default function PermissionMatrixPage() {
   const { organizations, activeOrgId, workspaces } = useAppStore();
@@ -38,8 +38,10 @@ export default function PermissionMatrixPage() {
     const wsRef = doc(db, "workspaces", wsId);
     
     const operation = currentStatus ? arrayRemove(teamId) : arrayUnion(teamId);
+    const updates = { teamIds: operation };
     
-    updateDoc(wsRef, { teamIds: operation })
+    // 原子化更新與錯誤閉環
+    updateDoc(wsRef, updates)
       .then(() => {
         toast({
           title: currentStatus ? "共振中斷" : "共振激活",
@@ -47,6 +49,14 @@ export default function PermissionMatrixPage() {
             ? `團隊 ${teamName} 已從空間 ${wsName} 撤回存取權。`
             : `團隊 ${teamName} 已成功掛載至空間 ${wsName}。`
         });
+      })
+      .catch(async () => {
+        const error = new FirestorePermissionError({
+          path: wsRef.path,
+          operation: 'update',
+          requestResourceData: updates
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', error);
       });
   };
 
@@ -64,9 +74,7 @@ export default function PermissionMatrixPage() {
               <TableHead className="w-[220px] text-[10px] font-bold uppercase tracking-widest py-6 px-6">團隊 \ 空間節點</TableHead>
               {orgWorkspaces.map(ws => (
                 <TableHead key={ws.id} className="text-center min-w-[120px]">
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-[10px] font-bold uppercase tracking-tight text-primary">{ws.name}</span>
-                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-tight text-primary">{ws.name}</span>
                 </TableHead>
               ))}
             </TableRow>

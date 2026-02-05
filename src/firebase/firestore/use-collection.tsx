@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -26,8 +25,10 @@ export function useCollection<T = DocumentData>(query: Query<T> | null) {
         setLoading(false);
       },
       async (serverError) => {
+        // 最佳化：解析查詢路徑以提供更精確的錯誤上下文
+        const path = (query as any)._query?.path?.toString() || 'unknown/collection';
         const permissionError = new FirestorePermissionError({
-          path: (query as any)._query?.path?.toString() || 'unknown/collection',
+          path,
           operation: 'list',
         });
         errorEmitter.emit('permission-error', permissionError);
@@ -37,7 +38,7 @@ export function useCollection<T = DocumentData>(query: Query<T> | null) {
     );
 
     return () => unsubscribe();
-  }, [query]);
+  }, [query]); // 由於使用了 useMemo，這裡的 query 引用是穩定的
 
   return { data, loading, error };
 }
