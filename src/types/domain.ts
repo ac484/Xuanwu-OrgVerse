@@ -54,7 +54,7 @@ export interface Workspace {
   orgId: string;
   name: string;
   visibility: 'visible' | 'hidden'; 
-  boundary: string[]; 
+  scope: string[]; // 授權範疇
   protocol: string;  
   capabilities: Capability[]; 
   members: MemberReference[]; 
@@ -75,7 +75,10 @@ export interface Notification {
   timestamp: number;
 }
 
-export interface AuditLog {
+/**
+ * Pulse Log (維度脈動日誌)
+ */
+export interface PulseLog {
   id: string;
   orgId: string;
   timestamp: number;

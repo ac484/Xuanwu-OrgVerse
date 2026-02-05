@@ -5,49 +5,49 @@ import { ShieldCheck, Activity, Layers, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 /**
- * StatCards - 職責：負責展示組織維度的核心運行指標
+ * StatCards - 職責：展示維度運行的動態指標
  */
-export function StatCards({ orgName }: { orgName: string }) {
+export function StatCards({ orgName, workspaceCount }: { orgName: string, workspaceCount: number }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <Card className="border-border/60 shadow-sm hover:shadow-md transition-all">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">空間隔離</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">維度主權</CardTitle>
           <ShieldCheck className="w-4 h-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold font-headline">維度主權</div>
+          <div className="text-2xl font-bold font-headline">空間隔離已部署</div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            資料與技術規格嚴格隔離於 {orgName} 內。
+            當前維度 {orgName} 已成功掛載 {workspaceCount} 個獨立空間。
           </p>
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between text-[9px] uppercase font-bold tracking-tighter">
-              <span>環境完整性</span>
-              <span>99.9%</span>
+              <span>環境一致性</span>
+              <span>100%</span>
             </div>
-            <Progress value={99.9} className="h-1" />
+            <Progress value={100} className="h-1" />
           </div>
         </CardContent>
       </Card>
 
       <Card className="border-border/60 shadow-sm hover:shadow-md transition-all">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">活動串流</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">空間共振脈動</CardTitle>
           <Activity className="w-4 h-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold font-headline">空間共振</div>
+          <div className="text-2xl font-bold font-headline">身分同步活耀</div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            當前維度下所有活躍空間的通訊狀態。
+            此維度下所有邏輯空間的通訊狀態保持穩定。
           </p>
           <div className="flex items-center gap-1 mt-4">
             {[1, 2, 3].map(i => (
-              <div key={i} className="w-8 h-8 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-bold">
+              <div key={i} className="w-8 h-8 rounded-full border-2 border-background bg-primary/10 flex items-center justify-center text-[10px] font-bold">
                 U{i}
               </div>
             ))}
-            <div className="w-8 h-8 rounded-full border-2 border-background bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
-              +5
+            <div className="w-8 h-8 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-bold">
+              +
             </div>
           </div>
         </CardContent>
@@ -55,17 +55,17 @@ export function StatCards({ orgName }: { orgName: string }) {
 
       <Card className="border-border/60 shadow-sm hover:shadow-md transition-all">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">原子能力增量</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">能力增長</CardTitle>
           <Layers className="w-4 h-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold font-headline">邏輯規格增長</div>
+          <div className="text-2xl font-bold font-headline">原子能力掛載中</div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            相較於上個週期的邏輯空間能力增長。
+            維度內的技術規格正根據架構描述自動演進。
           </p>
           <div className="mt-4 flex items-center gap-2 text-primary">
             <Zap className="w-4 h-4 fill-primary" />
-            <span className="text-[10px] font-bold uppercase tracking-tight">規格同步已激活</span>
+            <span className="text-[10px] font-bold uppercase tracking-tight">AI 輔助適配已啟用</span>
           </div>
         </CardContent>
       </Card>

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, Capability, MemberReference, Team, AuditLog } from '@/types/domain';
+import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, Capability, MemberReference, Team, PulseLog } from '@/types/domain';
 
 interface AppState {
   user: User | null;
@@ -8,7 +8,7 @@ interface AppState {
   activeOrgId: string | null;
   workspaces: Workspace[];
   notifications: Notification[];
-  auditLogs: AuditLog[];
+  pulseLogs: PulseLog[];
   
   login: (userData: User) => void;
   logout: () => void;
@@ -17,7 +17,7 @@ interface AppState {
   updateOrganization: (id: string, updates: Partial<Omit<Organization, 'id' | 'members' | 'teams'>>) => void;
   updateOrgTheme: (id: string, theme: ThemeConfig | undefined) => void;
   
-  addAuditLog: (log: Omit<AuditLog, 'id' | 'timestamp' | 'orgId'>) => void;
+  addPulseLog: (log: Omit<PulseLog, 'id' | 'timestamp' | 'orgId'>) => void;
   
   addOrgMember: (orgId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
   removeOrgMember: (orgId: string, memberId: string) => void;
@@ -61,19 +61,19 @@ export const useAppStore = create<AppState>()(
       activeOrgId: 'personal',
       workspaces: [],
       notifications: [],
-      auditLogs: [],
+      pulseLogs: [],
 
       login: (userData) => set({ user: userData }),
       logout: () => set({ user: null, activeOrgId: 'personal' }),
       setActiveOrg: (id) => set({ activeOrgId: id }),
       
-      addAuditLog: (log) => set((state) => ({
-        auditLogs: [{
+      addPulseLog: (log) => set((state) => ({
+        pulseLogs: [{
           ...log,
-          id: `log-${Math.random().toString(36).substring(2, 9)}`,
+          id: `pulse-${Math.random().toString(36).substring(2, 9)}`,
           timestamp: Date.now(),
           orgId: state.activeOrgId || 'personal'
-        }, ...state.auditLogs].slice(0, 100)
+        }, ...state.pulseLogs].slice(0, 100)
       })),
 
       addOrganization: (org) => set((state) => {
@@ -100,7 +100,7 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           organizations: state.organizations.map(o => o.id === id ? { ...o, ...updates } : o)
         }));
-        get().addAuditLog({ actor: get().user?.name || 'System', action: '更新維度識別', target: id, type: 'update' });
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '更新維度識別', target: id, type: 'update' });
       },
       
       updateOrgTheme: (id, theme) => set((state) => ({
@@ -114,7 +114,7 @@ export const useAppStore = create<AppState>()(
             members: [...(o.members || []), { ...member, id: `m-${Math.random().toString(36).substring(2, 6)}`, status: 'active' }]
           } : o)
         }));
-        get().addAuditLog({ actor: get().user?.name || 'System', action: '同步身分', target: member.name, type: 'create' });
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '同步身分', target: member.name, type: 'create' });
       },
 
       removeOrgMember: (orgId, memberId) => set((state) => ({
@@ -139,7 +139,7 @@ export const useAppStore = create<AppState>()(
             teams: [...(o.teams || []), { ...team, id: `team-${Math.random().toString(36).substring(2, 6)}`, memberIds: [] }]
           } : o)
         }));
-        get().addAuditLog({ actor: get().user?.name || 'System', action: '定義團隊', target: team.name, type: 'create' });
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '定義團隊', target: team.name, type: 'create' });
       },
 
       removeOrgTeam: (orgId, teamId) => set((state) => ({
@@ -178,7 +178,7 @@ export const useAppStore = create<AppState>()(
             members: [] 
           }]
         }));
-        get().addAuditLog({ actor: get().user?.name || 'System', action: '初始化空間', target: workspace.name, type: 'create' });
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '初始化空間', target: workspace.name, type: 'create' });
       },
 
       deleteWorkspace: (id) => set((state) => ({
@@ -192,7 +192,7 @@ export const useAppStore = create<AppState>()(
             capabilities: [...(w.capabilities || []), { ...capability, id: `cap-${Math.random().toString(36).substring(2, 6)}` }]
           } : w)
         }));
-        get().addAuditLog({ actor: get().user?.name || 'System', action: '掛載原子能力', target: capability.name, type: 'update' });
+        get().addPulseLog({ actor: get().user?.name || 'System', action: '掛載原子能力', target: capability.name, type: 'update' });
       },
 
       removeCapabilityFromWorkspace: (workspaceId, capabilityId) => set((state) => ({

@@ -5,16 +5,15 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Activity, Clock, User, Box, Shield, Terminal } from "lucide-react";
+import { Activity, Clock, Box, Shield, Terminal, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
 
 /**
- * DimensionAuditPage - 職責：維度審計串流
- * 提供維度內所有技術變動與存取行為的實時紀錄。
+ * DimensionPulsePage - 職責：展示維度內的活動脈動日誌
  */
-export default function DimensionAuditPage() {
-  const { auditLogs, activeOrgId } = useAppStore();
+export default function DimensionPulsePage() {
+  const { pulseLogs, activeOrgId } = useAppStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -23,11 +22,11 @@ export default function DimensionAuditPage() {
 
   if (!mounted) return null;
 
-  const filteredLogs = auditLogs.filter(log => log.orgId === activeOrgId);
+  const filteredLogs = pulseLogs.filter(log => log.orgId === activeOrgId);
 
   const getActionIcon = (type: string) => {
     switch (type) {
-      case 'create': return <Box className="w-3.5 h-3.5 text-green-500" />;
+      case 'create': return <Zap className="w-3.5 h-3.5 text-green-500" />;
       case 'update': return <Activity className="w-3.5 h-3.5 text-primary" />;
       case 'delete': return <Shield className="w-3.5 h-3.5 text-destructive" />;
       default: return <Terminal className="w-3.5 h-3.5 text-muted-foreground" />;
@@ -37,11 +36,11 @@ export default function DimensionAuditPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto animate-in fade-in duration-500">
       <PageHeader 
-        title="維度審計串流" 
-        description="追蹤當前維度下所有技術規格的異動、身分授權與空間治理紀錄。"
+        title="維度脈動日誌" 
+        description="追蹤維度內所有技術規格、身分共振與空間治理的變動紀錄。"
       />
 
-      <Card className="border-border/60 bg-card/50 backdrop-blur-sm overflow-hidden">
+      <Card className="border-border/60 bg-card/50 backdrop-blur-sm overflow-hidden shadow-sm">
         <CardContent className="p-0">
           <ScrollArea className="h-[600px]">
             <div className="divide-y divide-border/40">
@@ -64,7 +63,7 @@ export default function DimensionAuditPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="text-[8px] uppercase tracking-tighter px-1.5 h-4">
-                        EVENT_ID: {log.id.toUpperCase()}
+                        PULSE_ID: {log.id.toUpperCase()}
                       </Badge>
                       <Badge variant="secondary" className="text-[8px] uppercase tracking-tighter px-1.5 h-4">
                         {log.type}
@@ -75,7 +74,7 @@ export default function DimensionAuditPage() {
               )) : (
                 <div className="p-20 text-center flex flex-col items-center justify-center space-y-4 opacity-30">
                   <Activity className="w-12 h-12" />
-                  <p className="text-sm font-bold uppercase tracking-widest">暫無審計共振</p>
+                  <p className="text-sm font-bold uppercase tracking-widest">尚無脈動共振</p>
                 </div>
               )}
             </div>
