@@ -4,8 +4,8 @@ import { useWorkspace } from "../workspace-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ListTodo, Plus, Download, Upload, CloudDownload, Globe } from "lucide-react";
-import { useState, useRef } from "react";
+import { ListTodo, Plus, CloudDownload, Globe } from "lucide-react";
+import { useState, useRef, useMemo } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { useFirebase } from "@/firebase/provider";
@@ -31,14 +31,16 @@ export function WorkspaceTasks() {
   const [isCloudImportOpen, setIsCloudImportOpen] = useState(false);
   const [cloudPath, setCloudPath] = useState("specs/default-tasks.json");
   const [isCloudLoading, setIsCloudLoading] = useState(false);
-  
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 使用真正的 Firestore 實時偵聽子集合
-  const tasksQuery = query(
-    collection(db, "workspaces", workspace.id, "tasks"),
-    orderBy("createdAt", "asc")
-  );
+  // 原子優化：記憶化查詢引用
+  const tasksQuery = useMemo(() => {
+    if (!db || !workspace.id) return null;
+    return query(
+      collection(db, "workspaces", workspace.id, "tasks"),
+      orderBy("createdAt", "asc")
+    );
+  }, [db, workspace.id]);
+
   const { data: tasks } = useCollection<any>(tasksQuery);
 
   const handleAddTask = (e: React.FormEvent) => {

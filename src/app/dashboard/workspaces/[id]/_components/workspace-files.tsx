@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useWorkspace } from "../workspace-context";
@@ -12,21 +11,23 @@ import { useFirebase } from "@/firebase/provider";
 import { collection, addDoc, serverTimestamp, query, orderBy } from "firebase/firestore";
 import { useCollection } from "@/firebase";
 import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError } from "@/firebase/errors";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
+import { useMemo } from "react";
 
-/**
- * WorkspaceFiles - 職責：真正的 Firestore 子集合檔案元數據管理
- */
 export function WorkspaceFiles() {
   const { workspace, emitEvent, scope } = useWorkspace();
   const { user } = useAppStore();
   const { db } = useFirebase();
 
-  // 實時從雲端子集合抓取檔案列表
-  const filesQuery = query(
-    collection(db, "workspaces", workspace.id, "files"),
-    orderBy("timestamp", "desc")
-  );
+  // 原子優化：記憶化查詢引用
+  const filesQuery = useMemo(() => {
+    if (!db || !workspace.id) return null;
+    return query(
+      collection(db, "workspaces", workspace.id, "files"),
+      orderBy("timestamp", "desc")
+    );
+  }, [db, workspace.id]);
+
   const { data: files } = useCollection<any>(filesQuery);
 
   const handleUpload = () => {
@@ -50,7 +51,7 @@ export function WorkspaceFiles() {
           path: `workspaces/${workspace.id}/files`,
           operation: 'create',
           requestResourceData: fileData
-        });
+        } satisfies SecurityRuleContext);
         errorEmitter.emit('permission-error', error);
       });
   };

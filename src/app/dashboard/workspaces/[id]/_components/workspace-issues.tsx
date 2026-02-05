@@ -10,15 +10,21 @@ import { collection, addDoc, serverTimestamp, query, orderBy } from "firebase/fi
 import { useCollection } from "@/firebase";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
+import { useMemo } from "react";
 
 export function WorkspaceIssues() {
   const { workspace, emitEvent, protocol } = useWorkspace();
   const { db } = useFirebase();
 
-  const issuesQuery = query(
-    collection(db, "workspaces", workspace.id, "issues"),
-    orderBy("createdAt", "desc")
-  );
+  // 原子優化：記憶化查詢引用
+  const issuesQuery = useMemo(() => {
+    if (!db || !workspace.id) return null;
+    return query(
+      collection(db, "workspaces", workspace.id, "issues"),
+      orderBy("createdAt", "desc")
+    );
+  }, [db, workspace.id]);
+
   const { data: issues } = useCollection<any>(issuesQuery);
 
   const handleAddIssue = () => {

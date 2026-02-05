@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useCallback, useMemo } from 'react';
@@ -7,7 +6,7 @@ import { useAppStore } from '@/lib/store';
 import { useFirebase } from '@/firebase/provider';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 interface WorkspaceContextType {
   workspace: Workspace;
@@ -40,7 +39,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
       orgId: activeOrgId
     };
 
-    // 真正的雲端審計日誌寫入
+    // 原子優化：非阻塞寫入與錯誤閉環
     const pulseCol = collection(db, "organizations", activeOrgId, "pulseLogs");
     addDoc(pulseCol, logData)
       .catch(async () => {
@@ -48,7 +47,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
           path: `organizations/${activeOrgId}/pulseLogs`,
           operation: 'create',
           requestResourceData: logData
-        });
+        } satisfies SecurityRuleContext);
         errorEmitter.emit('permission-error', error);
       });
   }, [workspace, user, activeOrgId, db]);

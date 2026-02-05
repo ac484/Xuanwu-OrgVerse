@@ -4,7 +4,7 @@ import { useWorkspace } from "../workspace-context";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageSquare, Send, Clock } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { useFirebase } from "@/firebase/provider";
 import { collection, addDoc, serverTimestamp, query, orderBy } from "firebase/firestore";
@@ -19,10 +19,15 @@ export function WorkspaceDaily() {
   const { user } = useAppStore();
   const [content, setContent] = useState("");
 
-  const logsQuery = query(
-    collection(db, "workspaces", workspace.id, "dailyLogs"),
-    orderBy("timestamp", "desc")
-  );
+  // 原子優化：記憶化查詢引用，防止無效偵聽重啟
+  const logsQuery = useMemo(() => {
+    if (!db || !workspace.id) return null;
+    return query(
+      collection(db, "workspaces", workspace.id, "dailyLogs"),
+      orderBy("timestamp", "desc")
+    );
+  }, [db, workspace.id]);
+
   const { data: logs } = useCollection<any>(logsQuery);
 
   const handlePost = () => {
@@ -79,7 +84,7 @@ export function WorkspaceDaily() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold">
-                  {log.author[0]}
+                  {log.author?.[0] || 'U'}
                 </div>
                 <span className="text-xs font-bold">{log.author}</span>
               </div>

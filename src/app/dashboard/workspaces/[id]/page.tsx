@@ -97,6 +97,7 @@ function WorkspaceContent() {
     }
   }, [workspace]);
 
+  // 原子優化：記憶化回調並實施錯誤噴發
   const handleUpdateSettings = useCallback(() => {
     const wsRef = doc(db, "workspaces", workspace.id);
     const updates = { name: editName, visibility: editVisibility };
@@ -292,7 +293,7 @@ function WorkspaceContent() {
                   <Card key={cap.id} className="border-border/60 hover:border-primary/40 transition-all group bg-card/40 backdrop-blur-sm overflow-hidden">
                     <CardHeader className="pb-4">
                       <div className="flex items-center justify-between mb-4">
-                        <div className="p-2.5 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                        <div className="p-2.5 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
                           {getIcon(cap.id)}
                         </div>
                         <Badge variant="outline" className="text-[9px] uppercase font-bold px-1.5 bg-background">
@@ -381,7 +382,9 @@ function WorkspaceContent() {
                         <p className="text-[10px] font-bold leading-tight group-hover:text-primary transition-colors">
                           {log.action}
                         </p>
-                        <time className="text-[8px] text-muted-foreground/60 font-mono">{format(log.timestamp, "HH:mm:ss")}</time>
+                        <time className="text-[8px] text-muted-foreground/60 font-mono">
+                          {log.timestamp?.seconds ? format(log.timestamp.seconds * 1000, "HH:mm:ss") : "同步中..."}
+                        </time>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
