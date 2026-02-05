@@ -18,7 +18,7 @@ import {
   signInAnonymously,
   updateProfile
 } from "firebase/auth";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function LoginPage() {
   const { auth } = useFirebase();
@@ -64,6 +64,7 @@ export default function LoginPage() {
     }
   };
 
+  // 精簡高性能輸入組件
   const InputField = ({ id, label, type = "text", icon: Icon, value, onChange, placeholder, extra }: any) => (
     <div className="space-y-1.5 h-[72px]">
       <div className="flex justify-between items-center px-1">
@@ -82,7 +83,7 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen bg-background px-4 overflow-hidden">
-      {/* 🐢 高性能背景主題層 */}
+      {/* 🐢 高性能背景層 */}
       <div className="absolute inset-0 pointer-events-none select-none opacity-[0.03] animate-in fade-in duration-1000">
         <span className="absolute top-10 left-10 text-[12rem]">🐢</span>
         <span className="absolute bottom-20 right-20 text-[10rem]">🐢</span>
@@ -108,24 +109,29 @@ export default function LoginPage() {
               <TabsTrigger value="register" className="text-[10px] uppercase font-black rounded-lg transition-all">註冊</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="login" className="space-y-4 animate-in fade-in duration-300">
-              <InputField id="l-email" label="聯絡端點" type="email" icon={Mail} value={email} onChange={setEmail} placeholder="name@orgverse.io" />
-              <InputField id="l-pass" label="安全密鑰" type="password" icon={Lock} value={password} onChange={setPassword} placeholder="••••••••" 
-                extra={<button onClick={() => setIsResetOpen(true)} className="text-[9px] font-black text-primary/60 hover:text-primary transition-colors uppercase">找回密鑰</button>} 
-              />
-              <Button onClick={() => handleAuth('login')} className="w-full font-black uppercase tracking-widest h-12 rounded-xl mt-4" disabled={isLoading}>
-                {isLoading ? <Loader2 className="animate-spin" /> : "進入維度"}
-              </Button>
-            </TabsContent>
+            {/* 統一間距：固定 h-[240px] 確保切換不跳動 */}
+            <div className="h-[240px]">
+              <TabsContent value="login" className="space-y-4 m-0 animate-in fade-in duration-300">
+                <InputField id="l-email" label="聯絡端點" type="email" icon={Mail} value={email} onChange={setEmail} placeholder="name@orgverse.io" />
+                <InputField id="l-pass" label="安全密鑰" type="password" icon={Lock} value={password} onChange={setPassword} placeholder="••••••••" 
+                  extra={<button onClick={() => setIsResetOpen(true)} className="text-[9px] font-black text-primary/60 hover:text-primary transition-colors uppercase">找回密鑰</button>} 
+                />
+                {/* 補位 Div：確保登入與註冊高度對齊 */}
+                <div className="h-[72px]" />
+                <Button onClick={() => handleAuth('login')} className="w-full font-black uppercase tracking-widest h-12 rounded-xl" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="animate-spin" /> : "進入維度"}
+                </Button>
+              </TabsContent>
 
-            <TabsContent value="register" className="space-y-4 animate-in fade-in duration-300">
-              <InputField id="r-name" label="數位稱號" icon={User} value={name} onChange={setName} placeholder="例如: 守護者" />
-              <InputField id="r-email" label="聯絡端點" type="email" icon={Mail} value={email} onChange={setEmail} placeholder="name@orgverse.io" />
-              <InputField id="r-pass" label="設定密鑰" type="password" icon={Lock} value={password} onChange={setPassword} placeholder="至少 6 位字元" />
-              <Button onClick={() => handleAuth('register')} className="w-full font-black uppercase tracking-widest h-12 rounded-xl mt-4" disabled={isLoading}>
-                {isLoading ? <Loader2 className="animate-spin" /> : "註冊主權"}
-              </Button>
-            </TabsContent>
+              <TabsContent value="register" className="space-y-4 m-0 animate-in fade-in duration-300">
+                <InputField id="r-name" label="數位稱號" icon={User} value={name} onChange={setName} placeholder="例如: 守護者" />
+                <InputField id="r-email" label="聯絡端點" type="email" icon={Mail} value={email} onChange={setEmail} placeholder="name@orgverse.io" />
+                <InputField id="r-pass" label="設定密鑰" type="password" icon={Lock} value={password} onChange={setPassword} placeholder="至少 6 位字元" />
+                <Button onClick={() => handleAuth('register')} className="w-full font-black uppercase tracking-widest h-12 rounded-xl" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="animate-spin" /> : "註冊主權"}
+                </Button>
+              </TabsContent>
+            </div>
           </Tabs>
         </CardContent>
 
