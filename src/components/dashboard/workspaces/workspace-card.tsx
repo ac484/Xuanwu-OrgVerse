@@ -1,10 +1,11 @@
+
 "use client";
 
 import { Workspace } from "@/types/domain";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Terminal, Eye, EyeOff, Shield } from "lucide-react";
+import { MoreVertical, Eye, EyeOff, Shield } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface WorkspaceCardProps {
@@ -12,9 +13,13 @@ interface WorkspaceCardProps {
   onAction?: (id: string) => void;
 }
 
+/**
+ * WorkspaceCard - 職責：邏輯空間的網格化展示
+ * 優化：統一術語為「授權範疇」，並優化可見性視覺暗示。
+ */
 export function WorkspaceCard({ workspace, onAction }: WorkspaceCardProps) {
   const router = useRouter();
-  const displayBoundary = workspace?.boundary || [];
+  const displayScope = workspace?.scope || [];
 
   return (
     <Card 
@@ -42,16 +47,17 @@ export function WorkspaceCard({ workspace, onAction }: WorkspaceCardProps) {
         </div>
         <CardTitle className="mt-4 font-headline text-lg group-hover:text-primary transition-colors">{workspace.name}</CardTitle>
         <CardDescription className="text-[9px] uppercase tracking-widest font-bold opacity-60">
-          狀態: {workspace.visibility === 'visible' ? '已掛載' : '隱藏模式'}
+          治理狀態: {workspace.visibility === 'visible' ? '已掛載' : '受限隔離'}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap gap-1.5 mt-1">
-          {displayBoundary.slice(0, 3).map(b => (
-            <Badge key={b} variant="secondary" className="text-[8px] px-1.5 py-0 uppercase tracking-tighter bg-muted/50 border-none">
-              {b}
+          {displayScope.slice(0, 3).map(s => (
+            <Badge key={s} variant="secondary" className="text-[8px] px-1.5 py-0 uppercase tracking-tighter bg-muted/50 border-none">
+              {s}
             </Badge>
           ))}
+          {displayScope.length > 3 && <span className="text-[8px] text-muted-foreground opacity-60">+{displayScope.length - 3}</span>}
         </div>
       </CardContent>
       <CardFooter className="pt-0 flex justify-between items-center border-t border-border/20 mt-4 py-4">
