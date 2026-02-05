@@ -1,7 +1,12 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, TeamMember, ResourceBlock } from '@/types/domain';
 
+/**
+ * AppState - 職責：維度狀態管理核心
+ * 已準備好 Firebase 串接，移除了大部分 Mock 邏輯。
+ */
 interface AppState {
   user: User | null;
   organizations: Organization[];
@@ -29,24 +34,11 @@ export const useAppStore = create<AppState>()(
       user: null,
       organizations: [
         { id: 'personal', name: '個人維度', context: '個人基礎設施沙盒', role: 'Owner' },
-        { id: 'acme', name: '企業架構', context: '高併發邏輯叢集', role: 'Admin' },
       ],
       activeOrgId: 'personal',
-      workspaces: [
-        { 
-          id: 'ws-root', 
-          orgId: 'personal', 
-          name: '主控節點', 
-          context: 'runtime-core-v1',
-          scope: ['auth', 'internal-bus'],
-          resolver: 'standard-resolver-v1',
-          policy: 'zero-trust-default'
-        }
-      ],
+      workspaces: [],
       notifications: [],
-      teamMembers: [
-        { id: 't1', name: '全域管理員', role: 'Owner', status: 'active', email: 'admin@orgverse.io' },
-      ],
+      teamMembers: [],
       resourceBlocks: [
         { id: 'b1', name: '身分共鳴模組', type: 'api', status: 'stable', description: '處理跨維度身分識別的原子化單元。' },
         { id: 'b2', name: '資源監測模組', type: 'component', status: 'beta', description: '即時可視化邏輯容器內資源流向。' },
@@ -57,7 +49,7 @@ export const useAppStore = create<AppState>()(
       setActiveOrg: (id) => set({ activeOrgId: id }),
       
       addOrganization: (org) => set((state) => {
-        const id = Math.random().toString(36).substring(2, 11);
+        const id = `org-${Math.random().toString(36).substring(2, 7)}`;
         const newOrg = { ...org, id, role: 'Owner' as UserRole };
         return { organizations: [...state.organizations, newOrg], activeOrgId: id };
       }),
@@ -89,6 +81,6 @@ export const useAppStore = create<AppState>()(
 
       clearNotifications: () => set({ notifications: [] }),
     }),
-    { name: 'orgverse-v2-storage' }
+    { name: 'orgverse-atomic-storage' }
   )
 );

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -9,22 +10,26 @@ import {
   Search, 
   Filter, 
   LayoutGrid, 
-  List as ListIcon
+  List as ListIcon,
+  Box
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { WorkspaceCard } from "@/components/dashboard/workspaces/workspace-card";
 import { WorkspaceListItem } from "@/components/dashboard/workspaces/workspace-list-item";
 import { CreateWorkspaceDialog } from "./_components/create-workspace-dialog";
+import { useRouter } from "next/navigation";
 
 /**
  * WorkspacesPage - 職責：管理邏輯容器列表
+ * 已整合「能力註冊表」入口，作為技術架構的核心管理點。
  */
 export default function WorkspacesPage() {
   const { organizations, activeOrgId, workspaces, deleteWorkspace } = useAppStore();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
 
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
   const orgWorkspaces = workspaces.filter(w => 
@@ -36,9 +41,17 @@ export default function WorkspacesPage() {
     <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500">
       <PageHeader 
         title="邏輯容器" 
-        description="管理當前維度中定義的所有技術邊界與空間。"
+        description="管理維度中的技術邊界與空間節點。"
       >
         <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-10 gap-2 font-bold uppercase text-[10px] tracking-widest hidden md:flex"
+            onClick={() => router.push('/dashboard/workspaces/blocks')}
+          >
+            <Box className="w-3.5 h-3.5" /> 能力註冊表
+          </Button>
           <div className="flex items-center border rounded-lg bg-background p-1 shadow-sm border-border/60">
             <Button 
               variant={viewMode === 'grid' ? 'secondary' : 'ghost'} 
@@ -58,7 +71,7 @@ export default function WorkspacesPage() {
             </Button>
           </div>
           <Button className="gap-2 shadow-sm font-bold uppercase tracking-widest text-[11px] h-10 px-4" onClick={() => setIsCreateOpen(true)}>
-            <Plus className="w-4 h-4" /> 建立邏輯空間
+            <Plus className="w-4 h-4" /> 建立節點
           </Button>
         </div>
       </PageHeader>
@@ -74,7 +87,7 @@ export default function WorkspacesPage() {
           />
         </div>
         <Button variant="outline" size="sm" className="h-10 px-4 gap-2 text-xs font-bold uppercase tracking-widest border-border/60 rounded-xl hover:bg-muted/50">
-          <Filter className="w-3.5 h-3.5" /> 篩選參數
+          <Filter className="w-3.5 h-3.5" /> 篩選
         </Button>
       </div>
 
