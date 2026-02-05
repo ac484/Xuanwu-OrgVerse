@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 
 /**
  * DashboardPage - 職責：維度脈動主控台
- * 優化：加入治理中心快捷入口，提升核心功能可見性。
+ * 術語對齊：統一使用單數「organization」路徑。
  */
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
@@ -68,7 +68,7 @@ export default function DashboardPage() {
         <Button 
           variant="outline" 
           className="h-24 rounded-3xl border-border/60 bg-card/50 hover:bg-primary/5 hover:border-primary/40 flex items-center justify-between px-8 group transition-all"
-          onClick={() => router.push('/dashboard/organizations/matrix')}
+          onClick={() => router.push('/dashboard/organization/matrix')}
         >
           <div className="flex items-center gap-4 text-left">
             <div className="p-3 bg-primary/10 rounded-2xl text-primary group-hover:bg-primary group-hover:text-white transition-all">
@@ -85,7 +85,7 @@ export default function DashboardPage() {
         <Button 
           variant="outline" 
           className="h-24 rounded-3xl border-border/60 bg-card/50 hover:bg-primary/5 hover:border-primary/40 flex items-center justify-between px-8 group transition-all"
-          onClick={() => router.push('/dashboard/organizations/audit')}
+          onClick={() => router.push('/dashboard/organization/audit')}
         >
           <div className="flex items-center gap-4 text-left">
             <div className="p-3 bg-primary/10 rounded-2xl text-primary group-hover:bg-primary group-hover:text-white transition-all">

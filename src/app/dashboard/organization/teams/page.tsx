@@ -21,7 +21,12 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { useFirebase } from "@/firebase/provider";
 import { doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { toast } from "@/hooks/use-toast";
 
+/**
+ * OrganizationTeamsPage - 職責：管理維度內部的邏輯分組
+ * 已同步至單數 organization 路徑。
+ */
 export default function OrganizationTeamsPage() {
   const { organizations, activeOrgId } = useAppStore();
   const { db } = useFirebase();
@@ -64,7 +69,7 @@ export default function OrganizationTeamsPage() {
     <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500">
       <PageHeader 
         title="部門團隊" 
-        description="管理組織內部的邏輯分組。"
+        description="管理維度內部的邏輯分組。"
       >
         <Button className="gap-2 font-bold uppercase text-[11px] tracking-widest h-10" onClick={() => setIsCreateOpen(true)}>
           <Plus className="w-4 h-4" /> 建立團隊

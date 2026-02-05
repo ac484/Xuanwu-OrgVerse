@@ -54,6 +54,7 @@ import { useMemo } from "react";
 
 /**
  * DashboardSidebar - 職責：全站導航與空間快速切換
+ * 術語校準：統一使用單數「organization」路由。
  */
 export function DashboardSidebar() {
   const router = useRouter();
@@ -118,50 +119,50 @@ export function DashboardSidebar() {
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organizations/members'}>
-                          <Link href="/dashboard/organizations/members" className="flex items-center gap-2">
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/members'}>
+                          <Link href="/dashboard/organization/members" className="flex items-center gap-2">
                             <Users className="w-3 h-3" /> 成員名單
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild isActive={pathname.startsWith('/dashboard/organizations/teams')}>
-                          <Link href="/dashboard/organizations/teams" className="flex items-center gap-2">
+                        <SidebarMenuSubButton asChild isActive={pathname.startsWith('/dashboard/organization/teams')}>
+                          <Link href="/dashboard/organization/teams" className="flex items-center gap-2">
                             <UserCircle className="w-3 h-3" /> 部門團隊
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organizations/partners'}>
-                          <Link href="/dashboard/organizations/partners" className="flex items-center gap-2">
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/partners'}>
+                          <Link href="/dashboard/organization/partners" className="flex items-center gap-2">
                             <Handshake className="w-3 h-3" /> 合作夥伴
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organizations/matrix'}>
-                          <Link href="/dashboard/organizations/matrix" className="flex items-center gap-2">
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/matrix'}>
+                          <Link href="/dashboard/organization/matrix" className="flex items-center gap-2">
                             <Grid3X3 className="w-3 h-3" /> 權限共振
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organizations/external'}>
-                          <Link href="/dashboard/organizations/external" className="flex items-center gap-2">
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/external'}>
+                          <Link href="/dashboard/organization/external" className="flex items-center gap-2">
                             <GlobeLock className="w-3 h-3" /> 外部閘道
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organizations/audit'}>
-                          <Link href="/dashboard/organizations/audit" className="flex items-center gap-2">
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/audit'}>
+                          <Link href="/dashboard/organization/audit" className="flex items-center gap-2">
                             <History className="w-3 h-3" /> 維度脈動
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organizations/settings'}>
-                          <Link href="/dashboard/organizations/settings" className="flex items-center gap-2">
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/settings'}>
+                          <Link href="/dashboard/organization/settings" className="flex items-center gap-2">
                             <Settings2 className="w-3 h-3" /> 維度設定
                           </Link>
                         </SidebarMenuSubButton>

@@ -17,6 +17,10 @@ import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 
+/**
+ * OrganizationSettingsPage - 職責：管理當前維度的核心身分識別
+ * 已校準跳轉路徑至單數 organization。
+ */
 export default function OrganizationSettingsPage() {
   const { organizations, activeOrgId } = useAppStore();
   const { db } = useFirebase();
@@ -61,7 +65,6 @@ export default function OrganizationSettingsPage() {
 
   const handleRecalibrate = () => {
     const orgRef = doc(db, "organizations", activeOrg.id);
-    // 移除 theme 觸發 UIAdapter 重新計算
     updateDoc(orgRef, { theme: null })
       .then(() => {
         toast({ title: "色彩共振校準中", description: "正在重新計算 UI 色彩。" });
