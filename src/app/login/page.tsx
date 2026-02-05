@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mail, User, Ghost, Lock, Loader2, Sparkles } from "lucide-react";
+import { Mail, User, Ghost, Lock, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useFirebase } from "@/firebase/provider";
 import { 
@@ -21,8 +21,29 @@ import {
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 /**
- * LoginPage - 職責：數位主權閘道器 (🐢 主題精簡版)
- * 優化：固定高度容器、組件化、零抖動切換、按鈕排列對齊。
+ * InputField - 職責：標準化的 🐢 主題輸入槽位
+ * 提取至外部以解決 React Re-render 導致的 Focus 遺失問題。
+ */
+const InputField = ({ id, label, type = "text", icon: Icon, value, onChange, placeholder, extra }: any) => (
+  <div className="space-y-2 h-[80px]">
+    <div className="flex justify-between items-center px-1">
+      <Label htmlFor={id} className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{label}</Label>
+      {extra}
+    </div>
+    <div className="relative group">
+      <Icon className="absolute left-4 top-3.5 w-4 h-4 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
+      <Input 
+        id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder} 
+        className="pl-11 h-12 rounded-2xl bg-muted/20 border-none focus-visible:ring-1 focus-visible:ring-primary/20 font-medium transition-all" 
+        required
+      />
+    </div>
+  </div>
+);
+
+/**
+ * LoginPage - 職責：數位主權閘道器 (🐢 主題極致版)
  */
 export default function LoginPage() {
   const { auth } = useFirebase();
@@ -68,25 +89,6 @@ export default function LoginPage() {
     }
   };
 
-  // 內部高度對齊 Input 元件
-  const InputField = ({ id, label, type = "text", icon: Icon, value, onChange, placeholder, extra }: any) => (
-    <div className="space-y-2 h-[80px]">
-      <div className="flex justify-between items-center px-1">
-        <Label htmlFor={id} className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{label}</Label>
-        {extra}
-      </div>
-      <div className="relative group">
-        <Icon className="absolute left-4 top-3.5 w-4 h-4 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
-        <Input 
-          id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder} 
-          className="pl-11 h-12 rounded-2xl bg-muted/20 border-none focus-visible:ring-1 focus-visible:ring-primary/20 font-medium transition-all" 
-          required
-        />
-      </div>
-    </div>
-  );
-
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen bg-background px-4 overflow-hidden">
       {/* 🐢 高性能背景粒子層 */}
@@ -112,15 +114,13 @@ export default function LoginPage() {
               <TabsTrigger value="register" className="text-[11px] uppercase font-black rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">註冊</TabsTrigger>
             </TabsList>
 
-            {/* 固定高度容器：防止切換時佈局跳動 */}
             <div className="h-[300px] flex flex-col"> 
               <TabsContent value="login" className="space-y-4 m-0 animate-in fade-in slide-in-from-left-2 duration-300 flex-1 flex flex-col">
                 <InputField id="l-email" label="聯絡端點" type="email" icon={Mail} value={email} onChange={setEmail} placeholder="name@orgverse.io" />
                 <InputField id="l-pass" label="安全密鑰" type="password" icon={Lock} value={password} onChange={setPassword} placeholder="••••••••" 
                   extra={<button onClick={() => setIsResetOpen(true)} className="text-[10px] font-black text-primary/60 hover:text-primary transition-colors uppercase">找回密鑰</button>} 
                 />
-                {/* 佈局佔位符：對齊註冊頁面的三欄位高度 */}
-                <div className="h-[80px]" /> 
+                <div className="h-[80px]" /> {/* 補位佔位符：對齊註冊頁面的三欄位高度 */}
                 <Button onClick={() => handleAuth('login')} className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-base shadow-xl shadow-primary/20 mt-auto" disabled={isLoading}>
                   {isLoading ? <Loader2 className="animate-spin" /> : "進入維度"}
                 </Button>
