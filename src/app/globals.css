@@ -74,10 +74,16 @@
   }
 }
 
-/* 效能優化：內容可見性優化 */
+/* 效能優化：內容可見性優化與 GPU 加速 */
 .content-visibility-auto {
   content-visibility: auto;
   contain-intrinsic-size: 1px 500px;
+}
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
 .glass-card {
@@ -86,10 +92,4 @@
 
 .dimension-glow {
   box-shadow: 0 0 20px -5px rgba(var(--primary), 0.3);
-}
-
-/* 減少大規模重繪 */
-.gpu-accelerated {
-  transform: translateZ(0);
-  will-change: transform, opacity;
 }

@@ -8,40 +8,44 @@ import { useMemo } from "react";
 
 /**
  * StatCards - 職責：展示維度運行的動態指標
- * 效能優化：使用 useMemo 記憶化所有複雜運算，確保在大數據量下極速響應。
+ * 效能優化：極致記憶化所有複雜運算，確保在極端數據下依然流暢。
  */
 export function StatCards({ orgId, orgName }: { orgId: string, orgName: string }) {
   const { pulseLogs, workspaces } = useAppStore();
   
+  // 效能加固：確保 workspaces 是陣列
+  const safeWorkspaces = useMemo(() => workspaces || [], [workspaces]);
+  const safePulseLogs = useMemo(() => pulseLogs || [], [pulseLogs]);
+
   // 記憶化：過濾當前維度的空間
   const orgWorkspaces = useMemo(() => 
-    (workspaces || []).filter(w => w.orgId === orgId),
-    [workspaces, orgId]
+    safeWorkspaces.filter(w => w.orgId === orgId),
+    [safeWorkspaces, orgId]
   );
   
-  // 記憶化：計算環境一致性
+  // 記憶化：計算環境一致性 (基於 Protocol 的多樣性)
   const consistency = useMemo(() => {
     if (orgWorkspaces.length === 0) return 100;
-    const protocols = orgWorkspaces.map(w => w.protocol);
+    const protocols = orgWorkspaces.map(w => w.protocol || 'Default');
     const uniqueProtocols = new Set(protocols);
     return Math.round((1 / uniqueProtocols.size) * 100);
   }, [orgWorkspaces]);
 
-  // 記憶化：計算脈動率
+  // 記憶化：計算脈動率 (基於近期日誌頻率)
   const pulseRate = useMemo(() => {
-    const recentPulseCount = (pulseLogs || []).filter(l => l.orgId === orgId).length;
+    const recentPulseCount = safePulseLogs.filter(l => l.orgId === orgId).length;
     return Math.min((recentPulseCount / 20) * 100, 100);
-  }, [pulseLogs, orgId]);
+  }, [safePulseLogs, orgId]);
 
   // 記憶化：計算能力負載
   const capabilityLoad = useMemo(() => {
     const totalCapabilities = orgWorkspaces.reduce((acc, w) => acc + (w.capabilities?.length || 0), 0);
-    return Math.min(totalCapabilities * 5, 100);
+    return Math.min(totalCapabilities * 10, 100);
   }, [orgWorkspaces]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <Card className="border-border/60 shadow-sm hover:shadow-md transition-all">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 gpu-accelerated">
+      <Card className="border-border/60 shadow-sm hover:shadow-md transition-all duration-300">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
           <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">維度一致性</CardTitle>
           <ShieldCheck className="w-4 h-4 text-primary" />
@@ -49,7 +53,7 @@ export function StatCards({ orgId, orgName }: { orgId: string, orgName: string }
         <CardContent>
           <div className="text-2xl font-bold font-headline">{consistency}% 協議對齊</div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            當前維度 {orgName} 已掛載 {orgWorkspaces.length} 個獨立空間。
+            當前維度 {orgName} 已掛載 {orgWorkspaces.length} 個空間節點。
           </p>
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between text-[9px] uppercase font-bold tracking-tighter">
@@ -61,7 +65,7 @@ export function StatCards({ orgId, orgName }: { orgId: string, orgName: string }
         </CardContent>
       </Card>
 
-      <Card className="border-border/60 shadow-sm hover:shadow-md transition-all">
+      <Card className="border-border/60 shadow-sm hover:shadow-md transition-all duration-300">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
           <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">活動脈動</CardTitle>
           <Activity className="w-4 h-4 text-primary" />
@@ -81,7 +85,7 @@ export function StatCards({ orgId, orgName }: { orgId: string, orgName: string }
         </CardContent>
       </Card>
 
-      <Card className="border-border/60 shadow-sm hover:shadow-md transition-all">
+      <Card className="border-border/60 shadow-sm hover:shadow-md transition-all duration-300">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
           <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">能力掛載負載</CardTitle>
           <Layers className="w-4 h-4 text-primary" />
@@ -89,11 +93,11 @@ export function StatCards({ orgId, orgName }: { orgId: string, orgName: string }
         <CardContent>
           <div className="text-2xl font-bold font-headline">{capabilityLoad}% 資源佔用</div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            維度內的原子能力規格對底層架構的壓力。
+            維度內的原子能力堆疊對底層架構的壓力。
           </p>
           <div className="mt-4 flex items-center gap-2 text-primary">
-            <Zap className="w-4 h-4 fill-primary" />
-            <span className="text-[10px] font-bold uppercase tracking-tight text-primary">AI 輔助優化中</span>
+            <Zap className="w-4 h-4 fill-primary animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-tight text-primary">AI 效能優化已激活</span>
           </div>
         </CardContent>
       </Card>

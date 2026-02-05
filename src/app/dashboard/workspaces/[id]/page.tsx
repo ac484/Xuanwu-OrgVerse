@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -76,13 +76,13 @@ function WorkspaceContent() {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const router = useRouter();
 
-  // 效能優化：記憶化本地脈動日誌
+  // 效能優化：記憶化本地脈動日誌，提升滾動效能
   const localPulse = useMemo(() => 
     (pulseLogs || []).filter(log => log.target.includes(workspace.name)).slice(0, 15),
     [pulseLogs, workspace.name]
   );
 
-  // 效能優化：記憶化已掛載能力 ID 列表
+  // 效能優化：記憶化已掛載能力 ID 列表，避免 Tabs 重新計算
   const mountedCapIds = useMemo(() => 
     (workspace.capabilities || []).map(c => c.id),
     [workspace.capabilities]
@@ -98,21 +98,19 @@ function WorkspaceContent() {
     if (workspace) {
       setEditName(workspace.name);
       setEditVisibility(workspace.visibility);
-      setEditProtocol(workspace.protocol);
+      setEditProtocol(workspace.protocol || "");
       setEditScope((workspace.scope || []).join(", "));
     }
   }, [workspace]);
 
-  if (!mounted) return null;
-
-  const handleUpdateSettings = () => {
+  const handleUpdateSettings = useCallback(() => {
     updateWorkspace(workspace.id, { name: editName, visibility: editVisibility });
     emitEvent("校準主權設定", editName);
     setIsSettingsOpen(false);
     toast({ title: "空間規格已同步" });
-  };
+  }, [workspace.id, editName, editVisibility, updateWorkspace, emitEvent]);
 
-  const handleUpdateSpecs = () => {
+  const handleUpdateSpecs = useCallback(() => {
     updateWorkspace(workspace.id, {
       protocol: editProtocol,
       scope: editScope.split(",").map(s => s.trim()).filter(Boolean)
@@ -120,15 +118,15 @@ function WorkspaceContent() {
     emitEvent("重定義協議範疇", editProtocol);
     setIsSpecsOpen(false);
     toast({ title: "授權範疇已重定義" });
-  };
+  }, [workspace.id, editProtocol, editScope, updateWorkspace, emitEvent]);
 
-  const handleDeleteWorkspace = () => {
+  const handleDeleteWorkspace = useCallback(() => {
     deleteWorkspace(workspace.id);
     router.push("/dashboard/workspaces");
     toast({ title: "空間已銷毀" });
-  };
+  }, [workspace.id, deleteWorkspace, router]);
 
-  const handleAddCapability = (capKey: string) => {
+  const handleAddCapability = useCallback((capKey: string) => {
     const capTemplates: Record<string, any> = {
       'files': { name: '檔案空間', type: 'data', description: '管理維度內的文檔與資產。' },
       'tasks': { name: '原子任務', type: 'ui', description: '追蹤空間內的行動目標。' },
@@ -144,7 +142,9 @@ function WorkspaceContent() {
       setIsAddCapOpen(false);
       toast({ title: `${template.name} 已掛載` });
     }
-  };
+  }, [workspace.id, addCapabilityToWorkspace]);
+
+  if (!mounted) return null;
 
   const getIcon = (id: string) => {
     switch (id) {
@@ -159,7 +159,7 @@ function WorkspaceContent() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500 pb-20">
+    <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500 pb-20 gpu-accelerated">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8 hover:bg-primary/5">
@@ -262,13 +262,13 @@ function WorkspaceContent() {
               </div>
             </TabsContent>
 
-            <TabsContent value="files"><WorkspaceFiles /></TabsContent>
-            <TabsContent value="tasks"><WorkspaceTasks /></TabsContent>
-            <TabsContent value="qa"><WorkspaceQA /></TabsContent>
-            <TabsContent value="acceptance"><WorkspaceAcceptance /></TabsContent>
-            <TabsContent value="issues"><WorkspaceIssues /></TabsContent>
-            <TabsContent value="daily"><WorkspaceDaily /></TabsContent>
-            <TabsContent value="members"><WorkspaceMembersManagement /></TabsContent>
+            <TabsContent value="files" className="content-visibility-auto"><WorkspaceFiles /></TabsContent>
+            <TabsContent value="tasks" className="content-visibility-auto"><WorkspaceTasks /></TabsContent>
+            <TabsContent value="qa" className="content-visibility-auto"><WorkspaceQA /></TabsContent>
+            <TabsContent value="acceptance" className="content-visibility-auto"><WorkspaceAcceptance /></TabsContent>
+            <TabsContent value="issues" className="content-visibility-auto"><WorkspaceIssues /></TabsContent>
+            <TabsContent value="daily" className="content-visibility-auto"><WorkspaceDaily /></TabsContent>
+            <TabsContent value="members" className="content-visibility-auto"><WorkspaceMembersManagement /></TabsContent>
 
             <TabsContent value="specs" className="space-y-6 animate-in fade-in duration-300">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -299,7 +299,7 @@ function WorkspaceContent() {
                   </CardHeader>
                   <CardContent className="pt-6">
                     <div className="p-4 bg-muted/50 rounded-xl border border-border/40 shadow-inner">
-                      <p className="text-xs font-mono font-bold text-primary">{protocol}</p>
+                      <p className="text-xs font-mono font-bold text-primary">{protocol || 'Default'}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -341,7 +341,6 @@ function WorkspaceContent() {
         </div>
       </div>
 
-      {/* Dialogs remain similar but with optimized logic if needed */}
       <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
         <DialogContent className="rounded-2xl">
           <DialogHeader>
