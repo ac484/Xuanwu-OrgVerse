@@ -35,7 +35,7 @@ interface AppState {
   addWorkspace: (workspace: Omit<Workspace, 'id' | 'capabilities' | 'members' | 'teamIds'>) => void;
   updateWorkspace: (id: string, updates: Partial<Workspace>) => void;
   deleteWorkspace: (id: string) => void;
-  addCapabilityToWorkspace: (workspaceId: string, capability: Omit<Capability, 'id'>) => void;
+  addCapabilityToWorkspace: (workspaceId: string, capability: Partial<Capability> & Pick<Capability, 'name' | 'type' | 'description'>) => void;
   removeCapabilityFromWorkspace: (workspaceId: string, capabilityId: string) => void;
   
   toggleTeamAccessToWorkspace: (workspaceId: string, teamId: string) => void;
@@ -217,15 +217,22 @@ export const useAppStore = create<AppState>()(
         get().addPulseLog({ actor: get().user?.name || 'System', action: '更新空間規格', target: id, type: 'update' });
       },
 
-      deleteWorkspace: (id) => set((state) => ({
-        workspaces: state.workspaces.filter(w => w.id !== id)
-      })),
+      deleteWorkspace: (id) => set((state) => {
+        const remaining = state.workspaces.filter(w => w.id !== id);
+        return {
+          workspaces: remaining
+        };
+      }),
 
       addCapabilityToWorkspace: (workspaceId, capability) => {
         set((state) => ({
           workspaces: state.workspaces.map(w => w.id === workspaceId ? {
             ...w,
-            capabilities: [...(w.capabilities || []), { ...capability, id: `cap-${Math.random().toString(36).substring(2, 6)}` }]
+            capabilities: [...(w.capabilities || []), { 
+              ...capability, 
+              id: capability.id || `cap-${Math.random().toString(36).substring(2, 6)}`,
+              status: capability.status || 'stable'
+            } as Capability]
           } : w)
         }));
         get().addPulseLog({ actor: get().user?.name || 'System', action: '掛載原子能力', target: capability.name, type: 'update' });
