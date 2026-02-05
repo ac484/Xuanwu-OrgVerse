@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useWorkspace } from "../workspace-context";
@@ -5,20 +6,33 @@ import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ListTodo, Plus, Download, Upload, Trash2 } from "lucide-react";
+import { ListTodo, Plus, Download, Upload, CloudDownload, Trash2, Globe } from "lucide-react";
 import { useState, useRef } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { useFirebase } from "@/firebase/provider";
+import { ref, getDownloadURL } from "firebase/storage";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription, 
+  DialogFooter 
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
-/**
- * WorkspaceTasks - 職責：原子任務管理鏈
- * 擴展功能：匯出/匯入任務規格 (Spec Migration)。
- */
 export function WorkspaceTasks() {
   const { workspace, emitEvent } = useWorkspace();
+  const { storage } = useFirebase();
   const { addTaskToWorkspace, updateTaskStatus, importTasksToWorkspace } = useAppStore();
+  
   const [newTask, setNewTask] = useState("");
+  const [isCloudImportOpen, setIsCloudImportOpen] = useState(false);
+  const [cloudPath, setCloudPath] = useState("specs/default-tasks.json");
+  const [isCloudLoading, setIsCloudLoading] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddTask = (e: React.FormEvent) => {
@@ -50,10 +64,6 @@ export function WorkspaceTasks() {
     toast({ title: "規格匯出成功", description: "JSON 規格檔案已下載。" });
   };
 
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -62,26 +72,45 @@ export function WorkspaceTasks() {
     reader.onload = (event) => {
       try {
         const json = JSON.parse(event.target?.result as string);
-        if (Array.isArray(json)) {
-          importTasksToWorkspace(workspace.id, json);
-          emitEvent("匯入任務規格", `${json.length} 項任務`);
-          toast({ 
-            title: "任務導入成功", 
-            description: `已從外部規格同步 ${json.length} 項任務目標。` 
-          });
-        } else {
-          throw new Error("Invalid format");
-        }
+        processImport(json);
       } catch (err) {
-        toast({ 
-          variant: "destructive", 
-          title: "導入失敗", 
-          description: "不相容的 JSON 格式或規格損毀。" 
-        });
+        toast({ variant: "destructive", title: "導入失敗", description: "不相容的 JSON 格式。" });
       }
     };
     reader.readAsText(file);
-    e.target.value = ""; // 重置 input 以便下次觸發
+    e.target.value = "";
+  };
+
+  const handleCloudImport = async () => {
+    setIsCloudLoading(true);
+    try {
+      const storageRef = ref(storage, cloudPath);
+      const url = await getDownloadURL(storageRef);
+      const response = await fetch(url);
+      const json = await response.json();
+      
+      processImport(json);
+      setIsCloudImportOpen(false);
+    } catch (err: any) {
+      toast({ 
+        variant: "destructive", 
+        title: "雲端匯入失敗", 
+        description: "找不到檔案或權限不足。" 
+      });
+    } finally {
+      setIsCloudLoading(false);
+    }
+  };
+
+  const processImport = (json: any[]) => {
+    if (Array.isArray(json)) {
+      importTasksToWorkspace(workspace.id, json);
+      emitEvent("匯入任務規格", `${json.length} 項任務`);
+      toast({ 
+        title: "任務導入成功", 
+        description: `已成功同步 ${json.length} 項任務目標。` 
+      });
+    }
   };
 
   const tasks = (workspace.tasks || []).filter(t => t.status === 'todo' || t.status === 'completed');
@@ -104,9 +133,17 @@ export function WorkspaceTasks() {
             variant="ghost" 
             size="sm" 
             className="h-8 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary"
-            onClick={handleImportClick}
+            onClick={() => setIsCloudImportOpen(true)}
           >
-            <Upload className="w-3.5 h-3.5 mr-1.5" /> 匯入規格
+            <CloudDownload className="w-3.5 h-3.5 mr-1.5" /> 雲端匯入
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload className="w-3.5 h-3.5 mr-1.5" /> 本地匯入
           </Button>
           <Button 
             variant="ghost" 
@@ -162,6 +199,36 @@ export function WorkspaceTasks() {
           </div>
         )}
       </div>
+
+      <Dialog open={isCloudImportOpen} onOpenChange={setIsCloudImportOpen}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-headline text-2xl flex items-center gap-2">
+              <Globe className="w-6 h-6 text-primary" /> 雲端規格匯入
+            </DialogTitle>
+            <DialogDescription>
+              從 Firebase Storage 獲取預定義的技術規格檔案。
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label>Storage 檔案路徑</Label>
+              <Input 
+                value={cloudPath} 
+                onChange={(e) => setCloudPath(e.target.value)} 
+                placeholder="例如: specs/engineering-tasks.json" 
+              />
+              <p className="text-[10px] text-muted-foreground italic">請確保檔案具備公開讀取權限或已配置對應的安全性規則。</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCloudImportOpen(false)}>取消</Button>
+            <Button onClick={handleCloudImport} disabled={isCloudLoading}>
+              {isCloudLoading ? "正在同步..." : "啟動遷移"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

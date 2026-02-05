@@ -1,0 +1,25 @@
+
+{
+  "entities": {
+    "WorkspaceTask": {
+      "title": "Workspace Task",
+      "description": "A task within a logic workspace",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "status": { "type": "string", "enum": ["todo", "completed", "verified", "accepted"] },
+        "assignee": { "type": "string" }
+      },
+      "required": ["title", "status"]
+    }
+  },
+  "auth": {
+    "providers": ["password"]
+  },
+  "firestore": {
+    "workspaces/{workspaceId}/tasks/{taskId}": {
+      "schema": "#/entities/WorkspaceTask",
+      "description": "Tasks within a specific workspace"
+    }
+  }
+}
