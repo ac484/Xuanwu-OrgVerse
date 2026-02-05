@@ -5,7 +5,7 @@ import { useAppStore } from "@/lib/store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Download, UploadCloud, Trash2, Clock, User, Box } from "lucide-react";
+import { FileText, Download, UploadCloud, Trash2, Clock, User, Box, ShieldCheck } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
@@ -30,9 +30,16 @@ export function WorkspaceFiles() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-500">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-          <FileText className="w-4 h-4" /> 空間檔案庫
-        </h3>
+        <div className="space-y-1">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+            <FileText className="w-4 h-4" /> 空間檔案庫
+          </h3>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-[8px] h-4 border-primary/20 bg-primary/5 text-primary">
+              SCOPE: { (scope || []).join(", ") || "UNSET" }
+            </Badge>
+          </div>
+        </div>
         <Button size="sm" className="h-9 gap-2 font-bold uppercase text-[10px] tracking-widest rounded-xl" onClick={handleUpload}>
           <UploadCloud className="w-4 h-4" /> 上傳檔案
         </Button>
@@ -46,7 +53,10 @@ export function WorkspaceFiles() {
                 <FileText className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <h4 className="text-sm font-bold">{file.name}</h4>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-bold">{file.name}</h4>
+                  <ShieldCheck className="w-3 h-3 text-green-500 opacity-50" />
+                </div>
                 <div className="flex items-center gap-3">
                   <Badge variant="outline" className="text-[8px] px-1.5 font-bold uppercase bg-background">{file.type}</Badge>
                   <span className="text-[10px] text-muted-foreground font-mono">{file.size}</span>
@@ -80,7 +90,7 @@ export function WorkspaceFiles() {
         <div className="space-y-1">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">授權範疇聲明</p>
           <p className="text-[11px] text-muted-foreground">
-            此空間當前具備 [{(scope || []).join(", ")}] 範疇授權。所有註冊的文檔資產均需符合此技術邊界。
+            此空間當前具備 [{(scope || []).join(", ") || "全域"}] 範疇授權。所有註冊的文檔資產均需符合此技術邊界。
           </p>
         </div>
       </div>

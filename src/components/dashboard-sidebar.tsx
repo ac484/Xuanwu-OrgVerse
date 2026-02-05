@@ -49,25 +49,37 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useMemo } from "react";
 
-/**
- * DashboardSidebar - 職責：維度導航中樞
- * 效能優化：使用精準選擇器與記憶化列表，防止頻繁日誌更新導致側邊欄重繪。
- */
 export function DashboardSidebar() {
   const router = useRouter();
   const pathname = usePathname();
   
-  // 精準選擇器模式：僅訂閱必要狀態
   const user = useAppStore(state => state.user);
   const activeOrgId = useAppStore(state => state.activeOrgId);
+  const organizations = useAppStore(state => state.organizations);
   const workspaces = useAppStore(state => state.workspaces);
   const logout = useAppStore(state => state.logout);
   
-  // 記憶化當前維度的公開空間
-  const orgWorkspaces = useMemo(() => 
-    (workspaces || []).filter(w => w.orgId === activeOrgId && w.visibility === 'visible'),
-    [workspaces, activeOrgId]
+  const activeOrg = useMemo(() => 
+    organizations.find(o => o.id === activeOrgId),
+    [organizations, activeOrgId]
   );
+
+  const orgWorkspaces = useMemo(() => {
+    if (!activeOrg || !user) return [];
+    
+    return (workspaces || []).filter(w => {
+      if (w.orgId !== activeOrgId) return false;
+      
+      const isOwner = activeOrg.role === 'Owner' || activeOrg.role === 'Admin';
+      if (isOwner) return true;
+
+      const isExplicitMember = (w.members || []).some(m => m.id === user.id);
+      const userTeams = (activeOrg.teams || []).filter(t => (t.memberIds || []).includes(user.id));
+      const hasTeamAccess = (w.teamIds || []).some(tid => userTeams.some(t => t.id === tid));
+
+      return w.visibility === 'visible' && (isExplicitMember || hasTeamAccess);
+    });
+  }, [workspaces, activeOrgId, activeOrg, user]);
 
   const handleLogout = () => {
     logout();
@@ -202,7 +214,7 @@ export function DashboardSidebar() {
               ))}
               {orgWorkspaces.length === 0 && (
                 <div className="px-3 py-2 border border-dashed rounded-lg mx-2 bg-muted/10">
-                  <p className="text-[9px] text-muted-foreground italic text-center">無活躍空間</p>
+                  <p className="text-[9px] text-muted-foreground italic text-center">無授權空間</p>
                 </div>
               )}
             </SidebarMenu>

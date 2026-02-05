@@ -1,20 +1,15 @@
-
 "use client";
 
 import { useWorkspace } from "../workspace-context";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Plus, MessageSquare, ArrowRight, ShieldAlert } from "lucide-react";
+import { AlertCircle, Plus, MessageSquare, ArrowRight, ShieldAlert, GitBranch } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
-/**
- * WorkspaceIssues - 職責：B 軌 (Anomaly Track) 治理中心
- * 處理所有偏離 A 軌正向流程的技術衝突、阻礙與異常。
- */
 export function WorkspaceIssues() {
-  const { workspace, emitEvent } = useWorkspace();
+  const { workspace, emitEvent, protocol } = useWorkspace();
   const { addIssueToWorkspace } = useAppStore();
 
   const handleAddIssue = () => {
@@ -33,7 +28,11 @@ export function WorkspaceIssues() {
           <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
             <ShieldAlert className="w-4 h-4 text-accent" /> B 軌：異常與衝突追蹤
           </h3>
-          <p className="text-[10px] text-muted-foreground">監控並處理所有阻礙 A 軌推進的技術負債。</p>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-[8px] h-4 border-accent/20 bg-accent/5 text-accent font-mono uppercase">
+              PROTOCOL: {protocol || "STANDARD"}
+            </Badge>
+          </div>
         </div>
         <Button size="sm" variant="outline" className="h-8 gap-2 font-bold uppercase text-[9px] tracking-widest border-accent/20 text-accent hover:bg-accent/5" onClick={handleAddIssue}>
           <Plus className="w-3 h-3" /> 提交衝突
@@ -71,11 +70,11 @@ export function WorkspaceIssues() {
 
       <div className="p-4 bg-accent/5 border border-accent/10 rounded-2xl">
         <div className="flex items-center gap-2 text-accent mb-2">
-          <MessageSquare className="w-3.5 h-3.5" />
-          <span className="text-[10px] font-bold uppercase tracking-widest">B 軌治理準則</span>
+          <GitBranch className="w-3.5 h-3.5" />
+          <span className="text-[10px] font-bold uppercase tracking-widest">B 軌治理準則 (Anomaly Track)</span>
         </div>
         <p className="text-[11px] text-muted-foreground leading-relaxed">
-          當 A 軌（正向生產鏈）遭遇 QA 駁回或驗收不通過時，應在此處建立關聯議題。所有的 A 軌結案都必須以 B 軌的清空為前提。
+          基於當前協議 「{protocol || "預設存取協議"}」，當 A 軌（正向生產鏈）遭遇 QA 駁回或驗收不通過時，應在此處建立關聯議題。所有的 A 軌結案都必須以 B 軌的清空為前提。
         </p>
       </div>
     </div>
