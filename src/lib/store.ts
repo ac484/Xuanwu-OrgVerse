@@ -19,6 +19,7 @@ interface AppState {
   
   // Container Actions
   addContainer: (container: Omit<Container, 'id'>) => void;
+  deleteContainer: (id: string) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -42,7 +43,7 @@ export const useAppStore = create<AppState>()(
       setActiveOrg: (id) => set({ activeOrgId: id }),
       
       addOrganization: (org) => set((state) => {
-        const id = Math.random().toString(36).substr(2, 9);
+        const id = Math.random().toString(36).substring(2, 11);
         const newOrg = { ...org, id, role: 'Owner' as UserRole };
         return { 
           organizations: [...state.organizations, newOrg],
@@ -55,7 +56,11 @@ export const useAppStore = create<AppState>()(
       })),
       
       addContainer: (container) => set((state) => ({
-        containers: [...state.containers, { ...container, id: Math.random().toString(36).substr(2, 9) }]
+        containers: [...state.containers, { ...container, id: Math.random().toString(36).substring(2, 11) }]
+      })),
+
+      deleteContainer: (id) => set((state) => ({
+        containers: state.containers.filter(c => c.id !== id)
       })),
     }),
     {
