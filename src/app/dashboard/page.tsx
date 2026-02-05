@@ -14,7 +14,6 @@ import { useRouter } from "next/navigation";
 
 /**
  * DashboardPage - 職責：維度脈動主控台
- * 術語對齊：統一使用單數「organization」路徑。
  */
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
