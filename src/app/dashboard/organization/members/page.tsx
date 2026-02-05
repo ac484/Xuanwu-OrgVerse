@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -6,26 +5,33 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { UserPlus, Trash2, Mail, Shield } from "lucide-react";
+import { UserPlus, Trash2, Mail } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 /**
  * OrganizationMembersPage - 職責：管理維度內的完整人員名單 (Member 清單)
- * 整合了「招募新進人員」的原子化閉環。
+ * 極速響應：優化 Store 訂閱模式，避免因脈動日誌導致的無效渲染。
  */
 export default function OrganizationMembersPage() {
-  const { organizations, activeOrgId, removeOrgMember, addOrgMember } = useAppStore();
   const [mounted, setMounted] = useState(false);
+  
+  // 精準選擇器：僅訂閱必要數據與 Actions
+  const organizations = useAppStore(state => state.organizations);
+  const activeOrgId = useAppStore(state => state.activeOrgId);
+  const removeOrgMember = useAppStore(state => state.removeOrgMember);
+  const addOrgMember = useAppStore(state => state.addOrgMember);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  const activeOrg = useMemo(() => 
+    (organizations || []).find(o => o.id === activeOrgId) || organizations[0],
+    [organizations, activeOrgId]
+  );
 
-  const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
-  if (!activeOrg) return null;
+  if (!mounted || !activeOrg) return null;
 
   const members = activeOrg.members || [];
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { 
@@ -19,25 +19,38 @@ import { CreateWorkspaceDialog } from "./_components/create-workspace-dialog";
 
 /**
  * WorkspacesPage - 職責：管理維度附屬的邏輯空間子單元
+ * 優化：使用精準選擇器隔離渲染，並提供極致穩健的空值保護。
  */
 export default function WorkspacesPage() {
-  const { organizations, activeOrgId, workspaces, deleteWorkspace } = useAppStore();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [mounted, setMounted] = useState(false);
 
+  // 精準選擇器模式
+  const organizations = useAppStore(state => state.organizations);
+  const activeOrgId = useAppStore(state => state.activeOrgId);
+  const workspaces = useAppStore(state => state.workspaces);
+  const deleteWorkspace = useAppStore(state => state.deleteWorkspace);
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
-
-  const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
-  const orgWorkspaces = (workspaces || []).filter(w => 
-    w.orgId === activeOrgId && 
-    w.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const activeOrg = useMemo(() => 
+    (organizations || []).find(o => o.id === activeOrgId) || organizations[0],
+    [organizations, activeOrgId]
   );
+
+  const orgWorkspaces = useMemo(() => 
+    (workspaces || []).filter(w => 
+      w.orgId === activeOrgId && 
+      w.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ),
+    [workspaces, activeOrgId, searchQuery]
+  );
+
+  if (!mounted || !activeOrg) return null;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500">
@@ -72,7 +85,7 @@ export default function WorkspacesPage() {
 
       <div className="flex items-center gap-4 bg-card/50 p-3 rounded-2xl border border-border/50 shadow-sm backdrop-blur-sm">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
             placeholder="搜尋空間名稱..." 
             className="pl-10 h-10 bg-background border-border/40 focus-visible:ring-primary/30 rounded-xl"
@@ -80,7 +93,7 @@ export default function WorkspacesPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Button variant="outline" size="sm" className="h-10 px-4 gap-2 text-xs font-bold uppercase tracking-widest border-border/60 rounded-xl hover:bg-muted/50">
+        <Button variant="outline" size="sm" className="h-10 px-4 gap-2 text-xs font-bold uppercase tracking-widest border-border/60 rounded-xl">
           <Filter className="w-3.5 h-3.5" /> 篩選
         </Button>
       </div>

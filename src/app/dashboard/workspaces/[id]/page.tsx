@@ -11,7 +11,6 @@ import {
   Settings, 
   Zap, 
   Globe,
-  Database,
   Layers,
   Plus,
   Trash2,
@@ -59,15 +58,13 @@ export default function WorkspaceDetailPage() {
 
 function WorkspaceContent() {
   const { workspace, protocol, scope, emitEvent } = useWorkspace();
-  const { 
-    organizations, 
-    activeOrgId,
-    pulseLogs,
-    updateWorkspace, 
-    addCapabilityToWorkspace, 
-    removeCapabilityFromWorkspace,
-    deleteWorkspace
-  } = useAppStore();
+  
+  // 精準選擇器模式
+  const pulseLogs = useAppStore(state => state.pulseLogs);
+  const updateWorkspace = useAppStore(state => state.updateWorkspace);
+  const addCapabilityToWorkspace = useAppStore(state => state.addCapabilityToWorkspace);
+  const removeCapabilityFromWorkspace = useAppStore(state => state.removeCapabilityFromWorkspace);
+  const deleteWorkspace = useAppStore(state => state.deleteWorkspace);
   
   const [mounted, setMounted] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -76,13 +73,11 @@ function WorkspaceContent() {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const router = useRouter();
 
-  // 效能優化：記憶化本地脈動日誌，提升滾動效能
   const localPulse = useMemo(() => 
     (pulseLogs || []).filter(log => log.target.includes(workspace.name)).slice(0, 15),
     [pulseLogs, workspace.name]
   );
 
-  // 效能優化：記憶化已掛載能力 ID 列表，避免 Tabs 重新計算
   const mountedCapIds = useMemo(() => 
     (workspace.capabilities || []).map(c => c.id),
     [workspace.capabilities]

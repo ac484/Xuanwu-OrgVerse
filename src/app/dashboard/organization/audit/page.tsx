@@ -5,23 +5,26 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Activity, Clock, Box, Shield, Terminal, Zap } from "lucide-react";
+import { Activity, Clock, Zap, Terminal, Shield } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useEffect, useMemo } from "react";
 
 /**
  * DimensionPulsePage - 職責：展示維度內的活動脈動日誌
- * 效能優化：記憶化日誌過濾邏輯，支持極速響應。
+ * 極致效能：使用精準選擇器並引入內容可見性優化。
  */
 export default function DimensionPulsePage() {
-  const { pulseLogs, activeOrgId } = useAppStore();
   const [mounted, setMounted] = useState(false);
+  
+  // 精準選擇器：僅監聽當前維度 ID 與日誌列表
+  const pulseLogs = useAppStore(state => state.pulseLogs);
+  const activeOrgId = useAppStore(state => state.activeOrgId);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // 效能優化：記憶化日誌過濾
+  // 效能優化：記憶化日誌過濾，避免大規模數據下的重繪開銷
   const filteredLogs = useMemo(() => 
     (pulseLogs || []).filter(log => log.orgId === activeOrgId),
     [pulseLogs, activeOrgId]
@@ -79,7 +82,7 @@ export default function DimensionPulsePage() {
               )) : (
                 <div className="p-20 text-center flex flex-col items-center justify-center space-y-4 opacity-30">
                   <Activity className="w-12 h-12" />
-                  <p className="text-sm font-bold uppercase tracking-widest">尚無脈動共振</p>
+                  <p className="text-sm font-bold uppercase tracking-widest">尚裝無脈動共振</p>
                 </div>
               )}
             </div>
