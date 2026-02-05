@@ -44,6 +44,7 @@ interface AppState {
   removeWorkspaceMember: (workspaceId: string, memberId: string) => void;
 
   addTaskToWorkspace: (workspaceId: string, task: Omit<WorkspaceTask, 'id'>) => void;
+  importTasksToWorkspace: (workspaceId: string, tasks: WorkspaceTask[]) => void;
   updateTaskStatus: (workspaceId: string, taskId: string, status: WorkspaceTask['status']) => void;
   addIssueToWorkspace: (workspaceId: string, issue: Omit<WorkspaceIssue, 'id'>) => void;
   addDailyLogToWorkspace: (workspaceId: string, log: Omit<WorkspaceDaily, 'id' | 'timestamp'>) => void;
@@ -316,6 +317,22 @@ export const useAppStore = create<AppState>()(
           tasks: [...(w.tasks || []), { ...task, id: `task-${Date.now()}` }]
         } : w)
       })),
+
+      importTasksToWorkspace: (workspaceId, tasks) => {
+        set((state) => ({
+          workspaces: state.workspaces.map(w => w.id === workspaceId ? {
+            ...w,
+            tasks: tasks.map(t => ({ ...t, id: t.id || `task-${Date.now()}-${Math.random()}` }))
+          } : w)
+        }));
+        const ws = get().workspaces.find(w => w.id === workspaceId);
+        get().addPulseLog({ 
+          actor: get().user?.name || 'System', 
+          action: '大量導入任務規格', 
+          target: ws?.name || workspaceId, 
+          type: 'update' 
+        });
+      },
 
       updateTaskStatus: (workspaceId, taskId, status) => {
         const ws = get().workspaces.find(w => w.id === workspaceId);

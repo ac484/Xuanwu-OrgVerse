@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useWorkspace } from "../workspace-context";
@@ -6,15 +5,21 @@ import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ListTodo, Plus, CheckCircle2, Circle, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { ListTodo, Plus, Download, Upload, Trash2 } from "lucide-react";
+import { useState, useRef } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 
+/**
+ * WorkspaceTasks - 職責：原子任務管理鏈
+ * 擴展功能：匯出/匯入任務規格 (Spec Migration)。
+ */
 export function WorkspaceTasks() {
   const { workspace, emitEvent } = useWorkspace();
-  const { addTaskToWorkspace, updateTaskStatus } = useAppStore();
+  const { addTaskToWorkspace, updateTaskStatus, importTasksToWorkspace } = useAppStore();
   const [newTask, setNewTask] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +30,60 @@ export function WorkspaceTasks() {
     toast({ title: "任務已新增" });
   };
 
+  const handleExport = () => {
+    const tasks = workspace.tasks || [];
+    if (tasks.length === 0) {
+      toast({ title: "無可匯出的數據", description: "請先建立任務後再執行匯出。" });
+      return;
+    }
+
+    const dataStr = JSON.stringify(tasks, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `tasks_${workspace.name.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    emitEvent("匯出任務規格", `${tasks.length} 項任務`);
+    toast({ title: "規格匯出成功", description: "JSON 規格檔案已下載。" });
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        if (Array.isArray(json)) {
+          importTasksToWorkspace(workspace.id, json);
+          emitEvent("匯入任務規格", `${json.length} 項任務`);
+          toast({ 
+            title: "任務導入成功", 
+            description: `已從外部規格同步 ${json.length} 項任務目標。` 
+          });
+        } else {
+          throw new Error("Invalid format");
+        }
+      } catch (err) {
+        toast({ 
+          variant: "destructive", 
+          title: "導入失敗", 
+          description: "不相容的 JSON 格式或規格損毀。" 
+        });
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ""; // 重置 input 以便下次觸發
+  };
+
   const tasks = (workspace.tasks || []).filter(t => t.status === 'todo' || t.status === 'completed');
 
   return (
@@ -33,6 +92,31 @@ export function WorkspaceTasks() {
         <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
           <ListTodo className="w-4 h-4" /> 原子任務清單
         </h3>
+        <div className="flex items-center gap-2">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            accept=".json" 
+            onChange={handleImport} 
+          />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary"
+            onClick={handleImportClick}
+          >
+            <Upload className="w-3.5 h-3.5 mr-1.5" /> 匯入規格
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary"
+            onClick={handleExport}
+          >
+            <Download className="w-3.5 h-3.5 mr-1.5" /> 匯出規格
+          </Button>
+        </div>
       </div>
 
       <form onSubmit={handleAddTask} className="flex gap-2">
