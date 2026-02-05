@@ -22,6 +22,12 @@ service cloud.firestore {
         allow read: if isSignedIn();
         allow create: if isSignedIn();
       }
+
+      // 子集合：合作夥伴邀請
+      match /invites/{inviteId} {
+        allow read: if isSignedIn();
+        allow create, update, delete: if isOwner(orgId);
+      }
     }
 
     // 空間：遞迴子集合治理
