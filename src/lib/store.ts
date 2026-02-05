@@ -5,6 +5,7 @@ import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, Res
 /**
  * AppState - 職責：維度狀態管理核心
  * 實現 Organization 與 Workspace 雙層級成員管理。
+ * 完全棄用 "Container" 語義，統一使用 "Workspace"。
  */
 interface AppState {
   user: User | null;
@@ -19,16 +20,16 @@ interface AppState {
   addOrganization: (org: Omit<Organization, 'id' | 'role' | 'members'>) => void;
   updateOrgTheme: (id: string, theme: ThemeConfig) => void;
   
-  // Organization Members
+  // 組織成員管理
   addOrgMember: (orgId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
   removeOrgMember: (orgId: string, memberId: string) => void;
   
-  // Workspace Actions
+  // 邏輯空間 (Workspace) 管理
   addWorkspace: (workspace: Omit<Workspace, 'id' | 'specs' | 'members'>) => void;
   deleteWorkspace: (id: string) => void;
   addSpecToWorkspace: (workspaceId: string, spec: Omit<ResourceBlock, 'id'>) => void;
   
-  // Workspace Members
+  // 空間專屬成員管理
   addWorkspaceMember: (workspaceId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
   removeWorkspaceMember: (workspaceId: string, memberId: string) => void;
   

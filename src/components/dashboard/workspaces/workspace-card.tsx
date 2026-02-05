@@ -13,7 +13,7 @@ interface WorkspaceCardProps {
 }
 
 /**
- * WorkspaceCard - 職責：展示單一邏輯容器的技術規格。
+ * WorkspaceCard - 職責：展示單一邏輯空間的技術規格與範圍。
  */
 export function WorkspaceCard({ workspace, onAction }: WorkspaceCardProps) {
   const router = useRouter();
@@ -40,7 +40,7 @@ export function WorkspaceCard({ workspace, onAction }: WorkspaceCardProps) {
         </div>
         <CardTitle className="mt-4 font-headline text-lg group-hover:text-primary transition-colors">{workspace.name}</CardTitle>
         <CardDescription className="text-[9px] uppercase tracking-widest font-bold opacity-60">
-          內容詳情: {workspace.context}
+          上下文: {workspace.context}
         </CardDescription>
       </CardHeader>
       <CardContent>
