@@ -11,29 +11,29 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useDeferredValue } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 
 /**
  * DashboardHeader - 職責：處理導航欄的全域搜尋與通知邏輯
- * 效能優化：使用 useMemo 記憶搜尋結果，避免輸入時造成組件過度負載。
+ * 極致效能：引入 useDeferredValue 處理搜尋，並使用精準選擇器減少渲染次數。
  */
 export function DashboardHeader() {
-  const { 
-    organizations, 
-    activeOrgId, 
-    workspaces, 
-    setActiveOrg,
-    notifications, 
-    markAsRead, 
-    clearNotifications 
-  } = useAppStore();
-  
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredQuery = useDeferredValue(searchQuery);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  // 精準選擇器模式：僅訂閱必要狀態，避免無謂渲染
+  const organizations = useAppStore(state => state.organizations);
+  const activeOrgId = useAppStore(state => state.activeOrgId);
+  const workspaces = useAppStore(state => state.workspaces);
+  const notifications = useAppStore(state => state.notifications);
+  const setActiveOrg = useAppStore(state => state.setActiveOrg);
+  const markAsRead = useAppStore(state => state.markAsRead);
+  const clearNotifications = useAppStore(state => state.clearNotifications);
   
   const unreadCount = useMemo(() => 
     notifications.filter(n => !n.read).length,
@@ -50,29 +50,16 @@ export function DashboardHeader() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        const input = document.getElementById("global-search-input");
-        input?.focus();
-        setIsSearchOpen(true);
-      }
-    };
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, []);
-
   const activeOrg = useMemo(() => 
     organizations.find(o => o.id === activeOrgId),
     [organizations, activeOrgId]
   );
   
-  // 效能優化：記憶化搜尋結果
+  // 效能優化：基於延遲值的非阻塞搜尋
   const filteredResults = useMemo(() => {
-    if (!searchQuery.trim()) return { organizations: [], workspaces: [], members: [] };
+    if (!deferredQuery.trim()) return { organizations: [], workspaces: [], members: [] };
     
-    const query = searchQuery.toLowerCase();
+    const query = deferredQuery.toLowerCase();
     return {
       organizations: organizations.filter(o => 
         o.name.toLowerCase().includes(query)
@@ -87,9 +74,9 @@ export function DashboardHeader() {
         m.email.toLowerCase().includes(query)
       ).slice(0, 3)
     };
-  }, [searchQuery, organizations, workspaces, activeOrgId, activeOrg?.members]);
+  }, [deferredQuery, organizations, workspaces, activeOrgId, activeOrg?.members]);
 
-  const hasResults = searchQuery.length > 0 && (
+  const hasResults = deferredQuery.length > 0 && (
     filteredResults.organizations.length > 0 ||
     filteredResults.workspaces.length > 0 ||
     filteredResults.members.length > 0

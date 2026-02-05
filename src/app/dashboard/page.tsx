@@ -6,24 +6,37 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCards } from "./_components/stat-cards";
 import { RecentWorkspaces } from "./_components/recent-workspaces";
 import { PermissionConstellation } from "./_components/permission-constellation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 /**
  * DashboardPage - 職責：維度脈動主控台
- * 優化點：全面統一術語，並將指標與真實數據連動。
+ * 優化點：全面使用精準選擇器與衍生狀態記憶化，確保極速響應。
  */
 export default function DashboardPage() {
-  const { organizations, activeOrgId, workspaces } = useAppStore();
   const [mounted, setMounted] = useState(false);
+
+  // 精準選擇器：僅訂閱維度清單、活動維度 ID 與空間列表
+  const organizations = useAppStore(state => state.organizations);
+  const activeOrgId = useAppStore(state => state.activeOrgId);
+  const workspaces = useAppStore(state => state.workspaces);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
-  
-  const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
-  const orgWorkspaces = (workspaces || []).filter(w => w.orgId === activeOrgId);
+  // 記憶化當前維度資料
+  const activeOrg = useMemo(() => 
+    organizations.find(o => o.id === activeOrgId) || organizations[0],
+    [organizations, activeOrgId]
+  );
+
+  // 記憶化當前維度的空間清單
+  const orgWorkspaces = useMemo(() => 
+    (workspaces || []).filter(w => w.orgId === activeOrgId),
+    [workspaces, activeOrgId]
+  );
+
+  if (!mounted || !activeOrg) return null;
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto animate-in fade-in duration-700">

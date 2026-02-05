@@ -47,18 +47,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useMemo } from "react";
 
 /**
  * DashboardSidebar - 職責：維度導航中樞
- * 已優化：術語統一為「維度脈動」與「原子能力」。
+ * 效能優化：使用精準選擇器與記憶化列表，防止頻繁日誌更新導致側邊欄重繪。
  */
 export function DashboardSidebar() {
-  const { user, logout, activeOrgId, workspaces } = useAppStore();
   const router = useRouter();
   const pathname = usePathname();
   
-  const orgWorkspaces = (workspaces || []).filter(w => 
-    w.orgId === activeOrgId && w.visibility === 'visible'
+  // 精準選擇器模式：僅訂閱必要狀態
+  const user = useAppStore(state => state.user);
+  const activeOrgId = useAppStore(state => state.activeOrgId);
+  const workspaces = useAppStore(state => state.workspaces);
+  const logout = useAppStore(state => state.logout);
+  
+  // 記憶化當前維度的公開空間
+  const orgWorkspaces = useMemo(() => 
+    (workspaces || []).filter(w => w.orgId === activeOrgId && w.visibility === 'visible'),
+    [workspaces, activeOrgId]
   );
 
   const handleLogout = () => {
