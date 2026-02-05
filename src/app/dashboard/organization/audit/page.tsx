@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -15,7 +14,6 @@ import { cn } from "@/lib/utils";
 
 /**
  * DimensionPulsePage - 職責：維度脈動日誌 (技術規格演進牆)
- * 優化：採用緊湊的瀑布流卡片，提升技術資訊的掃視效率。
  */
 export default function DimensionPulsePage() {
   const [mounted, setMounted] = useState(false);
@@ -35,7 +33,7 @@ export default function DimensionPulsePage() {
     );
   }, [activeOrgId, db]);
 
-  const { data: logs, loading } = useCollection<any>(pulseQuery);
+  const { data: logs } = useCollection<any>(pulseQuery);
 
   if (!mounted) return null;
 
@@ -59,6 +57,8 @@ export default function DimensionPulsePage() {
         <div className="columns-1 md:columns-2 gap-6 space-y-6">
           {logs.map((log) => {
             const theme = getStatusTheme(log.type);
+            const safeId = String(log.id || "00000000");
+            
             return (
               <div key={log.id} className="break-inside-avoid mb-6">
                 <Card className={cn(
@@ -95,7 +95,9 @@ export default function DimensionPulsePage() {
                     </div>
 
                     <div className="pt-3 border-t border-border/10 flex items-center justify-between">
-                      <span className="text-[8px] font-mono text-muted-foreground/60 uppercase">Pulse_Ref: {log.id.slice(-8).toUpperCase()}</span>
+                      <span className="text-[8px] font-mono text-muted-foreground/60 uppercase">
+                        Pulse_Ref: {safeId.slice(-8).toUpperCase()}
+                      </span>
                       <div className="flex gap-1">
                         <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", theme.color.replace('text', 'bg'))} />
                       </div>

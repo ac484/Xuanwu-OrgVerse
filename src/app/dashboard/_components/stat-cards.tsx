@@ -8,39 +8,41 @@ import { useMemo } from "react";
 
 /**
  * StatCards - 職責：展示維度運行的動態指標
- * 效能優化：極致記憶化所有複雜運算，確保在極端數據下依然流暢。
+ * 效能優化：極致記憶化所有複雜運算，並加入 isFinite 防禦除以零的崩潰。
  */
 export function StatCards({ orgId, orgName }: { orgId: string, orgName: string }) {
   const { pulseLogs, workspaces } = useAppStore();
   
-  // 效能加固：確保 workspaces 是陣列
   const safeWorkspaces = useMemo(() => workspaces || [], [workspaces]);
   const safePulseLogs = useMemo(() => pulseLogs || [], [pulseLogs]);
 
-  // 記憶化：過濾當前維度的空間
   const orgWorkspaces = useMemo(() => 
     safeWorkspaces.filter(w => w.orgId === orgId),
     [safeWorkspaces, orgId]
   );
   
   // 記憶化：計算環境一致性 (基於 Protocol 的多樣性)
+  // 防禦性：若 uniqueProtocols 為 0，val 為 Infinity，需強制轉為合法數值。
   const consistency = useMemo(() => {
     if (orgWorkspaces.length === 0) return 100;
     const protocols = orgWorkspaces.map(w => w.protocol || 'Default');
     const uniqueProtocols = new Set(protocols);
-    return Math.round((1 / uniqueProtocols.size) * 100);
+    const val = Math.round((1 / uniqueProtocols.size) * 100);
+    return isFinite(val) ? val : 100;
   }, [orgWorkspaces]);
 
-  // 記憶化：計算脈動率 (基於近期日誌頻率)
+  // 記憶化：計算脈動率
   const pulseRate = useMemo(() => {
     const recentPulseCount = safePulseLogs.filter(l => l.orgId === orgId).length;
-    return Math.min((recentPulseCount / 20) * 100, 100);
+    const val = (recentPulseCount / 20) * 100;
+    return isFinite(val) ? Math.min(val, 100) : 0;
   }, [safePulseLogs, orgId]);
 
   // 記憶化：計算能力負載
   const capabilityLoad = useMemo(() => {
     const totalCapabilities = orgWorkspaces.reduce((acc, w) => acc + (w.capabilities?.length || 0), 0);
-    return Math.min(totalCapabilities * 10, 100);
+    const val = totalCapabilities * 10;
+    return isFinite(val) ? Math.min(val, 100) : 0;
   }, [orgWorkspaces]);
 
   return (
