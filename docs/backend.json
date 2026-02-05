@@ -1,5 +1,30 @@
 {
   "entities": {
+    "Organization": {
+      "title": "Organization",
+      "description": "A dimension entity that groups workspaces and members",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "role": { "type": "string", "enum": ["Owner", "Admin", "Member", "Guest"] }
+      },
+      "required": ["name", "ownerId"]
+    },
+    "Workspace": {
+      "title": "Workspace",
+      "description": "A logical workspace node within an organization",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "orgId": { "type": "string" },
+        "visibility": { "type": "string", "enum": ["visible", "hidden"] },
+        "protocol": { "type": "string" },
+        "scope": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["name", "orgId"]
+    },
     "WorkspaceTask": {
       "title": "Workspace Task",
       "description": "A task within a logic workspace",
@@ -16,6 +41,14 @@
     "providers": ["password", "google.com", "anonymous"]
   },
   "firestore": {
+    "/organizations/{orgId}": {
+      "schema": "#/backend/entities/Organization",
+      "description": "Top-level dimension definitions"
+    },
+    "/workspaces/{workspaceId}": {
+      "schema": "#/backend/entities/Workspace",
+      "description": "Logical workspace definitions"
+    },
     "/workspaces/{workspaceId}/tasks/{taskId}": {
       "schema": "#/backend/entities/WorkspaceTask",
       "description": "Tasks within a specific workspace"

@@ -31,28 +31,42 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
+import { useFirebase } from "@/firebase/provider";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 export function GlobalSwitcher() {
-  const { organizations, activeOrgId, setActiveOrg, addOrganization } = useAppStore();
+  const { organizations, activeOrgId, setActiveOrg, user } = useAppStore();
+  const { db } = useFirebase();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newOrgName, setNewOrgName] = useState("");
   const [newOrgDescription, setNewOrgDescription] = useState("");
 
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
 
-  const handleCreateOrg = () => {
-    if (!newOrgName.trim()) return;
-    addOrganization({ 
-      name: newOrgName, 
-      description: newOrgDescription || "General dimension profile" 
-    });
-    setNewOrgName("");
-    setNewOrgDescription("");
-    setIsCreateOpen(false);
-    toast({
-      title: "新維度已建立",
-      description: `${newOrgName} 現已成為您的根目錄之一。`,
-    });
+  const handleCreateOrg = async () => {
+    if (!newOrgName.trim() || !user) return;
+    
+    try {
+      // 真正將資料寫入 Firebase Firestore
+      await addDoc(collection(db, "organizations"), {
+        name: newOrgName,
+        description: newOrgDescription || "General dimension profile",
+        ownerId: user.id,
+        role: "Owner",
+        createdAt: serverTimestamp(),
+        members: [{ id: user.id, name: user.name, email: user.email, role: 'Owner', status: 'active' }]
+      });
+
+      setNewOrgName("");
+      setNewOrgDescription("");
+      setIsCreateOpen(false);
+      toast({
+        title: "新維度已建立",
+        description: `${newOrgName} 現已同步至雲端環境。`,
+      });
+    } catch (error) {
+      toast({ variant: "destructive", title: "建立失敗", description: "無法同步至 Firestore。" });
+    }
   };
 
   return (
@@ -61,14 +75,14 @@ export function GlobalSwitcher() {
         <DropdownMenuTrigger asChild>
           <Button variant="outline" className="w-[200px] justify-between shadow-sm border-border/60 hover:bg-accent/10">
             <div className="flex items-center gap-2 truncate">
-              {activeOrg.id === 'personal' ? (
+              {activeOrg?.id === 'personal' ? (
                 <User className="w-4 h-4 text-primary" />
-              ) : activeOrg.isExternal ? (
+              ) : activeOrg?.isExternal ? (
                 <ExternalLink className="w-4 h-4 text-accent" />
               ) : (
                 <Users className="w-4 h-4 text-primary" />
               )}
-              <span className="truncate font-semibold">{activeOrg.name}</span>
+              <span className="truncate font-semibold">{activeOrg?.name || "選取維度"}</span>
             </div>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
