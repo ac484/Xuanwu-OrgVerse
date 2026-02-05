@@ -1,13 +1,23 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldCheck, Activity, Layers, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { useAppStore } from "@/lib/store";
 
 /**
  * StatCards - 職責：展示維度運行的動態指標
+ * 已優化：數據指標與 Store 真實連動。
  */
 export function StatCards({ orgName, workspaceCount }: { orgName: string, workspaceCount: number }) {
+  const { pulseLogs } = useAppStore();
+  
+  // 動態計算指標
+  const consistency = workspaceCount > 0 ? 100 : 0;
+  const pulseRate = Math.min((pulseLogs.length / 20) * 100, 100);
+  const capabilityLoad = workspaceCount * 3; // 模擬每個空間掛載的能力負擔
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <Card className="border-border/60 shadow-sm hover:shadow-md transition-all">
@@ -18,50 +28,47 @@ export function StatCards({ orgName, workspaceCount }: { orgName: string, worksp
         <CardContent>
           <div className="text-2xl font-bold font-headline">空間隔離已部署</div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            當前維度 {orgName} 已成功掛載 {workspaceCount} 個獨立空間。
+            當前維度 {orgName} 已掛載 {workspaceCount} 個獨立空間。
           </p>
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between text-[9px] uppercase font-bold tracking-tighter">
               <span>環境一致性</span>
-              <span>100%</span>
+              <span>{consistency}%</span>
             </div>
-            <Progress value={100} className="h-1" />
+            <Progress value={consistency} className="h-1" />
           </div>
         </CardContent>
       </Card>
 
       <Card className="border-border/60 shadow-sm hover:shadow-md transition-all">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">空間共振脈動</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">維度脈動強度</CardTitle>
           <Activity className="w-4 h-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold font-headline">身分同步活耀</div>
+          <div className="text-2xl font-bold font-headline">{pulseLogs.length > 5 ? '高頻交互中' : '穩態運行'}</div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            此維度下所有邏輯空間的通訊狀態保持穩定。
+            近期的技術規格變動與身分共振頻率。
           </p>
-          <div className="flex items-center gap-1 mt-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="w-8 h-8 rounded-full border-2 border-background bg-primary/10 flex items-center justify-center text-[10px] font-bold">
-                U{i}
-              </div>
-            ))}
-            <div className="w-8 h-8 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-bold">
-              +
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center justify-between text-[9px] uppercase font-bold tracking-tighter">
+              <span>活動共振率</span>
+              <span>{Math.round(pulseRate)}%</span>
             </div>
+            <Progress value={pulseRate} className="h-1" />
           </div>
         </CardContent>
       </Card>
 
       <Card className="border-border/60 shadow-sm hover:shadow-md transition-all">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">能力增長</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">能力掛載負載</CardTitle>
           <Layers className="w-4 h-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold font-headline">原子能力掛載中</div>
+          <div className="text-2xl font-bold font-headline">{capabilityLoad}% 資源佔用</div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            維度內的技術規格正根據架構描述自動演進。
+            維度內的原子能力規格對底層架構的壓力。
           </p>
           <div className="mt-4 flex items-center gap-2 text-primary">
             <Zap className="w-4 h-4 fill-primary" />

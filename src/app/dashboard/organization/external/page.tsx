@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -5,7 +6,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Clock, ShieldX, UserMinus, Globe } from "lucide-react";
+import { ExternalLink, Clock, ShieldX, Globe } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 
@@ -31,15 +32,23 @@ export default function ExternalGatewayPage() {
   const handleExtendExpiry = (memberId: string) => {
     const nextMonth = new Date();
     nextMonth.setMonth(nextMonth.getMonth() + 1);
-    updateOrgMember(activeOrg.id, memberId, { expiryDate: nextMonth.toISOString() });
-    toast({ title: "權限已延展", description: "該外部身分的有效期限已自動向後推延 30 天。" });
+    
+    // 實施持久化閉環：更新 Store 中的到期日
+    updateOrgMember(activeOrg.id, memberId, { 
+      expiryDate: nextMonth.toISOString() 
+    });
+    
+    toast({ 
+      title: "權限已延展", 
+      description: `該外部身分的有效期限已自動延展至 ${nextMonth.toLocaleDateString()}。` 
+    });
   };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500">
       <PageHeader 
         title="外部維度閘道" 
-        description="管理外部合作夥伴、顧問與訪客的受限存取權，實施嚴格的維度隔離與限時授權策略。"
+        description="管理外部合作夥伴與訪客的受限存取權，實施嚴格的維度隔離與限時授權策略。"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -69,9 +78,12 @@ export default function ExternalGatewayPage() {
               </div>
               
               <div className="flex gap-2 pt-2 border-t border-border/20">
-                <Button variant="outline" size="sm" className="flex-1 h-8 text-[10px] font-bold gap-2" onClick={() => handleExtendExpiry(member.id)}>
-                   延展
-                </Button>
+                <button 
+                  className="flex-1 h-8 bg-background border rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-muted transition-colors" 
+                  onClick={() => handleExtendExpiry(member.id)}
+                >
+                   延展權限
+                </button>
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -89,9 +101,6 @@ export default function ExternalGatewayPage() {
           <div className="col-span-full p-20 text-center border-2 border-dashed rounded-3xl bg-muted/5 flex flex-col items-center">
             <Globe className="w-12 h-12 text-muted-foreground mb-4 opacity-10" />
             <p className="text-sm text-muted-foreground">當前維度內無活躍的外部合作夥伴。</p>
-            <Button variant="link" className="text-xs text-primary font-bold uppercase mt-2">
-              了解外部維度治理協議
-            </Button>
           </div>
         )}
       </div>
