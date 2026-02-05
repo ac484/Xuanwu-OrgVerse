@@ -14,6 +14,7 @@ export interface MemberReference {
   status: 'active' | 'away' | 'offline';
   isExternal?: boolean;
   expiryDate?: string; 
+  accessProtocol?: 'Deep Isolation' | 'Standard Bridge' | 'Full Collaborative';
 }
 
 export interface Team {
