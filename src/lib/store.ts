@@ -15,15 +15,15 @@ interface AppState {
   addOrganization: (org: Omit<Organization, 'id' | 'role' | 'members' | 'teams'>) => void;
   updateOrgTheme: (id: string, theme: ThemeConfig) => void;
   
-  // 組織成員 (Organization Members) - 維度內的所有人員
+  // 組織成員 (Organization Members)
   addOrgMember: (orgId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
   removeOrgMember: (orgId: string, memberId: string) => void;
   
-  // 組織團隊 (Organization Teams) - 邏輯分組 (如部門)
+  // 組織團隊 (Organization Teams)
   addOrgTeam: (orgId: string, team: Omit<Team, 'id' | 'memberIds'>) => void;
   removeOrgTeam: (orgId: string, teamId: string) => void;
   
-  // 團隊成員分派 (Organization Team Members) - 將組織成員分派至團隊
+  // 團隊成員分派 (Organization Team Members)
   addMemberToTeam: (orgId: string, teamId: string, memberId: string) => void;
   removeMemberFromTeam: (orgId: string, teamId: string, memberId: string) => void;
   

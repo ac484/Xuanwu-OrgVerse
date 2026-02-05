@@ -45,7 +45,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 
 /**
  * DashboardSidebar - 職責：維度導航中樞
- * 統一管理組織成員 (Members/Teams) 與 邏輯空間 (Workspaces)。
  */
 export function DashboardSidebar() {
   const { user, logout, activeOrgId, workspaces } = useAppStore();
@@ -73,7 +72,7 @@ export function DashboardSidebar() {
       
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50 px-3">維度控制中心</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-50 px-3">控制中心</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -115,7 +114,7 @@ export function DashboardSidebar() {
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/workspaces')} className="transition-all duration-200">
                   <Link href="/dashboard/workspaces" className="flex items-center gap-3">
                     <Layers className="w-4 h-4" />
-                    <span className="font-semibold">邏輯空間</span>
+                    <span className="font-semibold">邏輯空間 (Workspaces)</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
