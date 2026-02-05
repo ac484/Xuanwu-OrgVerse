@@ -8,7 +8,6 @@ interface AppState {
   activeOrgId: string | null;
   workspaces: Workspace[];
   notifications: Notification[];
-  pulseLogs: PulseLog[];
   capabilitySpecs: CapabilitySpec[];
   
   // Actions
@@ -21,7 +20,6 @@ interface AppState {
   setOrganizations: (orgs: Organization[]) => void;
   setWorkspaces: (workspaces: Workspace[]) => void;
   
-  addPulseLog: (log: Omit<PulseLog, 'id' | 'timestamp' | 'orgId'>) => void;
   addNotification: (notif: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   markAsRead: (id: string) => void;
   clearNotifications: () => void;
@@ -33,7 +31,6 @@ export const useAppStore = create<AppState>()((set, get) => ({
   activeOrgId: null,
   workspaces: [],
   notifications: [],
-  pulseLogs: [],
   capabilitySpecs: [
     { id: 'files', name: '檔案空間', type: 'data', status: 'stable', description: '管理維度內的文檔與資產。' },
     { id: 'tasks', name: '原子任務', type: 'ui', status: 'stable', description: '追蹤空間內的行動目標。' },
@@ -50,7 +47,6 @@ export const useAppStore = create<AppState>()((set, get) => ({
     organizations: [], 
     workspaces: [], 
     activeOrgId: null,
-    pulseLogs: [],
     notifications: []
   }),
 
@@ -66,15 +62,6 @@ export const useAppStore = create<AppState>()((set, get) => ({
   }),
 
   setWorkspaces: (workspaces) => set({ workspaces }),
-
-  addPulseLog: (log) => set((state) => ({
-    pulseLogs: [{
-      ...log,
-      id: `pulse-${Math.random().toString(36).substring(2, 9)}`,
-      timestamp: Date.now(),
-      orgId: state.activeOrgId || 'personal'
-    }, ...state.pulseLogs].slice(0, 50)
-  })),
 
   addNotification: (notif) => set((state) => ({
     notifications: [{ 

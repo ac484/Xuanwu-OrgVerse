@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Organization": {
@@ -8,7 +9,8 @@
         "name": { "type": "string" },
         "description": { "type": "string" },
         "ownerId": { "type": "string" },
-        "role": { "type": "string", "enum": ["Owner", "Admin", "Member", "Guest"] }
+        "role": { "type": "string", "enum": ["Owner", "Admin", "Member", "Guest"] },
+        "theme": { "type": "object" }
       },
       "required": ["name", "ownerId"]
     },
@@ -37,14 +39,16 @@
       },
       "required": ["title", "status"]
     },
-    "WorkspaceIssue": {
-      "title": "Workspace Issue",
-      "description": "A conflict or anomaly entry",
+    "PulseLog": {
+      "title": "Pulse Log",
+      "description": "A dimension-wide audit or activity entry",
       "type": "object",
       "properties": {
-        "title": { "type": "string" },
-        "priority": { "type": "string", "enum": ["low", "medium", "high"] },
-        "status": { "type": "string", "enum": ["open", "closed"] }
+        "actor": { "type": "string" },
+        "action": { "type": "string" },
+        "target": { "type": "string" },
+        "type": { "type": "string" },
+        "timestamp": { "type": "object" }
       }
     }
   },
@@ -56,6 +60,10 @@
       "schema": "#/backend/entities/Organization",
       "description": "Top-level dimension definitions"
     },
+    "/organizations/{orgId}/pulseLogs/{logId}": {
+      "schema": "#/backend/entities/PulseLog",
+      "description": "Shared audit logs for the organization"
+    },
     "/workspaces/{workspaceId}": {
       "schema": "#/backend/entities/Workspace",
       "description": "Logical workspace definitions"
@@ -65,7 +73,7 @@
       "description": "Tasks within a specific workspace"
     },
     "/workspaces/{workspaceId}/issues/{issueId}": {
-      "schema": "#/backend/entities/WorkspaceIssue",
+      "schema": "object",
       "description": "Anomalies within a specific workspace"
     },
     "/workspaces/{workspaceId}/dailyLogs/{logId}": {

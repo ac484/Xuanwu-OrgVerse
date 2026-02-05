@@ -1,13 +1,14 @@
+
 "use client";
 
 import React, { createContext, useContext, useCallback, useMemo } from 'react';
 import { Workspace, Capability } from '@/types/domain';
 import { useAppStore } from '@/lib/store';
+import { useFirebase } from '@/firebase/provider';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
-/**
- * WorkspaceContext - 職責：定義邏輯空間內的共享邊界與事件總線
- * 效能優化：使用 useMemo 穩定上下文數值，避免子組件不必要的重新渲染。
- */
 interface WorkspaceContextType {
   workspace: Workspace;
   protocol: string;
@@ -19,26 +20,39 @@ interface WorkspaceContextType {
 const WorkspaceContext = createContext<WorkspaceContextType | null>(null);
 
 export function WorkspaceProvider({ workspaceId, children }: { workspaceId: string, children: React.ReactNode }) {
-  const { workspaces, addPulseLog, user } = useAppStore();
+  const { workspaces, user, activeOrgId } = useAppStore();
+  const { db } = useFirebase();
   
-  // 使用 useMemo 尋找 Workspace，減少查詢次數
   const workspace = useMemo(() => 
     workspaces.find(w => w.id === workspaceId), 
     [workspaces, workspaceId]
   );
 
   const emitEvent = useCallback((action: string, detail: string) => {
-    if (!workspace) return;
+    if (!workspace || !activeOrgId) return;
     
-    addPulseLog({
+    const logData = {
       actor: user?.name || 'Atomic Unit',
       action,
       target: `${workspace.name} > ${detail}`,
-      type: 'event'
-    });
-  }, [workspace, addPulseLog, user]);
+      type: 'event',
+      timestamp: serverTimestamp(),
+      orgId: activeOrgId
+    };
 
-  // 核心效能優化：鎖定 Provider Value
+    // 真正的雲端審計日誌寫入
+    const pulseCol = collection(db, "organizations", activeOrgId, "pulseLogs");
+    addDoc(pulseCol, logData)
+      .catch(async () => {
+        const error = new FirestorePermissionError({
+          path: `organizations/${activeOrgId}/pulseLogs`,
+          operation: 'create',
+          requestResourceData: logData
+        });
+        errorEmitter.emit('permission-error', error);
+      });
+  }, [workspace, user, activeOrgId, db]);
+
   const value = useMemo(() => {
     if (!workspace) return null;
     return {
