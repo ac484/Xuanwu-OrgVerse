@@ -36,6 +36,7 @@ export interface Organization {
 
 /**
  * Atomic Capability (原子能力)
+ * 具備與 Protocol 和 Scope 的連動能力
  */
 export interface Capability {
   id: string;
@@ -43,6 +44,8 @@ export interface Capability {
   type: 'ui' | 'api' | 'data';
   status: 'stable' | 'beta';
   description: string;
+  requiredProtocol?: string; // 所需的存取協議
+  requiredScope?: string[];  // 所需的授權範疇
   config?: object;
 }
 
@@ -54,8 +57,8 @@ export interface Workspace {
   orgId: string;
   name: string;
   visibility: 'visible' | 'hidden'; 
-  scope: string[]; // 授權範疇
-  protocol: string;  
+  scope: string[]; // 授權範疇 (核心治理參數)
+  protocol: string; // 存取協議 (通訊契約)
   capabilities: Capability[]; 
   members: MemberReference[]; 
   teamIds?: string[]; // 關聯的團隊 ID
@@ -82,9 +85,10 @@ export interface Notification {
 export interface PulseLog {
   id: string;
   orgId: string;
+  workspaceId?: string; // 關聯的空間 ID
   timestamp: number;
   actor: string;
   action: string;
   target: string;
-  type: 'create' | 'update' | 'delete' | 'access';
+  type: 'create' | 'update' | 'delete' | 'access' | 'event';
 }
