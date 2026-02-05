@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { User, Organization, Workspace, Notification, CapabilitySpec } from '@/types/domain';
+import { User, Organization, Workspace, Notification, CapabilitySpec, PulseLog } from '@/types/domain';
 
 interface AppState {
   user: User | null;
@@ -7,6 +7,7 @@ interface AppState {
   activeOrgId: string | null;
   workspaces: Workspace[];
   notifications: Notification[];
+  pulseLogs: PulseLog[]; // 全域審計快照
   capabilitySpecs: CapabilitySpec[];
   
   // Actions
@@ -15,21 +16,27 @@ interface AppState {
   updateUser: (updates: Partial<User>) => void;
   setActiveOrg: (id: string) => void;
   
-  // Data Sync (只由 Firestore 監聽器呼叫)
+  // Data Sync (由 Firestore 監聽器驅動)
   setOrganizations: (orgs: Organization[]) => void;
   setWorkspaces: (workspaces: Workspace[]) => void;
+  setPulseLogs: (logs: PulseLog[]) => void;
   
   addNotification: (notif: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   markAsRead: (id: string) => void;
   clearNotifications: () => void;
 }
 
+/**
+ * useAppStore - 職責：維度資料的實時快照儲存。
+ * 最佳化重點：僅作為數據容器，不包含任何業務邏輯寫入，確保資料流單向且透明。
+ */
 export const useAppStore = create<AppState>()((set, get) => ({
   user: null,
   organizations: [],
   activeOrgId: null,
   workspaces: [],
   notifications: [],
+  pulseLogs: [],
   capabilitySpecs: [
     { id: 'files', name: '檔案空間', type: 'data', status: 'stable', description: '管理維度內的文檔與資產。' },
     { id: 'tasks', name: '原子任務', type: 'ui', status: 'stable', description: '追蹤空間內的行動目標。' },
@@ -46,7 +53,8 @@ export const useAppStore = create<AppState>()((set, get) => ({
     organizations: [], 
     workspaces: [], 
     activeOrgId: null,
-    notifications: []
+    notifications: [],
+    pulseLogs: []
   }),
 
   updateUser: (updates) => set((state) => ({
@@ -61,6 +69,8 @@ export const useAppStore = create<AppState>()((set, get) => ({
   }),
 
   setWorkspaces: (workspaces) => set({ workspaces }),
+  
+  setPulseLogs: (logs) => set({ pulseLogs: logs }),
 
   addNotification: (notif) => set((state) => ({
     notifications: [{ 
