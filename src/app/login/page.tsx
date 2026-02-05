@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -9,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Fingerprint, Lock, Mail, User, Ghost, Globe } from "lucide-react";
+import { Shield, Fingerprint, Lock, Mail, User, Ghost } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useFirebase } from "@/firebase/provider";
 import { 
@@ -32,7 +31,6 @@ import {
 
 /**
  * LoginPage - 職責：整合 Firebase Authentication 的數位主權入口
- * 已新增：Google 登入支援。
  */
 export default function LoginPage() {
   const { auth } = useFirebase();
@@ -106,6 +104,9 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
+      // 強制顯示帳戶選取器，避免快取的網域錯誤
+      provider.setCustomParameters({ prompt: 'select_account' });
+      
       const userCredential = await signInWithPopup(auth, provider);
       const firebaseUser = userCredential.user;
       
@@ -118,10 +119,19 @@ export default function LoginPage() {
       toast({ title: "Google 驗證成功", description: "已透過全域身分建立維度共振。" });
       router.push("/dashboard");
     } catch (error: any) {
+      console.error("Google Login Error:", error.code, error.message);
+      
+      let errorMsg = "請稍後再試。";
+      if (error.code === 'auth/unauthorized-domain') {
+        errorMsg = "當前網域尚未被 Firebase 授權。請前往 Firebase 控制台將此網址加入「授權網域」清單。";
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        errorMsg = "驗證視窗已被關閉。";
+      }
+      
       toast({ 
         variant: "destructive", 
         title: "Google 登入失敗", 
-        description: error.message 
+        description: errorMsg 
       });
     } finally {
       setIsLoading(false);

@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "WorkspaceTask": {
@@ -17,8 +16,8 @@
     "providers": ["password", "google.com", "anonymous"]
   },
   "firestore": {
-    "workspaces/{workspaceId}/tasks/{taskId}": {
-      "schema": "#/entities/WorkspaceTask",
+    "/workspaces/{workspaceId}/tasks/{taskId}": {
+      "schema": "#/backend/entities/WorkspaceTask",
       "description": "Tasks within a specific workspace"
     }
   }
