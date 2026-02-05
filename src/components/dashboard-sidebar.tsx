@@ -58,7 +58,6 @@ export function DashboardSidebar() {
     { title: "維度脈動", icon: LayoutDashboard, href: "/dashboard" },
     { title: "共鳴團隊", icon: Users, href: "/dashboard/team" },
     { title: "邏輯空間", icon: Layers, href: "/dashboard/workspaces" },
-    { title: "能力註冊表 (Specs)", icon: Code, href: "/dashboard/workspaces/blocks" },
   ];
 
   return (
@@ -100,7 +99,7 @@ export function DashboardSidebar() {
 
         <SidebarGroup>
           <div className="flex items-center justify-between px-3 mb-2">
-            <SidebarGroupLabel className="p-0 text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">活躍空間節點</SidebarGroupLabel>
+            <SidebarGroupLabel className="p-0 text-[10px] font-bold uppercase tracking-[0.2em] opacity-50">活躍空間列表</SidebarGroupLabel>
           </div>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -121,7 +120,7 @@ export function DashboardSidebar() {
               ))}
               {orgWorkspaces.length === 0 && (
                 <div className="px-3 py-2 border border-dashed rounded-lg mx-2 bg-muted/20">
-                  <p className="text-[9px] text-muted-foreground italic text-center uppercase tracking-widest">無活躍節點</p>
+                  <p className="text-[9px] text-muted-foreground italic text-center uppercase tracking-widest">無活躍空間</p>
                 </div>
               )}
             </SidebarMenu>

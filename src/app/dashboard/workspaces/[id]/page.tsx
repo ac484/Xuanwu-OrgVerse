@@ -52,23 +52,11 @@ export default function WorkspaceDetailPage() {
       name: "新原子能力規格",
       type: "api",
       status: "beta",
-      description: "手動於此空間定義的技術規範單元。"
+      description: "於此空間邊界內定義的技術規範單元。"
     });
     toast({
       title: "規格已註冊",
-      description: "新的技術規範已添加至此空間的註冊表中。"
-    });
-  };
-
-  const handleAddMember = () => {
-    addWorkspaceMember(workspace.id, {
-      name: "空間操作員",
-      email: `operator-${Math.random().toString(36).slice(-4)}@orgverse.io`,
-      role: 'Member'
-    });
-    toast({
-      title: "權限已授予",
-      description: "新成員現在具備此邏輯空間的存取權。"
+      description: "新的技術規範已添加至此空間的專屬註冊表中。",
     });
   };
 
@@ -86,12 +74,12 @@ export default function WorkspaceDetailPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
           <ArrowLeft className="w-4 h-4" />
         </Button>
-        <span className="text-xs font-bold uppercase tracking-widest">邏輯架構 / {workspace.name}</span>
+        <span className="text-xs font-bold uppercase tracking-widest">邏輯空間 / {workspace.name}</span>
       </div>
 
       <PageHeader 
         title={workspace.name} 
-        description={`技術環境定義: ${workspace.context}`}
+        description={`運行環境定義: ${workspace.context}`}
         badge={
           <Badge className="bg-primary/10 text-primary border-primary/20 uppercase text-[9px] tracking-widest font-bold">
             ID: {workspace.id.toUpperCase()}
@@ -111,7 +99,7 @@ export default function WorkspaceDetailPage() {
       <Tabs defaultValue="infra" className="space-y-6">
         <TabsList className="bg-muted/40 p-1 border border-border/50">
           <TabsTrigger value="infra" className="text-[10px] font-bold uppercase tracking-widest px-6">基礎設施定義</TabsTrigger>
-          <TabsTrigger value="specs" className="text-[10px] font-bold uppercase tracking-widest px-6">專屬原子能力 (Specs)</TabsTrigger>
+          <TabsTrigger value="specs" className="text-[10px] font-bold uppercase tracking-widest px-6">能力註冊表 (Specs)</TabsTrigger>
           <TabsTrigger value="members" className="text-[10px] font-bold uppercase tracking-widest px-6">成員管理</TabsTrigger>
         </TabsList>
 
@@ -121,22 +109,22 @@ export default function WorkspaceDetailPage() {
               <CardHeader>
                 <CardTitle className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 text-primary">
                   <Globe className="w-3.5 h-3.5" />
-                  內容範圍 (Contextual Scope)
+                  運行範圍 (Scope)
                 </CardTitle>
-                <CardDescription className="text-xs">定義邏輯邊界與運行時上下文。</CardDescription>
+                <CardDescription className="text-xs">定義此空間的邏輯邊界與運行時上下文。</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="p-3 bg-muted/30 rounded-lg border border-border/40">
-                  <p className="text-[9px] text-muted-foreground uppercase font-bold mb-1">運行標識符</p>
+                  <p className="text-[9px] text-muted-foreground uppercase font-bold mb-1">運行識別符</p>
                   <code className="text-xs text-primary font-mono">{workspace.context}</code>
                 </div>
                 <div>
-                  <p className="text-[9px] text-muted-foreground uppercase font-bold mb-2">資源邊界</p>
+                  <p className="text-[9px] text-muted-foreground uppercase font-bold mb-2">已授權資源</p>
                   <div className="flex flex-wrap gap-1.5">
                     {workspace.scope?.map(s => (
                       <Badge key={s} variant="secondary" className="text-[9px] uppercase tracking-tighter py-0">{s}</Badge>
                     ))}
-                    {(!workspace.scope || workspace.scope.length === 0) && <span className="text-[10px] text-muted-foreground italic">未定義資源範圍。</span>}
+                    {(!workspace.scope || workspace.scope.length === 0) && <span className="text-[10px] text-muted-foreground italic">未定義資源邊界。</span>}
                   </div>
                 </div>
               </CardContent>
@@ -146,13 +134,13 @@ export default function WorkspaceDetailPage() {
               <CardHeader>
                 <CardTitle className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 text-primary">
                   <Database className="w-3.5 h-3.5" />
-                  數據解析 (Data Resolution)
+                  解析路徑 (Resolver)
                 </CardTitle>
-                <CardDescription className="text-xs">定義隔離治理與解析路徑。</CardDescription>
+                <CardDescription className="text-xs">定義數據解析路徑與安全治理協議。</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="p-3 bg-muted/30 rounded-lg border border-border/40">
-                  <p className="text-[9px] text-muted-foreground uppercase font-bold mb-1">解析協議 (Resolver)</p>
+                  <p className="text-[9px] text-muted-foreground uppercase font-bold mb-1">解析協議</p>
                   <p className="text-xs font-mono">{workspace.resolver}</p>
                 </div>
                 <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
@@ -168,7 +156,7 @@ export default function WorkspaceDetailPage() {
 
         <TabsContent value="specs" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold uppercase tracking-widest">空間規格目錄</h3>
+            <h3 className="text-sm font-bold uppercase tracking-widest">空間專屬規格目錄</h3>
             <Button size="sm" variant="outline" className="h-8 gap-2 font-bold text-[9px] uppercase tracking-widest" onClick={handleQuickAddSpec}>
               <Plus className="w-3 h-3" /> 註冊技術規範
             </Button>
@@ -177,23 +165,23 @@ export default function WorkspaceDetailPage() {
           {workspace.specs?.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {workspace.specs.map((block) => (
-                <Card key={block.id} className="border-border/60 hover:border-primary/40 transition-all group bg-card/40 backdrop-blur-sm shadow-sm overflow-hidden">
+                <Card key={block.id} className="border-border/60 hover:border-primary/40 transition-all group bg-card/40 backdrop-blur-sm shadow-sm">
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="p-2.5 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                      <div className="p-2.5 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
                         {getIcon(block.type)}
                       </div>
-                      <Badge variant="outline" className="text-[9px] uppercase tracking-[0.1em] font-bold bg-background/50">
-                        {block.status === 'stable' ? 'PRODUCTION' : 'BETA'}
+                      <Badge variant="outline" className="text-[9px] uppercase font-bold bg-background/50">
+                        {block.status === 'stable' ? '穩定版' : '測試版'}
                       </Badge>
                     </div>
-                    <CardTitle className="text-lg font-headline group-hover:text-primary transition-colors">{block.name}</CardTitle>
-                    <CardDescription className="text-[11px] leading-relaxed mt-1">{block.description}</CardDescription>
+                    <CardTitle className="text-lg font-headline">{block.name}</CardTitle>
+                    <CardDescription className="text-[11px] mt-1">{block.description}</CardDescription>
                   </CardHeader>
-                  <CardFooter className="pt-4 border-t border-border/10 flex justify-between items-center bg-muted/5 py-4 px-6">
-                    <span className="text-[9px] font-mono text-muted-foreground/60">ID: {block.id.slice(-6).toUpperCase()}</span>
-                    <Button variant="ghost" size="sm" className="h-8 gap-2 font-bold uppercase text-[9px] tracking-[0.1em] text-primary hover:bg-primary/5">
-                      <Info className="w-3.5 h-3.5" /> FACADE 規格
+                  <CardFooter className="border-t border-border/10 flex justify-between items-center py-4 bg-muted/5">
+                    <span className="text-[9px] font-mono text-muted-foreground">ID: {block.id.toUpperCase()}</span>
+                    <Button variant="ghost" size="sm" className="h-8 gap-2 font-bold uppercase text-[9px] tracking-widest text-primary">
+                      <Info className="w-3.5 h-3.5" /> 查閱規範
                     </Button>
                   </CardFooter>
                 </Card>
@@ -203,9 +191,7 @@ export default function WorkspaceDetailPage() {
             <div className="p-16 text-center border-2 border-dashed rounded-3xl bg-muted/5 border-border/40">
               <Terminal className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-10" />
               <h3 className="text-xl font-bold font-headline">規格目錄為空</h3>
-              <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-8">
-                此空間目前尚未註冊任何原子能力規範。
-              </p>
+              <p className="text-sm text-muted-foreground mb-8">此空間目前尚未註冊任何原子能力規範。</p>
               <Button onClick={handleQuickAddSpec} className="font-bold text-[10px] uppercase tracking-widest h-10 px-6">
                 定義首個規格
               </Button>
@@ -216,14 +202,14 @@ export default function WorkspaceDetailPage() {
         <TabsContent value="members" className="space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold uppercase tracking-widest">空間存取名單</h3>
-            <Button size="sm" variant="outline" className="h-8 gap-2 font-bold text-[9px] uppercase tracking-widest" onClick={handleAddMember}>
+            <Button size="sm" variant="outline" className="h-8 gap-2 font-bold text-[9px] uppercase tracking-widest" onClick={() => addWorkspaceMember(workspace.id, { name: "新操作員", email: "new@orgverse.io", role: "Member" })}>
               <UserPlus className="w-3 h-3" /> 分配成員
             </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {workspace.members?.map((member) => (
-              <Card key={member.id} className="border-border/60 hover:shadow-md transition-all bg-card/40 backdrop-blur-sm">
+              <Card key={member.id} className="border-border/60 bg-card/40 backdrop-blur-sm">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary text-xs font-bold">
@@ -239,15 +225,7 @@ export default function WorkspaceDetailPage() {
                       {member.role}
                     </Badge>
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary">
-                        <Mail className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                        onClick={() => removeWorkspaceMember(workspace.id, member.id)}
-                      >
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => removeWorkspaceMember(workspace.id, member.id)}>
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
@@ -260,7 +238,7 @@ export default function WorkspaceDetailPage() {
               <div className="col-span-full p-12 text-center border-2 border-dashed rounded-3xl bg-muted/5 border-border/40">
                 <Users className="w-10 h-10 text-muted-foreground mx-auto mb-4 opacity-10" />
                 <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">無分配人員</p>
-                <p className="text-[10px] text-muted-foreground/60 mt-1">此空間目前完全由系統自動化治理。</p>
+                <p className="text-[10px] text-muted-foreground/60 mt-1">此空間目前由系統自動化治理。</p>
               </div>
             )}
           </div>
