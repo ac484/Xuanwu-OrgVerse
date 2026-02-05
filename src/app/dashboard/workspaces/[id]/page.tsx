@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
@@ -10,36 +10,19 @@ import {
   Settings, 
   Zap, 
   Globe,
-  Layers,
-  Plus,
-  Trash2,
-  Eye,
-  EyeOff,
   Box,
   Activity,
   ChevronRight,
   Clock,
-  FileText,
-  ListTodo,
-  AlertCircle,
-  MessageSquare,
-  ShieldCheck,
-  Trophy
+  Eye,
+  EyeOff,
+  Trash2
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/hooks/use-toast";
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { WorkspaceProvider, useWorkspace } from "./workspace-context";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useFirebase } from "@/firebase/provider";
-import { doc, updateDoc, deleteDoc, arrayUnion, arrayRemove } from "firebase/firestore";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 import { useAppStore } from "@/lib/store";
 
 import { WorkspaceFiles } from "./_components/workspace-files";
@@ -49,7 +32,13 @@ import { WorkspaceDaily } from "./_components/workspace-daily";
 import { WorkspaceMembersManagement } from "./_components/workspace-members-management";
 import { WorkspaceQA } from "./_components/workspace-qa";
 import { WorkspaceAcceptance } from "./_components/workspace-acceptance";
+import { WorkspaceCapabilities } from "./_components/workspace-capabilities";
+import { WorkspaceDialogs } from "./_components/workspace-dialogs";
 
+/**
+ * WorkspaceDetailPage - 職責：作為空間治理的容器頁面。
+ * 原子化重構：將對話框邏輯抽離至 WorkspaceDialogs，將能力列表抽離至 WorkspaceCapabilities。
+ */
 export default function WorkspaceDetailPage() {
   const { id } = useParams();
   
@@ -61,16 +50,18 @@ export default function WorkspaceDetailPage() {
 }
 
 function WorkspaceContent() {
-  const { workspace, protocol, scope, emitEvent } = useWorkspace();
-  const { db } = useFirebase();
+  const { workspace, protocol, scope } = useWorkspace();
   const pulseLogs = useAppStore(state => state.pulseLogs);
-  
   const [mounted, setMounted] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isSpecsOpen, setIsSpecsOpen] = useState(false);
-  const [isAddCapOpen, setIsAddCapOpen] = useState(false);
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const router = useRouter();
+
+  // 對話框狀態
+  const [dialogs, setDialogs] = useState({
+    settings: false,
+    specs: false,
+    capabilities: false,
+    delete: false
+  });
 
   const localPulse = useMemo(() => 
     (pulseLogs || []).filter(log => log.target.includes(workspace.name)).slice(0, 15),
@@ -82,138 +73,14 @@ function WorkspaceContent() {
     [workspace.capabilities]
   );
 
-  const [editName, setEditName] = useState("");
-  const [editVisibility, setEditVisibility] = useState<"visible" | "hidden">("visible");
-  const [editProtocol, setEditProtocol] = useState("");
-  const [editScope, setEditScope] = useState("");
-
   useEffect(() => {
     setMounted(true);
-    if (workspace) {
-      setEditName(workspace.name);
-      setEditVisibility(workspace.visibility);
-      setEditProtocol(workspace.protocol || "");
-      setEditScope((workspace.scope || []).join(", "));
-    }
-  }, [workspace]);
-
-  // 原子優化：記憶化回調並實施錯誤噴發
-  const handleUpdateSettings = useCallback(() => {
-    const wsRef = doc(db, "workspaces", workspace.id);
-    const updates = { name: editName, visibility: editVisibility };
-    
-    updateDoc(wsRef, updates)
-      .then(() => {
-        emitEvent("校準主權設定", editName);
-        setIsSettingsOpen(false);
-        toast({ title: "空間規格已同步" });
-      })
-      .catch(async () => {
-        const error = new FirestorePermissionError({
-          path: wsRef.path,
-          operation: 'update',
-          requestResourceData: updates
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', error);
-      });
-  }, [workspace.id, editName, editVisibility, db, emitEvent]);
-
-  const handleUpdateSpecs = useCallback(() => {
-    const wsRef = doc(db, "workspaces", workspace.id);
-    const updates = {
-      protocol: editProtocol,
-      scope: editScope.split(",").map(s => s.trim()).filter(Boolean)
-    };
-
-    updateDoc(wsRef, updates)
-      .then(() => {
-        emitEvent("重定義協議範疇", editProtocol);
-        setIsSpecsOpen(false);
-        toast({ title: "授權範疇已重定義" });
-      })
-      .catch(async () => {
-        const error = new FirestorePermissionError({
-          path: wsRef.path,
-          operation: 'update',
-          requestResourceData: updates
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', error);
-      });
-  }, [workspace.id, editProtocol, editScope, db, emitEvent]);
-
-  const handleDeleteWorkspace = useCallback(() => {
-    const wsRef = doc(db, "workspaces", workspace.id);
-    deleteDoc(wsRef)
-      .then(() => {
-        router.push("/dashboard/workspaces");
-        toast({ title: "空間已銷毀" });
-      })
-      .catch(async () => {
-        const error = new FirestorePermissionError({
-          path: wsRef.path,
-          operation: 'delete'
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', error);
-      });
-  }, [workspace.id, db, router]);
-
-  const handleAddCapability = useCallback((capKey: string) => {
-    const capTemplates: Record<string, any> = {
-      'files': { id: 'files', name: '檔案空間', type: 'data', description: '管理維度內的文檔與資產。', status: 'stable' },
-      'tasks': { id: 'tasks', name: '原子任務', type: 'ui', description: '追蹤空間內的行動目標。', status: 'stable' },
-      'qa': { id: 'qa', name: '品質檢驗', type: 'ui', description: '檢核任務執行品質。', status: 'stable' },
-      'acceptance': { id: 'acceptance', name: '最終驗收', type: 'ui', description: '驗收成果並結案。', status: 'stable' },
-      'issues': { id: 'issues', name: '議題追蹤', type: 'ui', description: '處理技術衝突與異常。', status: 'stable' },
-      'daily': { id: 'daily', name: '每日動態', type: 'ui', description: '極簡的技術協作日誌牆。', status: 'stable' },
-    };
-    
-    const template = capTemplates[capKey];
-    if (template) {
-      const wsRef = doc(db, "workspaces", workspace.id);
-      updateDoc(wsRef, { capabilities: arrayUnion(template) })
-        .then(() => {
-          setIsAddCapOpen(false);
-          toast({ title: `${template.name} 已掛載` });
-        })
-        .catch(async () => {
-          const error = new FirestorePermissionError({
-            path: wsRef.path,
-            operation: 'update',
-            requestResourceData: { capabilities: 'arrayUnion' }
-          } satisfies SecurityRuleContext);
-          errorEmitter.emit('permission-error', error);
-        });
-    }
-  }, [workspace.id, db]);
-
-  const handleRemoveCapability = useCallback((cap: any) => {
-    const wsRef = doc(db, "workspaces", workspace.id);
-    updateDoc(wsRef, { capabilities: arrayRemove(cap) })
-      .then(() => {
-        toast({ title: "能力已卸載" });
-      })
-      .catch(async () => {
-        const error = new FirestorePermissionError({
-          path: wsRef.path,
-          operation: 'update',
-          requestResourceData: { capabilities: 'arrayRemove' }
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', error);
-      });
-  }, [workspace.id, db]);
+  }, []);
 
   if (!mounted) return null;
 
-  const getIcon = (id: string) => {
-    switch (id) {
-      case 'files': return <FileText className="w-5 h-5" />;
-      case 'tasks': return <ListTodo className="w-5 h-5" />;
-      case 'qa': return <ShieldCheck className="w-5 h-5" />;
-      case 'acceptance': return <Trophy className="w-5 h-5" />;
-      case 'issues': return <AlertCircle className="w-5 h-5" />;
-      case 'daily': return <MessageSquare className="w-5 h-5" />;
-      default: return <Layers className="w-5 h-5" />;
-    }
+  const toggleDialog = (key: keyof typeof dialogs, open: boolean) => {
+    setDialogs(prev => ({ ...prev, [key]: open }));
   };
 
   return (
@@ -233,7 +100,7 @@ function WorkspaceContent() {
           variant="outline" 
           size="sm" 
           className="text-destructive border-destructive/20 hover:bg-destructive/5 font-bold uppercase text-[10px] tracking-widest"
-          onClick={() => setIsDeleteConfirmOpen(true)}
+          onClick={() => toggleDialog('delete', true)}
         >
           <Trash2 className="w-3.5 h-3.5 mr-2" /> 銷毀空間
         </Button>
@@ -248,17 +115,17 @@ function WorkspaceContent() {
               ID: {workspace.id.toUpperCase()}
             </Badge>
             <Badge variant="outline" className="text-[9px] uppercase font-bold flex items-center gap-1 bg-background/50 backdrop-blur-sm">
-              {workspace.visibility === 'visible' ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+              {workspace.visibility === 'visible' ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
               {workspace.visibility === 'visible' ? '已掛載' : '隔離中'}
             </Badge>
           </div>
         }
       >
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase text-[10px] tracking-widest" onClick={() => setIsSettingsOpen(true)}>
+          <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase text-[10px] tracking-widest" onClick={() => toggleDialog('settings', true)}>
             <Settings className="w-3.5 h-3.5" /> 空間設定
           </Button>
-          <Button size="sm" className="h-9 gap-2 font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20" onClick={() => setIsSpecsOpen(true)}>
+          <Button size="sm" className="h-9 gap-2 font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20" onClick={() => toggleDialog('specs', true)}>
             <Zap className="w-3.5 h-3.5" /> 調整規格
           </Button>
         </div>
@@ -279,45 +146,8 @@ function WorkspaceContent() {
               <TabsTrigger value="specs" className="text-[9px] font-bold uppercase tracking-widest px-4 rounded-lg">技術規格</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="capabilities" className="space-y-6 animate-in fade-in duration-300">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                  <Box className="w-4 h-4" /> 已掛載單元
-                </h3>
-                <Button size="sm" variant="outline" className="h-8 gap-2 font-bold text-[9px] uppercase tracking-widest" onClick={() => setIsAddCapOpen(true)}>
-                  <Plus className="w-3 h-3" /> 掛載能力
-                </Button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {(workspace.capabilities || []).map((cap: any) => (
-                  <Card key={cap.id} className="border-border/60 hover:border-primary/40 transition-all group bg-card/40 backdrop-blur-sm overflow-hidden">
-                    <CardHeader className="pb-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="p-2.5 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
-                          {getIcon(cap.id)}
-                        </div>
-                        <Badge variant="outline" className="text-[9px] uppercase font-bold px-1.5 bg-background">
-                          {cap.status === 'stable' ? 'PRODUCTION' : 'BETA'}
-                        </Badge>
-                      </div>
-                      <CardTitle className="text-lg font-headline group-hover:text-primary transition-colors">{cap.name}</CardTitle>
-                      <CardDescription className="text-[11px] mt-1 leading-relaxed">{cap.description}</CardDescription>
-                    </CardHeader>
-                    <CardFooter className="border-t border-border/10 flex justify-between items-center py-4 bg-muted/5">
-                      <span className="text-[9px] font-mono text-muted-foreground opacity-60">ID: {cap.id.toUpperCase()}</span>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => handleRemoveCapability(cap)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-                {(workspace.capabilities || []).length === 0 && (
-                  <div className="col-span-full p-20 text-center border-2 border-dashed rounded-3xl opacity-20">
-                    <Box className="w-12 h-12 mx-auto mb-4" />
-                    <p className="text-xs font-bold uppercase tracking-widest">此空間尚未掛載任何能力</p>
-                  </div>
-                )}
-              </div>
+            <TabsContent value="capabilities">
+              <WorkspaceCapabilities onOpenAddCap={() => toggleDialog('capabilities', true)} />
             </TabsContent>
 
             <TabsContent value="files"><WorkspaceFiles /></TabsContent>
@@ -401,103 +231,10 @@ function WorkspaceContent() {
         </div>
       </div>
 
-      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-        <DialogContent className="rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="font-headline text-2xl">空間主權設定</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
-            <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-widest opacity-60">空間名稱</Label>
-              <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="rounded-xl h-11" />
-            </div>
-            <div className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-border/60">
-              <div className="space-y-0.5">
-                <Label className="text-sm font-bold">空間可見性</Label>
-              </div>
-              <Switch checked={editVisibility === 'visible'} onCheckedChange={(checked) => setEditVisibility(checked ? 'visible' : 'hidden')} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsSettingsOpen(false)}>取消</Button>
-            <Button onClick={handleUpdateSettings}>儲存變動</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isSpecsOpen} onOpenChange={setIsSpecsOpen}>
-        <DialogContent className="rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="font-headline text-2xl">重定義技術規格</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
-            <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-widest opacity-60">存取協議 (Protocol)</Label>
-              <Input value={editProtocol} onChange={(e) => setEditProtocol(e.target.value)} className="rounded-xl h-11" />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-widest opacity-60">授權範疇 (Scope)</Label>
-              <Input value={editScope} onChange={(e) => setEditScope(e.target.value)} className="rounded-xl h-11" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsSpecsOpen(false)}>取消</Button>
-            <Button onClick={handleUpdateSpecs}>確認重定義</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isAddCapOpen} onOpenChange={setIsAddCapOpen}>
-        <DialogContent className="rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="font-headline text-2xl">掛載原子能力</DialogTitle>
-            <DialogDescription>選取要堆疊至此維度空間的技術單元。</DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 gap-4 py-4">
-            {[
-              { id: 'files', name: '檔案空間', icon: <FileText className="w-6 h-6" />, desc: '文檔資產管理單元' },
-              { id: 'tasks', name: '原子任務', icon: <ListTodo className="w-6 h-6" />, desc: '行動目標追蹤單元' },
-              { id: 'qa', name: '品質檢驗', icon: <ShieldCheck className="w-6 h-6" />, desc: '檢核任務執行品質' },
-              { id: 'acceptance', name: '最終驗收', icon: <Trophy className="w-6 h-6" />, desc: '驗收成果並結案' },
-              { id: 'issues', name: '議題追蹤', icon: <AlertCircle className="w-6 h-6" />, desc: '技術衝突回報單元' },
-              { id: 'daily', name: '每日動態', icon: <MessageSquare className="w-6 h-6" />, desc: '技術協作日誌牆' },
-            ].map((cap) => (
-              <Button 
-                key={cap.id} 
-                variant="outline" 
-                className={`justify-start h-20 gap-4 rounded-2xl hover:bg-primary/5 group ${mountedCapIds.includes(cap.id) ? 'opacity-50 grayscale pointer-events-none' : ''}`} 
-                onClick={() => handleAddCapability(cap.id)}
-              >
-                <div className="p-3 bg-primary/10 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground">
-                  {cap.icon}
-                </div>
-                <div className="text-left">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-bold uppercase">{cap.name}</p>
-                    {mountedCapIds.includes(cap.id) && <Badge className="text-[8px] h-3.5 px-1 bg-green-500/20 text-green-600 border-none">已掛載</Badge>}
-                  </div>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{cap.desc}</p>
-                </div>
-              </Button>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
-        <DialogContent className="rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-destructive font-headline text-xl">啟動空間銷毀協議</DialogTitle>
-          </DialogHeader>
-          <div className="py-4 p-4 bg-destructive/5 rounded-2xl border border-destructive/20 text-[11px] text-destructive italic">
-            此操作將永久抹除空間「{workspace.name}」及其下屬的所有技術規格與數據。
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteConfirmOpen(false)}>取消</Button>
-            <Button variant="destructive" onClick={handleDeleteWorkspace}>確認銷毀</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <WorkspaceDialogs 
+        openStates={dialogs}
+        onOpenChange={(key, open) => toggleDialog(key, open)}
+      />
     </div>
   );
 }

@@ -113,8 +113,8 @@ export function DashboardSidebar() {
               </SidebarMenuItem>
 
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === '/dashboard/organization/audit'}>
-                  <Link href="/dashboard/organization/audit" className="flex items-center gap-3">
+                <SidebarMenuButton asChild isActive={pathname === '/dashboard/organizations/audit'}>
+                  <Link href="/dashboard/organizations/audit" className="flex items-center gap-3">
                     <Activity className="w-4 h-4" />
                     <span className="font-semibold">維度脈動日誌</span>
                   </Link>
@@ -133,36 +133,36 @@ export function DashboardSidebar() {
                   <CollapsibleContent>
                     <SidebarMenuSub>
                       <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/members'}>
-                          <Link href="/dashboard/organization/members" className="flex items-center gap-2">
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organizations/members'}>
+                          <Link href="/dashboard/organizations/members" className="flex items-center gap-2">
                             <Users className="w-3 h-3" /> 成員名單
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild isActive={pathname.startsWith('/dashboard/organization/teams')}>
-                          <Link href="/dashboard/organization/teams" className="flex items-center gap-2">
+                        <SidebarMenuSubButton asChild isActive={pathname.startsWith('/dashboard/organizations/teams')}>
+                          <Link href="/dashboard/organizations/teams" className="flex items-center gap-2">
                             <UserCircle className="w-3 h-3" /> 部門團隊
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/matrix'}>
-                          <Link href="/dashboard/organization/matrix" className="flex items-center gap-2">
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organizations/matrix'}>
+                          <Link href="/dashboard/organizations/matrix" className="flex items-center gap-2">
                             <Grid3X3 className="w-3 h-3" /> 權限共振
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/external'}>
-                          <Link href="/dashboard/organization/external" className="flex items-center gap-2">
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organizations/external'}>
+                          <Link href="/dashboard/organizations/external" className="flex items-center gap-2">
                             <GlobeLock className="w-3 h-3" /> 外部閘道
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/settings'}>
-                          <Link href="/dashboard/organization/settings" className="flex items-center gap-2">
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organizations/settings'}>
+                          <Link href="/dashboard/organizations/settings" className="flex items-center gap-2">
                             <Settings2 className="w-3 h-3" /> 維度設定
                           </Link>
                         </SidebarMenuSubButton>
