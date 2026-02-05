@@ -1,15 +1,14 @@
-
 "use client";
 
 import { Organization } from "@/types/domain";
 import { Globe, ArrowUpRight } from "lucide-react";
-import { OrganizationCard } from "@/components/dashboard/organizations/organization-card";
+import { OrganizationCard } from "@/components/dashboard/organization/organization-card";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 /**
  * RecentOrganizations - 職責：展示用戶參與的最近維度列表。
- * 優化：將原本的 Container 概念統一為 Organization。
+ * 優化：路徑已同步至單數 organization。
  */
 export function RecentOrganizations({ organizations }: { organizations: Organization[] }) {
   const router = useRouter();
@@ -21,7 +20,7 @@ export function RecentOrganizations({ organizations }: { organizations: Organiza
         <h2 className="text-xl font-bold font-headline tracking-tight">參與的維度</h2>
         <Button 
           variant="ghost" 
-          size="sm"
+          size="sm" 
           onClick={() => router.push('/dashboard/organization/settings')}
           className="text-xs text-primary font-bold uppercase tracking-widest hover:bg-primary/5"
         >
