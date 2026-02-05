@@ -19,7 +19,8 @@ import {
   Box,
   Handshake,
   History,
-  MessageSquare
+  MessageSquare,
+  CalendarDays
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -136,6 +137,13 @@ export function DashboardSidebar() {
                         <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/partners'}>
                           <Link href="/dashboard/organization/partners" className="flex items-center gap-2">
                             <Handshake className="w-3 h-3" /> 合作夥伴
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild isActive={pathname === '/dashboard/organization/schedule'}>
+                          <Link href="/dashboard/organization/schedule" className="flex items-center gap-2">
+                            <CalendarDays className="w-3 h-3" /> 排班治理
                           </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>

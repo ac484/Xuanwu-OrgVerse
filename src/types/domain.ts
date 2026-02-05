@@ -35,6 +35,21 @@ export interface Organization {
   teams: Team[];
 }
 
+export interface OrgLocation {
+  id: string;
+  name: string;
+}
+
+export interface ScheduleAssignment {
+  id: string;
+  memberId: string;
+  memberName: string;
+  locationId: string;
+  locationName: string;
+  date: string; // ISO date string YYYY-MM-DD
+  state: 'draft' | 'published';
+}
+
 export interface CapabilitySpec {
   id: string;
   name: string;
