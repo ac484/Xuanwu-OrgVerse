@@ -21,7 +21,7 @@ import {
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 /**
- * InputField - 職責：標準化的 🐢 主題輸入槽位
+ * InputField - 職責：純淨化的 🐢 主題輸入槽位
  * 提取至外部以解決 React Re-render 導致的 Focus 遺失問題。
  */
 const InputField = ({ id, label, type = "text", icon: Icon, value, onChange, placeholder, extra }: any) => (
@@ -64,12 +64,12 @@ export default function LoginPage() {
         const { user: u } = await signInWithEmailAndPassword(auth, email, password);
         login({ id: u.uid, name: u.displayName || "實名用戶", email: u.email || "" });
       } else {
-        if (!name) throw new Error("請輸入數位稱號");
+        if (!name) throw new Error("請設定稱號");
         const { user: u } = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(u, { displayName: name });
         login({ id: u.uid, name, email });
       }
-      toast({ title: "身分共振成功", description: "維度環境已激活。" });
+      toast({ title: "身分共振成功" });
       router.push("/dashboard");
     } catch (e: any) {
       toast({ variant: "destructive", title: "驗證失敗", description: e.message });
@@ -116,20 +116,20 @@ export default function LoginPage() {
 
             <div className="h-[300px] flex flex-col"> 
               <TabsContent value="login" className="space-y-4 m-0 animate-in fade-in slide-in-from-left-2 duration-300 flex-1 flex flex-col">
-                <InputField id="l-email" label="聯絡端點" type="email" icon={Mail} value={email} onChange={setEmail} placeholder="name@orgverse.io" />
-                <InputField id="l-pass" label="安全密鑰" type="password" icon={Lock} value={password} onChange={setPassword} placeholder="••••••••" 
+                <InputField id="l-email" label="聯絡端點" type="email" icon={Mail} value={email} onChange={setEmail} placeholder="Email" />
+                <InputField id="l-pass" label="安全密鑰" type="password" icon={Lock} value={password} onChange={setPassword} placeholder="Password" 
                   extra={<button onClick={() => setIsResetOpen(true)} className="text-[10px] font-black text-primary/60 hover:text-primary transition-colors uppercase">找回密鑰</button>} 
                 />
-                <div className="h-[80px]" /> {/* 補位佔位符：對齊註冊頁面的三欄位高度 */}
+                <div className="h-[80px]" /> {/* 補位槽位：確保切換註冊時按鈕不位移 */}
                 <Button onClick={() => handleAuth('login')} className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-base shadow-xl shadow-primary/20 mt-auto" disabled={isLoading}>
                   {isLoading ? <Loader2 className="animate-spin" /> : "進入維度"}
                 </Button>
               </TabsContent>
 
               <TabsContent value="register" className="space-y-4 m-0 animate-in fade-in slide-in-from-right-2 duration-300 flex-1 flex flex-col">
-                <InputField id="r-name" label="數位稱號" icon={User} value={name} onChange={setName} placeholder="例如: 守護者" />
-                <InputField id="r-email" label="聯絡端點" type="email" icon={Mail} value={email} onChange={setEmail} placeholder="name@orgverse.io" />
-                <InputField id="r-pass" label="設定密鑰" type="password" icon={Lock} value={password} onChange={setPassword} placeholder="至少 6 位字元" />
+                <InputField id="r-name" label="數位稱號" icon={User} value={name} onChange={setName} placeholder="Nickname" />
+                <InputField id="r-email" label="聯絡端點" type="email" icon={Mail} value={email} onChange={setEmail} placeholder="Email" />
+                <InputField id="r-pass" label="設定密鑰" type="password" icon={Lock} value={password} onChange={setPassword} placeholder="Password" />
                 <Button onClick={() => handleAuth('register')} className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-base shadow-xl shadow-primary/20 mt-auto" disabled={isLoading}>
                   {isLoading ? <Loader2 className="animate-spin" /> : "註冊主權"}
                 </Button>
@@ -153,7 +153,7 @@ export default function LoginPage() {
         <DialogContent className="rounded-[2.5rem] border-none shadow-2xl p-10 max-w-sm">
           <DialogHeader><DialogTitle className="font-headline text-2xl flex items-center gap-3">🐢 重設密鑰</DialogTitle></DialogHeader>
           <div className="py-6">
-            <InputField id="reset-email" label="電子信箱" type="email" icon={Mail} value={resetEmail} onChange={setResetEmail} placeholder="your@email.com" />
+            <InputField id="reset-email" label="電子信箱" type="email" icon={Mail} value={resetEmail} onChange={setResetEmail} placeholder="Email" />
           </div>
           <DialogFooter className="sm:justify-center gap-3">
             <Button variant="ghost" onClick={() => setIsResetOpen(false)} className="rounded-xl font-black text-xs uppercase px-6">取消</Button>
