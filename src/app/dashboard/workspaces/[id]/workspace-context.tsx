@@ -6,6 +6,7 @@ import { useAppStore } from '@/lib/store';
 
 /**
  * WorkspaceContext - 職責：定義邏輯空間內的共享邊界與事件總線
+ * 效能優化：使用 useMemo 穩定上下文數值，避免子組件不必要的重新渲染。
  */
 interface WorkspaceContextType {
   workspace: Workspace;
@@ -19,12 +20,16 @@ const WorkspaceContext = createContext<WorkspaceContextType | null>(null);
 
 export function WorkspaceProvider({ workspaceId, children }: { workspaceId: string, children: React.ReactNode }) {
   const { workspaces, addPulseLog, user } = useAppStore();
-  const workspace = workspaces.find(w => w.id === workspaceId);
+  
+  // 使用 useMemo 尋找 Workspace，減少查詢次數
+  const workspace = useMemo(() => 
+    workspaces.find(w => w.id === workspaceId), 
+    [workspaces, workspaceId]
+  );
 
   const emitEvent = useCallback((action: string, detail: string) => {
     if (!workspace) return;
     
-    // 統一事件處理：將空間內的活動同步至維度脈動系統
     addPulseLog({
       actor: user?.name || 'Atomic Unit',
       action,
@@ -33,6 +38,7 @@ export function WorkspaceProvider({ workspaceId, children }: { workspaceId: stri
     });
   }, [workspace, addPulseLog, user]);
 
+  // 核心效能優化：鎖定 Provider Value
   const value = useMemo(() => {
     if (!workspace) return null;
     return {

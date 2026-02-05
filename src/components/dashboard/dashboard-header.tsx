@@ -11,14 +11,13 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 
 /**
  * DashboardHeader - 職責：處理導航欄的全域搜尋與通知邏輯
- * 實作真實數據檢索：維度 (Organizations)、空間 (Workspaces)、人員 (Members)
- * 已過濾隱藏空間 (Hidden Workspaces)
+ * 效能優化：使用 useMemo 記憶搜尋結果，避免輸入時造成組件過度負載。
  */
 export function DashboardHeader() {
   const { 
@@ -35,9 +34,12 @@ export function DashboardHeader() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const unreadCount = notifications.filter(n => !n.read).length;
+  
+  const unreadCount = useMemo(() => 
+    notifications.filter(n => !n.read).length,
+    [notifications]
+  );
 
-  // 處理點擊外部關閉搜尋
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -48,7 +50,6 @@ export function DashboardHeader() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 鍵盤快捷鍵 Cmd+K
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -62,24 +63,31 @@ export function DashboardHeader() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  // 真實數據過濾邏輯
-  const activeOrg = organizations.find(o => o.id === activeOrgId);
+  const activeOrg = useMemo(() => 
+    organizations.find(o => o.id === activeOrgId),
+    [organizations, activeOrgId]
+  );
   
-  const filteredResults = {
-    organizations: organizations.filter(o => 
-      o.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ).slice(0, 3),
-    // 關鍵修正：加入 visibility === 'visible' 的過濾
-    workspaces: (workspaces || []).filter(w => 
-      w.orgId === activeOrgId && 
-      w.visibility === 'visible' && 
-      w.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ).slice(0, 3),
-    members: (activeOrg?.members || []).filter(m =>
-      m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.email.toLowerCase().includes(searchQuery.toLowerCase())
-    ).slice(0, 3)
-  };
+  // 效能優化：記憶化搜尋結果
+  const filteredResults = useMemo(() => {
+    if (!searchQuery.trim()) return { organizations: [], workspaces: [], members: [] };
+    
+    const query = searchQuery.toLowerCase();
+    return {
+      organizations: organizations.filter(o => 
+        o.name.toLowerCase().includes(query)
+      ).slice(0, 3),
+      workspaces: (workspaces || []).filter(w => 
+        w.orgId === activeOrgId && 
+        w.visibility === 'visible' && 
+        w.name.toLowerCase().includes(query)
+      ).slice(0, 3),
+      members: (activeOrg?.members || []).filter(m =>
+        m.name.toLowerCase().includes(query) ||
+        m.email.toLowerCase().includes(query)
+      ).slice(0, 3)
+    };
+  }, [searchQuery, organizations, workspaces, activeOrgId, activeOrg?.members]);
 
   const hasResults = searchQuery.length > 0 && (
     filteredResults.organizations.length > 0 ||
@@ -133,16 +141,14 @@ export function DashboardHeader() {
             </div>
           </div>
           
-          {/* 真實搜尋結果預覽 */}
           {isSearchOpen && searchQuery && (
             <div className="absolute top-full left-0 w-full mt-2 bg-card border rounded-xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2">
               <ScrollArea className="max-h-[400px]">
                 {hasResults ? (
                   <div className="space-y-4 p-2">
-                    {/* 維度結果 */}
                     {filteredResults.organizations.length > 0 && (
                       <div className="space-y-1">
-                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2 mb-1">維度 (Organizations)</div>
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2 mb-1">維度</div>
                         {filteredResults.organizations.map(org => (
                           <div 
                             key={org.id} 
@@ -159,10 +165,9 @@ export function DashboardHeader() {
                       </div>
                     )}
 
-                    {/* 空間結果 */}
                     {filteredResults.workspaces.length > 0 && (
                       <div className="space-y-1">
-                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2 mb-1">空間 (Workspaces)</div>
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2 mb-1">空間</div>
                         {filteredResults.workspaces.map(ws => (
                           <div 
                             key={ws.id} 
@@ -179,10 +184,9 @@ export function DashboardHeader() {
                       </div>
                     )}
 
-                    {/* 人員結果 */}
                     {filteredResults.members.length > 0 && (
                       <div className="space-y-1">
-                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2 mb-1">人員 (Members)</div>
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2 mb-1">人員</div>
                         {filteredResults.members.map(member => (
                           <div 
                             key={member.id} 
@@ -201,7 +205,7 @@ export function DashboardHeader() {
                   </div>
                 ) : (
                   <div className="p-8 text-center text-muted-foreground text-xs italic">
-                    找不到與 "{searchQuery}" 相關的結果。
+                    找不到相關結果。
                   </div>
                 )}
               </ScrollArea>
@@ -222,11 +226,9 @@ export function DashboardHeader() {
           <PopoverContent className="w-80 p-0" align="end">
             <div className="p-4 border-b flex items-center justify-between">
               <h4 className="font-bold text-sm uppercase tracking-widest">維度脈動</h4>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={clearNotifications}>
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </div>
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={clearNotifications}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
             </div>
             <ScrollArea className="h-72">
               <div className="divide-y">

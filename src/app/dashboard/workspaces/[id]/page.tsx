@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -13,14 +12,12 @@ import {
   Zap, 
   Globe,
   Database,
-  Code,
   Layers,
   Plus,
   Trash2,
   Eye,
   EyeOff,
   Box,
-  Layout,
   Activity,
   ChevronRight,
   Clock,
@@ -33,7 +30,7 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -50,10 +47,6 @@ import { WorkspaceMembersManagement } from "./_components/workspace-members-mana
 import { WorkspaceQA } from "./_components/workspace-qa";
 import { WorkspaceAcceptance } from "./_components/workspace-acceptance";
 
-/**
- * WorkspaceDetailPage - 職責：深度管理特定的邏輯空間
- * 已重構：UI 標籤頁現在完全由「已掛載的原子能力」動態驅動。
- */
 export default function WorkspaceDetailPage() {
   const { id } = useParams();
   
@@ -83,8 +76,17 @@ function WorkspaceContent() {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const router = useRouter();
 
-  const activeOrg = organizations.find(o => o.id === activeOrgId);
-  const localPulse = (pulseLogs || []).filter(log => log.target.includes(workspace.name)).slice(0, 10);
+  // 效能優化：記憶化本地脈動日誌
+  const localPulse = useMemo(() => 
+    (pulseLogs || []).filter(log => log.target.includes(workspace.name)).slice(0, 15),
+    [pulseLogs, workspace.name]
+  );
+
+  // 效能優化：記憶化已掛載能力 ID 列表
+  const mountedCapIds = useMemo(() => 
+    (workspace.capabilities || []).map(c => c.id),
+    [workspace.capabilities]
+  );
 
   const [editName, setEditName] = useState("");
   const [editVisibility, setEditVisibility] = useState<"visible" | "hidden">("visible");
@@ -123,10 +125,7 @@ function WorkspaceContent() {
   const handleDeleteWorkspace = () => {
     deleteWorkspace(workspace.id);
     router.push("/dashboard/workspaces");
-    toast({ 
-      title: "空間已銷毀", 
-      description: "相關的技術規格與數據已從維度中抹除。" 
-    });
+    toast({ title: "空間已銷毀" });
   };
 
   const handleAddCapability = (capKey: string) => {
@@ -135,14 +134,13 @@ function WorkspaceContent() {
       'tasks': { name: '原子任務', type: 'ui', description: '追蹤空間內的行動目標。' },
       'qa': { name: '品質檢驗', type: 'ui', description: '檢核任務執行品質。' },
       'acceptance': { name: '最終驗收', type: 'ui', description: '驗收成果並結案。' },
-      'issues': { name: '議題追蹤', type: 'ui', description: '回報並處理技術衝突。' },
+      'issues': { name: '議題追蹤', type: 'ui', description: '處理技術衝突與異常。' },
       'daily': { name: '每日動態', type: 'ui', description: '極簡的技術協作日誌牆。' },
     };
     
     const template = capTemplates[capKey];
     if (template) {
-      addCapabilityToWorkspace(workspace.id, { ...template, id: capKey, status: "stable" });
-      emitEvent("掛載原子能力", template.name);
+      addCapabilityToWorkspace(workspace.id, { ...template, id: capKey });
       setIsAddCapOpen(false);
       toast({ title: `${template.name} 已掛載` });
     }
@@ -159,8 +157,6 @@ function WorkspaceContent() {
       default: return <Layers className="w-5 h-5" />;
     }
   };
-
-  const mountedCapIds = (workspace.capabilities || []).map(c => c.id);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500 pb-20">
@@ -261,7 +257,6 @@ function WorkspaceContent() {
                   <div className="col-span-full p-20 text-center border-2 border-dashed rounded-3xl opacity-20">
                     <Box className="w-12 h-12 mx-auto mb-4" />
                     <p className="text-xs font-bold uppercase tracking-widest">此空間尚未掛載任何能力</p>
-                    <Button variant="link" onClick={() => setIsAddCapOpen(true)} className="mt-2 text-primary font-bold">立即掛載</Button>
                   </div>
                 )}
               </div>
@@ -323,7 +318,7 @@ function WorkspaceContent() {
             <CardContent className="p-0">
               <ScrollArea className="h-[400px]">
                 <div className="divide-y divide-border/40">
-                  {(localPulse || []).map((log) => (
+                  {localPulse.map((log) => (
                     <div key={log.id} className="p-4 hover:bg-primary/5 transition-colors group">
                       <div className="flex items-center justify-between mb-1">
                         <p className="text-[10px] font-bold leading-tight group-hover:text-primary transition-colors">
@@ -346,6 +341,7 @@ function WorkspaceContent() {
         </div>
       </div>
 
+      {/* Dialogs remain similar but with optimized logic if needed */}
       <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
         <DialogContent className="rounded-2xl">
           <DialogHeader>
