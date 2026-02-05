@@ -13,7 +13,7 @@ export interface MemberReference {
   role: UserRole;
   status: 'active' | 'away' | 'offline';
   isExternal?: boolean;
-  group?: string; // 用於外部夥伴的分組概念
+  group?: string; // 用於外部夥伴的分組概念 (ID)
   expiryDate?: string; 
   accessProtocol?: 'Deep Isolation' | 'Standard Bridge' | 'Full Collaborative';
 }
@@ -25,6 +25,13 @@ export interface Team {
   memberIds: string[]; 
 }
 
+export interface PartnerGroup {
+  id: string;
+  name: string;
+  description: string;
+  memberIds: string[];
+}
+
 export interface Organization {
   id: string;
   name: string;
@@ -34,6 +41,7 @@ export interface Organization {
   theme?: ThemeConfig;
   members: MemberReference[];
   teams: Team[];
+  partnerGroups: PartnerGroup[];
 }
 
 export interface OrgLocation {

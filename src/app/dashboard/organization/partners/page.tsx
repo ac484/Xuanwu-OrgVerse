@@ -5,20 +5,8 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Handshake, 
-  MailPlus, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  UserCheck, 
-  ShieldCheck,
-  SendHorizontal,
-  FolderPlus,
-  Users
-} from "lucide-react";
-import { useState, useMemo } from "react";
-import { toast } from "@/hooks/use-toast";
+import { Handshake, Plus, FolderTree, ArrowRight, Globe } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
 import { 
   Dialog, 
   DialogContent, 
@@ -29,175 +17,125 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
 import { useFirebase } from "@/firebase/provider";
-import { collection, addDoc, serverTimestamp, query, orderBy, doc, updateDoc } from "firebase/firestore";
-import { useCollection } from "@/firebase";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { toast } from "@/hooks/use-toast";
 
+/**
+ * PartnersPage - 職責：管理外部合作夥伴的邏輯分組。
+ * 遵循「群組優先」原則：先建立群組，再進入邀請。
+ */
 export default function PartnersPage() {
   const { organizations, activeOrgId } = useAppStore();
   const { db } = useFirebase();
-  const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const [inviteEmail, setInviteInviteEmail] = useState("");
-  const [selectedGroup, setSelectedGroup] = useState("未分類組");
+  const [mounted, setMounted] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const activeOrg = useMemo(() => 
-    organizations.find(o => o.id === activeOrgId),
+    organizations.find(o => o.id === activeOrgId) || organizations[0],
     [organizations, activeOrgId]
   );
 
-  const invitesQuery = useMemo(() => {
-    if (!activeOrgId || !db) return null;
-    return query(
-      collection(db, "organizations", activeOrgId, "invites"),
-      orderBy("invitedAt", "desc")
-    );
-  }, [activeOrgId, db]);
+  if (!mounted || !activeOrg) return null;
 
-  const { data: invites } = useCollection<any>(invitesQuery);
+  const partnerGroups = activeOrg.partnerGroups || [];
 
-  const externalMembers = useMemo(() => 
-    (activeOrg?.members || []).filter(m => m.isExternal || m.role === 'Guest'),
-    [activeOrg?.members]
-  );
-
-  const handleSendInvite = () => {
-    if (!inviteEmail.trim() || !activeOrgId) return;
-
-    const inviteData = {
-      email: inviteEmail,
-      status: 'pending',
-      role: 'Guest',
-      group: selectedGroup,
-      invitedAt: serverTimestamp(),
-      protocol: 'Standard Bridge'
+  const handleCreateGroup = () => {
+    if (!newGroupName.trim()) return;
+    
+    const newGroup = {
+      id: `pg-${Math.random().toString(36).slice(-4)}`,
+      name: newGroupName,
+      description: "外部數位身分共振群組，用於管理跨維度合作夥伴。",
+      memberIds: []
     };
 
-    addDoc(collection(db, "organizations", activeOrgId, "invites"), inviteData)
+    const orgRef = doc(db, "organizations", activeOrg.id);
+    updateDoc(orgRef, { partnerGroups: arrayUnion(newGroup) })
       .then(() => {
-        setInviteInviteEmail("");
-        setIsInviteOpen(false);
-        toast({ title: "招募邀請已發送", description: `${inviteEmail} 將收到共振請求。` });
+        setNewGroupName("");
+        setIsCreateOpen(false);
+        toast({ title: "夥伴群組已建立" });
       });
   };
-
-  const handleUpdateGroup = (memberId: string, groupName: string) => {
-    if (!activeOrg) return;
-    const updatedMembers = activeOrg.members.map(m => 
-      m.id === memberId ? { ...m, group: groupName } : m
-    );
-    updateDoc(doc(db, "organizations", activeOrg.id), { members: updatedMembers })
-      .then(() => toast({ title: "群組共振成功", description: `已將夥伴分配至 ${groupName}` }));
-  };
-
-  if (!activeOrg) return null;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500 pb-20">
       <PageHeader 
         title="合作夥伴治理" 
-        description="管理跨維度的外部招募。透過分組 (Group) 實現外部身分的有序共振。"
+        description="管理外部維度合作夥伴的邏輯分組。建立群組後即可發送招募邀請。"
       >
-        <Button className="gap-2 font-bold uppercase text-[11px] tracking-widest h-10 px-6 shadow-lg shadow-primary/20" onClick={() => setIsInviteOpen(true)}>
-          <MailPlus className="w-4 h-4" /> 招募夥伴
+        <Button className="gap-2 font-bold uppercase text-[11px] tracking-widest h-10 px-6 shadow-lg shadow-accent/20 bg-accent hover:bg-accent/90" onClick={() => setIsCreateOpen(true)}>
+          <Plus className="w-4 h-4" /> 建立新夥伴組
         </Button>
       </PageHeader>
 
-      <Tabs defaultValue="active" className="space-y-6">
-        <TabsList className="bg-muted/40 p-1 border border-border/50 rounded-xl">
-          <TabsTrigger value="active" className="text-xs font-bold uppercase tracking-widest px-6 text-primary">已共振夥伴 ({externalMembers.length})</TabsTrigger>
-          <TabsTrigger value="pending" className="text-xs font-bold uppercase tracking-widest px-6">待處理邀請 ({(invites || []).filter(i => i.status === 'pending').length})</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="active">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {externalMembers.map((member) => (
-              <Card key={member.id} className="border-border/60 bg-card/40 backdrop-blur-sm hover:border-primary/40 transition-all group overflow-hidden">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold border border-primary/20">
-                      {member.name?.[0] || 'P'}
-                    </div>
-                    <Badge variant="outline" className="text-[9px] uppercase font-bold text-primary border-primary/20">
-                      {member.group || '未分類組'}
-                    </Badge>
-                  </div>
-                  <CardTitle className="text-sm font-bold truncate">{member.name}</CardTitle>
-                  <CardDescription className="text-[10px] font-mono opacity-60">{member.email}</CardDescription>
-                </CardHeader>
-                <CardFooter className="border-t border-border/10 py-3 flex gap-2">
-                  <Button variant="ghost" size="sm" className="h-8 text-[9px] font-bold uppercase gap-1.5 flex-1" onClick={() => {
-                    const newGroup = prompt("輸入新的群組名稱:", member.group || "");
-                    if (newGroup) handleUpdateGroup(member.id, newGroup);
-                  }}>
-                    <FolderPlus className="w-3 h-3" /> 修改分組
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"><XCircle className="w-4 h-4" /></Button>
-                </CardFooter>
-              </Card>
-            ))}
-            {externalMembers.length === 0 && (
-              <div className="col-span-full p-20 text-center border-2 border-dashed rounded-3xl opacity-20">
-                <Handshake className="w-12 h-12 mx-auto mb-4" />
-                <p className="text-xs font-bold uppercase tracking-widest">目前尚無已共振的夥伴</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {partnerGroups.map((group) => (
+          <Card 
+            key={group.id} 
+            className="border-border/60 hover:border-accent/40 transition-all cursor-pointer group bg-card/40 backdrop-blur-sm shadow-sm" 
+            onClick={() => router.push(`/dashboard/organization/partners/${group.id}`)}
+          >
+            <CardHeader className="pb-4">
+              <div className="p-2.5 w-fit bg-accent/5 rounded-xl text-accent mb-4 group-hover:bg-accent group-hover:text-white transition-all duration-300">
+                <Globe className="w-5 h-5" />
               </div>
-            )}
-          </div>
-        </TabsContent>
+              <CardTitle className="text-lg font-headline group-hover:text-accent transition-colors">{group.name}</CardTitle>
+              <CardDescription className="text-xs line-clamp-2">{group.description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Badge variant="secondary" className="text-[10px] font-bold bg-accent/10 text-accent border-none px-2">
+                {(group.memberIds || []).length} 位已共振夥伴
+              </Badge>
+            </CardContent>
+            <CardFooter className="border-t border-border/10 py-4 flex justify-between items-center bg-muted/5">
+              <span className="text-[9px] font-mono text-muted-foreground">GID: {group.id.toUpperCase()}</span>
+              <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-[9px] font-bold uppercase tracking-widest text-accent hover:bg-accent/5">
+                管理與招募 <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
 
-        <TabsContent value="pending">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(invites || []).filter(i => i.status === 'pending').map((invite) => (
-              <Card key={invite.id} className="border-border/60 bg-card/40 backdrop-blur-sm overflow-hidden opacity-70">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="p-2 bg-primary/5 rounded-lg text-primary">
-                      <Clock className="w-4 h-4" />
-                    </div>
-                    <Badge variant="secondary" className="text-[9px] font-bold uppercase tracking-widest">等待回覆</Badge>
-                  </div>
-                  <CardTitle className="text-sm font-bold truncate">{invite.email}</CardTitle>
-                  <CardDescription className="text-[10px] uppercase font-mono">預計分組: {invite.group}</CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
+        <div 
+          className="p-8 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center bg-muted/5 border-border/40 hover:bg-accent/5 hover:border-accent/20 transition-all cursor-pointer group min-h-[240px]"
+          onClick={() => setIsCreateOpen(true)}
+        >
+          <div className="p-4 rounded-full bg-muted/10 group-hover:bg-accent/10 transition-colors">
+            <Handshake className="w-10 h-10 text-muted-foreground group-hover:text-accent transition-colors opacity-30" />
           </div>
-        </TabsContent>
-      </Tabs>
+          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em] mt-4">建立新的合作邊界</p>
+        </div>
+      </div>
 
-      <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="font-headline text-2xl flex items-center gap-2">
-              <MailPlus className="w-6 h-6 text-primary" /> 發送招募邀請
-            </DialogTitle>
-            <DialogDescription>輸入合作夥伴的 Email 進行數位共振。</DialogDescription>
+            <DialogTitle className="font-headline text-2xl">建立夥伴群組</DialogTitle>
+            <DialogDescription>定義一個新的外部合作單元，用於聚合特定任務的合作夥伴。</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="py-6 space-y-4">
             <div className="space-y-2">
-              <Label>夥伴電子信箱 (Email)</Label>
+              <Label className="text-xs font-bold uppercase tracking-widest">群組名稱</Label>
               <Input 
-                value={inviteEmail} 
-                onChange={(e) => setInviteInviteEmail(e.target.value)} 
-                placeholder="partner@external-corp.io" 
-                className="rounded-xl h-11"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>初始分組 (Group)</Label>
-              <Input 
-                value={selectedGroup} 
-                onChange={(e) => setSelectedGroup(e.target.value)} 
-                placeholder="例如: 外部審核組" 
+                value={newGroupName} 
+                onChange={(e) => setNewGroupName(e.target.value)} 
+                placeholder="例如: 核心架構顧問組" 
                 className="rounded-xl h-11"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsInviteOpen(false)}>取消</Button>
-            <Button onClick={handleSendInvite} className="rounded-xl shadow-lg shadow-primary/20">啟動招募</Button>
+            <Button variant="outline" onClick={() => setIsCreateOpen(false)} className="rounded-xl">取消</Button>
+            <Button onClick={handleCreateGroup} className="bg-accent hover:bg-accent/90 rounded-xl px-8 shadow-lg shadow-accent/20">啟動群組</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
