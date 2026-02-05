@@ -13,7 +13,6 @@ import {
   Zap, 
   Shield, 
   Terminal,
-  Lock,
   Globe,
   Database
 } from "lucide-react";
@@ -21,7 +20,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 /**
  * ContainerDetailPage
- * 職責：作為邏輯容器的主機，展示基礎設施定義，並作為業務模組的掛載點。
+ * 職責：作為邏輯容器的主機，展示基礎設施定義（context, scope, resolver, policy）。
+ * 不再干預業務流程，僅作為業務模組的掛載點。
  */
 export default function ContainerDetailPage() {
   const { id } = useParams();
@@ -34,7 +34,7 @@ export default function ContainerDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
         <Box className="w-16 h-16 text-muted-foreground opacity-20" />
-        <h2 className="text-xl font-bold">Workspace Architecture Missing</h2>
+        <h2 className="text-xl font-bold font-headline">Infrastructure Void</h2>
         <Button onClick={() => router.push('/dashboard/containers')}>Return to Fleet</Button>
       </div>
     );
@@ -51,7 +51,7 @@ export default function ContainerDetailPage() {
 
       <PageHeader 
         title={container.name} 
-        description={`Infrastructure Definition: ${container.context}`}
+        description={`Runtime Definition: ${container.context}`}
         badge={
           <Badge className="bg-primary/10 text-primary border-primary/20 uppercase text-[9px] tracking-widest font-bold">
             CID: {container.id.toUpperCase()}
@@ -59,64 +59,64 @@ export default function ContainerDetailPage() {
         }
       >
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="h-9 gap-2">
+          <Button variant="outline" size="sm" className="h-9 gap-2 font-bold uppercase text-[10px] tracking-widest">
             <Settings className="w-3.5 h-3.5" /> Policy Config
           </Button>
-          <Button size="sm" className="h-9 gap-2">
-            <Zap className="w-3.5 h-3.5" /> Synchronize Context
+          <Button size="sm" className="h-9 gap-2 font-bold uppercase text-[10px] tracking-widest">
+            <Zap className="w-3.5 h-3.5" /> Refresh Resonance
           </Button>
         </div>
       </PageHeader>
 
       <Tabs defaultValue="infra" className="space-y-6">
-        <TabsList className="bg-muted/40 p-1">
-          <TabsTrigger value="infra">Infrastructure Definition</TabsTrigger>
-          <TabsTrigger value="capabilities">Business Capabilities</TabsTrigger>
-          <TabsTrigger value="security">Policy & Governance</TabsTrigger>
+        <TabsList className="bg-muted/40 p-1 border border-border/50">
+          <TabsTrigger value="infra" className="text-[10px] font-bold uppercase tracking-widest">Infrastructure Definition</TabsTrigger>
+          <TabsTrigger value="capabilities" className="text-[10px] font-bold uppercase tracking-widest">Business Capabilities</TabsTrigger>
+          <TabsTrigger value="security" className="text-[10px] font-bold uppercase tracking-widest">Security & Policy</TabsTrigger>
         </TabsList>
 
         <TabsContent value="infra" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="border-border/60">
+            <Card className="border-border/60 shadow-sm bg-card/30">
               <CardHeader>
-                <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-primary" />
-                  Context & Scope
+                <CardTitle className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 text-primary">
+                  <Globe className="w-3.5 h-3.5" />
+                  Contextual Scope
                 </CardTitle>
-                <CardDescription>Logical boundaries for this workspace.</CardDescription>
+                <CardDescription className="text-xs">Logical boundaries and runtime context.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-3 bg-muted/30 rounded-lg">
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Runtime Context</p>
-                  <code className="text-xs text-primary">{container.context}</code>
+                <div className="p-3 bg-muted/30 rounded-lg border border-border/40">
+                  <p className="text-[9px] text-muted-foreground uppercase font-bold mb-1">Runtime Identifier</p>
+                  <code className="text-xs text-primary font-mono">{container.context}</code>
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold mb-2">Resource Scope</p>
-                  <div className="flex flex-wrap gap-2">
+                  <p className="text-[9px] text-muted-foreground uppercase font-bold mb-2">Resource Boundaries</p>
+                  <div className="flex flex-wrap gap-1.5">
                     {container.scope.map(s => (
-                      <Badge key={s} variant="secondary" className="text-[9px]">{s}</Badge>
+                      <Badge key={s} variant="secondary" className="text-[9px] uppercase tracking-tighter py-0">{s}</Badge>
                     ))}
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-border/60">
+            <Card className="border-border/60 shadow-sm bg-card/30">
               <CardHeader>
-                <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-                  <Database className="w-4 h-4 text-primary" />
-                  Resolver & Policy
+                <CardTitle className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 text-primary">
+                  <Database className="w-3.5 h-3.5" />
+                  Data Resolution
                 </CardTitle>
-                <CardDescription>Data resolution and security governance.</CardDescription>
+                <CardDescription className="text-xs">Resolution logic and isolation governance.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-3 bg-muted/30 rounded-lg">
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Data Resolver</p>
+                <div className="p-3 bg-muted/30 rounded-lg border border-border/40">
+                  <p className="text-[9px] text-muted-foreground uppercase font-bold mb-1">Resolver Protocol</p>
                   <p className="text-xs font-mono">{container.resolver}</p>
                 </div>
-                <div className="p-3 bg-primary/5 border border-primary/10 rounded-lg">
-                  <p className="text-[10px] text-primary uppercase font-bold mb-1 flex items-center gap-1">
-                    <Shield className="w-3 h-3" /> Active Policy
+                <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                  <p className="text-[9px] text-primary uppercase font-bold mb-1 flex items-center gap-1">
+                    <Shield className="w-3 h-3" /> Active Security Policy
                   </p>
                   <p className="text-xs font-semibold">{container.policy}</p>
                 </div>
@@ -126,14 +126,14 @@ export default function ContainerDetailPage() {
         </TabsContent>
 
         <TabsContent value="capabilities">
-          <div className="p-12 text-center border-2 border-dashed rounded-3xl bg-muted/5 border-border/40">
-            <Terminal className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-            <h3 className="text-lg font-bold">Mount Business Modules</h3>
-            <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
-              This workspace provides the scope. You can now mount independent capability modules here.
+          <div className="p-16 text-center border-2 border-dashed rounded-3xl bg-muted/5 border-border/40">
+            <Terminal className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-10" />
+            <h3 className="text-xl font-bold font-headline">No Capabilities Mounted</h3>
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-8">
+              This infrastructure is currently pure. You can mount business modules that respect the defined scope and policy.
             </p>
-            <Button variant="outline" className="font-bold text-xs uppercase tracking-widest">
-              Scan Available Modules
+            <Button variant="outline" className="font-bold text-[10px] uppercase tracking-widest h-10 px-6">
+              Scan Compatible Modules
             </Button>
           </div>
         </TabsContent>

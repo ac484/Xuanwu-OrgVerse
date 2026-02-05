@@ -5,8 +5,12 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Package, Plus, Zap, Code, Database, Layers } from "lucide-react";
+import { Plus, Code, Database, Layers, Info } from "lucide-react";
 
+/**
+ * BlocksPage - 職責：作為技術能力目錄，展示可用的原子化邏輯單元。
+ * 不再涉及「佈署」動作，僅提供技術規範的查看。
+ */
 export default function BlocksPage() {
   const { resourceBlocks, organizations, activeOrgId } = useAppStore();
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
@@ -22,11 +26,11 @@ export default function BlocksPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500">
       <PageHeader 
-        title="Stackable Blocks" 
-        description="Modular logic units to extend your dimensional capabilities."
+        title="Capability Catalog" 
+        description="Technical specifications of modular units available for integration."
       >
-        <Button className="gap-2">
-          <Plus className="w-4 h-4" /> Catalog Block
+        <Button variant="outline" className="gap-2 font-bold uppercase text-[10px] tracking-widest h-10 px-4">
+          <Plus className="w-4 h-4" /> Register Specification
         </Button>
       </PageHeader>
 
@@ -47,25 +51,18 @@ export default function BlocksPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-[9px] uppercase tracking-tighter">Type: {block.type}</Badge>
-                <Badge variant="outline" className="text-[9px] uppercase tracking-tighter">Org: {activeOrg.name}</Badge>
+                <Badge variant="outline" className="text-[9px] uppercase tracking-tighter">Spec: {block.type}</Badge>
+                <Badge variant="outline" className="text-[9px] uppercase tracking-tighter">Org Scope: {activeOrg.name}</Badge>
               </div>
             </CardContent>
             <CardFooter className="pt-0 border-t border-border/20 py-4 flex justify-between items-center">
-              <span className="text-[10px] font-bold text-muted-foreground">ID: {block.id.toUpperCase()}</span>
-              <Button size="sm" className="h-8 gap-2 font-bold uppercase text-[9px] tracking-widest">
-                <Zap className="w-3.5 h-3.5 fill-current" /> Deploy
+              <span className="text-[10px] font-bold text-muted-foreground uppercase">SIG: {block.id}</span>
+              <Button variant="ghost" size="sm" className="h-8 gap-2 font-bold uppercase text-[9px] tracking-widest text-primary">
+                <Info className="w-3.5 h-3.5" /> View Schema
               </Button>
             </CardFooter>
           </Card>
         ))}
-        
-        <button className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl hover:bg-primary/5 hover:border-primary/40 transition-all group border-border/40">
-          <div className="p-3 bg-muted rounded-full group-hover:bg-primary/10 transition-colors">
-            <Plus className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
-          </div>
-          <p className="mt-4 text-sm font-bold text-muted-foreground uppercase tracking-widest">Connect Block</p>
-        </button>
       </div>
     </div>
   );
