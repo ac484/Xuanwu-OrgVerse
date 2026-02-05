@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -9,18 +10,47 @@ import { Separator } from "@/components/ui/separator";
 import { User, Bell, AlertTriangle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 /**
  * SettingsPage - 職責：用戶中心，管理個人身分與環境偏好
+ * 已實作持久化閉環：變更會即時同步至 Store。
  */
 export default function SettingsPage() {
-  const { user } = useAppStore();
+  const { user, updateUser, logout } = useAppStore();
+  const [name, setName] = useState(user?.name || "");
+  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (user) setName(user.name);
+  }, [user]);
+
+  if (!mounted) return null;
 
   const handleSave = () => {
+    updateUser({ name });
     toast({
-      title: "偏好設定已更新",
-      description: "您的個人身分參數與環境偏好已完成同步。",
+      title: "身分參數已更新",
+      description: "您的數位稱號已同步至全域維度環境。",
     });
+  };
+
+  const handleWithdraw = () => {
+    if (confirm("確定要啟動身分撤回協議嗎？這將抹除您所有的數位紀錄。")) {
+      logout();
+      router.push("/login");
+      toast({
+        variant: "destructive",
+        title: "身分已註銷",
+        description: "您的所有數位軌跡已從 OrgVerse 中移除。",
+      });
+    }
   };
 
   return (
@@ -43,7 +73,11 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="user-name">數位稱號</Label>
-              <Input id="user-name" defaultValue={user?.name} />
+              <Input 
+                id="user-name" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)}
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="user-email">聯絡端點 (Email)</Label>
@@ -97,7 +131,7 @@ export default function SettingsPage() {
             <p className="text-xs font-medium text-destructive mb-4">
               這是一個不可逆的操作。註銷後，您將失去對所有組織維度與邏輯空間的存取權限。
             </p>
-            <Button variant="destructive" className="font-bold uppercase tracking-widest text-xs">
+            <Button variant="destructive" className="font-bold uppercase tracking-widest text-xs" onClick={handleWithdraw}>
               啟動撤回程序
             </Button>
           </CardContent>

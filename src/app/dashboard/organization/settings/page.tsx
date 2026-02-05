@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -10,13 +11,16 @@ import { Button } from "@/components/ui/button";
 import { Zap, Shield, AlertTriangle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 /**
  * OrganizationSettingsPage - 職責：管理維度（組織）的核心架構參數
+ * 已補全：維度銷毀協議邏輯。
  */
 export default function OrganizationSettingsPage() {
-  const { organizations, activeOrgId, updateOrganization, updateOrgTheme } = useAppStore();
+  const { organizations, activeOrgId, updateOrganization, deleteOrganization, updateOrgTheme } = useAppStore();
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
   
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
   
@@ -52,6 +56,22 @@ export default function OrganizationSettingsPage() {
     });
   };
 
+  const handleDelete = () => {
+    if (activeOrg.id === 'personal') {
+      toast({ variant: "destructive", title: "禁止銷毀", description: "個人基礎維度不可被銷毀。" });
+      return;
+    }
+
+    if (confirm(`確定要銷毀維度「${activeOrg.name}」嗎？這將移除所有附屬空間與成員授權。`)) {
+      deleteOrganization(activeOrg.id);
+      router.push("/dashboard");
+      toast({
+        title: "維度已銷毀",
+        description: "相關的所有技術規格與身分共振已永久抹除。",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-500 pb-12">
       <PageHeader 
@@ -85,7 +105,7 @@ export default function OrganizationSettingsPage() {
                 id="org-desc" 
                 value={description} 
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="描述此維度的業務背景、技術偏好或文化特質..."
+                placeholder="描述此維度的業務背景、技術偏好 or 文化特質..."
                 className="min-h-[100px]"
               />
               <p className="text-[10px] text-muted-foreground italic">
@@ -118,7 +138,7 @@ export default function OrganizationSettingsPage() {
             <p className="text-xs font-medium text-destructive mb-4">
               此操作不可逆。一旦執行，所有與此維度相關的規格與身分共振將永久消失。
             </p>
-            <Button variant="destructive" className="font-bold uppercase tracking-widest text-[10px]">
+            <Button variant="destructive" className="font-bold uppercase tracking-widest text-[10px]" onClick={handleDelete}>
               啟動銷毀程序
             </Button>
           </CardContent>

@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, Capability, MemberReference, Team, PulseLog } from '@/types/domain';
@@ -12,9 +13,11 @@ interface AppState {
   
   login: (userData: User) => void;
   logout: () => void;
+  updateUser: (updates: Partial<User>) => void;
   setActiveOrg: (id: string) => void;
   addOrganization: (org: Omit<Organization, 'id' | 'role' | 'members' | 'teams'>) => void;
   updateOrganization: (id: string, updates: Partial<Omit<Organization, 'id' | 'members' | 'teams'>>) => void;
+  deleteOrganization: (id: string) => void;
   updateOrgTheme: (id: string, theme: ThemeConfig | undefined) => void;
   
   addPulseLog: (log: Omit<PulseLog, 'id' | 'timestamp' | 'orgId'>) => void;
@@ -68,6 +71,9 @@ export const useAppStore = create<AppState>()(
 
       login: (userData) => set({ user: userData }),
       logout: () => set({ user: null, activeOrgId: 'personal' }),
+      updateUser: (updates) => set((state) => ({
+        user: state.user ? { ...state.user, ...updates } : null
+      })),
       setActiveOrg: (id) => set({ activeOrgId: id }),
       
       addPulseLog: (log) => set((state) => ({
@@ -105,6 +111,15 @@ export const useAppStore = create<AppState>()(
         }));
         get().addPulseLog({ actor: get().user?.name || 'System', action: '更新維度識別', target: id, type: 'update' });
       },
+
+      deleteOrganization: (id) => set((state) => {
+        const remaining = state.organizations.filter(o => o.id !== id);
+        return {
+          organizations: remaining.length > 0 ? remaining : state.organizations,
+          activeOrgId: remaining.length > 0 ? remaining[0].id : state.activeOrgId,
+          workspaces: state.workspaces.filter(w => w.orgId !== id)
+        };
+      }),
       
       updateOrgTheme: (id, theme) => set((state) => ({
         organizations: state.organizations.map(o => o.id === id ? { ...o, theme } : o)
