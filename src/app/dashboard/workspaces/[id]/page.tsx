@@ -24,16 +24,16 @@ import { format } from "date-fns";
 import { WorkspaceProvider, useWorkspace } from "./workspace-context";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { WorkspaceFiles } from "./_components/workspace-files";
-import { WorkspaceTasks } from "./_components/workspace-tasks";
-import { WorkspaceIssues } from "./_components/workspace-issues";
-import { WorkspaceDaily } from "./_components/workspace-daily";
-import { WorkspaceMembersManagement } from "./_components/workspace-members-management";
-import { WorkspaceQA } from "./_components/workspace-qa";
-import { WorkspaceAcceptance } from "./_components/workspace-acceptance";
-import { WorkspaceCapabilities } from "./_components/workspace-capabilities";
-import { WorkspaceDialogs } from "./_components/workspace-dialogs";
-import { WorkspaceFinance } from "./_components/workspace-finance";
+import { WorkspaceFiles } from "./_components/files/workspace-files";
+import { WorkspaceTasks } from "./_components/tasks/workspace-tasks";
+import { WorkspaceIssues } from "./_components/issues/workspace-issues";
+import { WorkspaceDaily } from "./_components/daily/workspace-daily";
+import { WorkspaceMembersManagement } from "./_components/members/workspace-members-management";
+import { WorkspaceQA } from "./_components/qa/workspace-qa";
+import { WorkspaceAcceptance } from "./_components/acceptance/workspace-acceptance";
+import { WorkspaceCapabilities } from "./_components/capabilities/workspace-capabilities";
+import { WorkspaceDialogs } from "./_components/dialogs/workspace-dialogs";
+import { WorkspaceFinance } from "./_components/finance/workspace-finance";
 
 /**
  * WorkspaceDetailPage - 職責：作為空間治理的容器頁面。
@@ -158,7 +158,7 @@ function WorkspaceContent() {
                   <CardHeader className="bg-muted/30 pb-4">
                     <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center justify-between text-primary">
                       <div className="flex items-center gap-2">
-                        <Globe className="w-4 h-4" /> 授權範疇 (Scope)
+                        <Globe className="w-4 h-4" /> 授權範疇
                       </div>
                     </CardTitle>
                   </CardHeader>
@@ -175,7 +175,7 @@ function WorkspaceContent() {
                   <CardHeader className="bg-muted/30 pb-4">
                     <CardTitle className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center justify-between text-primary">
                       <div className="flex items-center gap-2">
-                        <Box className="w-4 h-4" /> 存取協議 (Protocol)
+                        <Box className="w-4 h-4" /> 存取協議
                       </div>
                     </CardTitle>
                   </CardHeader>
@@ -218,11 +218,6 @@ function WorkspaceContent() {
                       </div>
                     </div>
                   ))}
-                  {localPulse.length === 0 && (
-                    <div className="p-12 text-center text-muted-foreground opacity-30 text-[10px] uppercase font-bold italic">
-                      尚無空間事件紀錄
-                    </div>
-                  )}
                 </div>
               </ScrollArea>
             </CardContent>
