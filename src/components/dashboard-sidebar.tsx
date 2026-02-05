@@ -9,7 +9,8 @@ import {
   LogOut,
   Terminal,
   ChevronUp,
-  Fingerprint
+  Fingerprint,
+  Code
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -39,7 +40,7 @@ import {
 
 /**
  * DashboardSidebar - 職責：管理維度核心與空間架構的導覽。
- * 已完全統一語義為「邏輯空間 (Workspace)」。
+ * 統一語義為「邏輯空間 (Workspace)」。
  */
 export function DashboardSidebar() {
   const { user, logout, activeOrgId, workspaces } = useAppStore();
@@ -57,6 +58,7 @@ export function DashboardSidebar() {
     { title: "維度脈動", icon: LayoutDashboard, href: "/dashboard" },
     { title: "共鳴團隊", icon: Users, href: "/dashboard/team" },
     { title: "邏輯空間", icon: Layers, href: "/dashboard/workspaces" },
+    { title: "能力註冊表 (Specs)", icon: Code, href: "/dashboard/workspaces/blocks" },
   ];
 
   return (
