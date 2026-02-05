@@ -132,7 +132,8 @@ export interface Workspace {
   protocol: string;
   capabilities: Capability[]; 
   members: MemberReference[]; 
-  teamIds?: string[];
+  teamIds: string[]; // 已授權的團隊 ID
+  partnerGroupIds: string[]; // 已授權的合作夥伴群組 ID
   tasks?: WorkspaceTask[];
   issues?: WorkspaceIssue[];
   dailyLogs?: WorkspaceDaily[];
