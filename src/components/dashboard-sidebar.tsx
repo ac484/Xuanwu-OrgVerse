@@ -9,8 +9,7 @@ import {
   LogOut,
   Terminal,
   ChevronUp,
-  Fingerprint,
-  Code
+  Fingerprint
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -38,10 +37,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-/**
- * DashboardSidebar - 職責：管理維度核心與空間架構的導覽。
- * 統一語義為「邏輯空間 (Workspace)」。
- */
 export function DashboardSidebar() {
   const { user, logout, activeOrgId, workspaces } = useAppStore();
   const router = useRouter();

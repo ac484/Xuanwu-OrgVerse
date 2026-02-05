@@ -5,7 +5,6 @@ import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, Res
 /**
  * AppState - 職責：維度狀態管理核心
  * 實現 Organization 與 Workspace 雙層級成員管理。
- * 已完全統一語義為 "Workspace (邏輯空間)"。
  */
 interface AppState {
   user: User | null;
@@ -20,7 +19,7 @@ interface AppState {
   addOrganization: (org: Omit<Organization, 'id' | 'role' | 'members'>) => void;
   updateOrgTheme: (id: string, theme: ThemeConfig) => void;
   
-  // 組織成員管理
+  // 組織成員管理 (全局)
   addOrgMember: (orgId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
   removeOrgMember: (orgId: string, memberId: string) => void;
   
@@ -28,6 +27,7 @@ interface AppState {
   addWorkspace: (workspace: Omit<Workspace, 'id' | 'specs' | 'members'>) => void;
   deleteWorkspace: (id: string) => void;
   addSpecToWorkspace: (workspaceId: string, spec: Omit<ResourceBlock, 'id'>) => void;
+  removeSpecFromWorkspace: (workspaceId: string, specId: string) => void;
   
   // 空間專屬成員管理
   addWorkspaceMember: (workspaceId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
@@ -116,6 +116,13 @@ export const useAppStore = create<AppState>()(
         } : w)
       })),
 
+      removeSpecFromWorkspace: (workspaceId, specId) => set((state) => ({
+        workspaces: state.workspaces.map(w => w.id === workspaceId ? {
+          ...w,
+          specs: w.specs.filter(s => s.id !== specId)
+        } : w)
+      })),
+
       addWorkspaceMember: (workspaceId, member) => set((state) => ({
         workspaces: state.workspaces.map(w => w.id === workspaceId ? {
           ...w,
@@ -145,6 +152,6 @@ export const useAppStore = create<AppState>()(
 
       clearNotifications: () => set({ notifications: [] }),
     }),
-    { name: 'orgverse-atomic-storage' }
+    { name: 'orgverse-logic-storage' }
   )
 );

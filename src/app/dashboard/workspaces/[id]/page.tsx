@@ -32,7 +32,7 @@ import { useState, useEffect } from "react";
  */
 export default function WorkspaceDetailPage() {
   const { id } = useParams();
-  const { workspaces, addSpecToWorkspace, addWorkspaceMember, removeWorkspaceMember } = useAppStore();
+  const { workspaces, addSpecToWorkspace, addWorkspaceMember, removeWorkspaceMember, removeSpecFromWorkspace } = useAppStore();
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
@@ -56,7 +56,7 @@ export default function WorkspaceDetailPage() {
 
   const handleQuickAddSpec = () => {
     addSpecToWorkspace(workspace.id, {
-      name: "新原子能力規格",
+      name: `新原子能力-${Math.floor(Math.random() * 1000)}`,
       type: "api",
       status: "beta",
       description: "於此空間子單元內定義的技術規範單元。"
@@ -81,7 +81,7 @@ export default function WorkspaceDetailPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-8 w-8">
           <ArrowLeft className="w-4 h-4" />
         </Button>
-        <span className="text-xs font-bold uppercase tracking-widest">組織子單元 / {workspace.name}</span>
+        <span className="text-xs font-bold uppercase tracking-widest">邏輯空間 / {workspace.name}</span>
       </div>
 
       <PageHeader 
@@ -106,7 +106,7 @@ export default function WorkspaceDetailPage() {
       <Tabs defaultValue="infra" className="space-y-6">
         <TabsList className="bg-muted/40 p-1 border border-border/50">
           <TabsTrigger value="infra" className="text-[10px] font-bold uppercase tracking-widest px-6">基礎設施定義</TabsTrigger>
-          <TabsTrigger value="specs" className="text-[10px] font-bold uppercase tracking-widest px-6">專屬註冊表 (Specs)</TabsTrigger>
+          <TabsTrigger value="specs" className="text-[10px] font-bold uppercase tracking-widest px-6">能力註冊表 (Specs)</TabsTrigger>
           <TabsTrigger value="members" className="text-[10px] font-bold uppercase tracking-widest px-6">人員存取權</TabsTrigger>
         </TabsList>
 
@@ -169,13 +169,13 @@ export default function WorkspaceDetailPage() {
             </Button>
           </div>
 
-          {workspace.specs?.length > 0 ? (
+          {workspace.specs && workspace.specs.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {workspace.specs.map((block) => (
                 <Card key={block.id} className="border-border/60 hover:border-primary/40 transition-all group bg-card/40 backdrop-blur-sm shadow-sm">
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="p-2.5 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                      <div className="p-2.5 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
                         {getIcon(block.type)}
                       </div>
                       <Badge variant="outline" className="text-[9px] uppercase font-bold bg-background/50">
@@ -187,9 +187,14 @@ export default function WorkspaceDetailPage() {
                   </CardHeader>
                   <CardFooter className="border-t border-border/10 flex justify-between items-center py-4 bg-muted/5">
                     <span className="text-[9px] font-mono text-muted-foreground">ID: {block.id.toUpperCase()}</span>
-                    <Button variant="ghost" size="sm" className="h-8 gap-2 font-bold uppercase text-[9px] tracking-widest text-primary">
-                      <Info className="w-3.5 h-3.5" /> 查閱規範
-                    </Button>
+                    <div className="flex gap-2">
+                       <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => removeSpecFromWorkspace(workspace.id, block.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-8 gap-2 font-bold uppercase text-[9px] tracking-widest text-primary">
+                        <Info className="w-3.5 h-3.5" /> 查閱
+                      </Button>
+                    </div>
                   </CardFooter>
                 </Card>
               ))}
@@ -215,7 +220,7 @@ export default function WorkspaceDetailPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {workspace.members?.map((member) => (
+            {workspace.members && workspace.members.map((member) => (
               <Card key={member.id} className="border-border/60 bg-card/40 backdrop-blur-sm">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3 mb-4">

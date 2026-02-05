@@ -40,18 +40,17 @@ export interface ResourceBlock {
 /**
  * Workspace (邏輯空間)
  * 職責：定義純粹的技術邊界與運行上下文。
- * 每個空間擁有獨立的原子能力註冊表 (Specs) 與成員存取名單。
  */
 export interface Workspace {
   id: string;
   orgId: string;
   name: string;
-  context: string;   // 技術上下文
-  scope: string[];   // 資源範圍
-  resolver: string;  // 數據解析路徑
-  policy: string;    // 安全與存取策略
-  specs: ResourceBlock[]; // 該空間專屬的原子能力目錄
-  members: MemberReference[]; // 該空間專屬的成員
+  context: string;   
+  scope: string[];   
+  resolver: string;  
+  policy: string;    
+  specs: ResourceBlock[]; 
+  members: MemberReference[]; 
 }
 
 export interface User {
