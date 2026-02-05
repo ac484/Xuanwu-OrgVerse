@@ -2,7 +2,7 @@
 
 import { useAppStore } from "@/lib/store";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Bell, Search, Command, Check, Trash2, Users, Layers, Globe } from "lucide-react";
+import { Bell, Search, Command, Check, Trash2, Users, Layers, Globe, X, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { 
   Popover, 
@@ -11,51 +11,197 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 
 /**
  * DashboardHeader - 職責：處理導航欄的全域搜尋與通知邏輯
- * 搜尋範圍已擴充至：維度 (Organizations)、空間 (Workspaces)、人員 (Users)
+ * 實作真實數據檢索：維度 (Organizations)、空間 (Workspaces)、人員 (Members)
  */
 export function DashboardHeader() {
-  const { notifications, markAsRead, clearNotifications } = useAppStore();
+  const { 
+    organizations, 
+    activeOrgId, 
+    workspaces, 
+    setActiveOrg,
+    notifications, 
+    markAsRead, 
+    clearNotifications 
+  } = useAppStore();
+  
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  // 處理點擊外部關閉搜尋
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // 鍵盤快捷鍵 Cmd+K
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        const input = document.getElementById("global-search-input");
+        input?.focus();
+        setIsSearchOpen(true);
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
+  // 真實數據過濾邏輯
+  const activeOrg = organizations.find(o => o.id === activeOrgId);
+  
+  const filteredResults = {
+    organizations: organizations.filter(o => 
+      o.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ).slice(0, 3),
+    workspaces: (workspaces || []).filter(w => 
+      w.orgId === activeOrgId && 
+      w.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ).slice(0, 3),
+    members: (activeOrg?.members || []).filter(m =>
+      m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.email.toLowerCase().includes(searchQuery.toLowerCase())
+    ).slice(0, 3)
+  };
+
+  const hasResults = searchQuery.length > 0 && (
+    filteredResults.organizations.length > 0 ||
+    filteredResults.workspaces.length > 0 ||
+    filteredResults.members.length > 0
+  );
+
+  const handleResultClick = (type: 'org' | 'ws' | 'member', id: string) => {
+    setSearchQuery("");
+    setIsSearchOpen(false);
+    
+    switch (type) {
+      case 'org':
+        setActiveOrg(id);
+        router.push('/dashboard');
+        break;
+      case 'ws':
+        router.push(`/dashboard/workspaces/${id}`);
+        break;
+      case 'member':
+        router.push('/dashboard/organization/members');
+        break;
+    }
+  };
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/60 backdrop-blur-md px-6">
       <SidebarTrigger />
       <div className="flex-1 flex items-center justify-center">
-        <div className="relative w-full max-w-md group">
+        <div ref={searchRef} className="relative w-full max-w-md group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
+            id="global-search-input"
             placeholder="搜尋維度、空間或人員..." 
             className="pl-10 pr-10 bg-muted/40 border-none h-9 focus-visible:ring-1 focus-visible:ring-primary/30"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setIsSearchOpen(true);
+            }}
+            onFocus={() => setIsSearchOpen(true)}
           />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] text-muted-foreground border rounded px-1.5 py-0.5 bg-background shadow-sm">
-            <Command className="w-2.5 h-2.5" /> K
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")} className="p-0.5 hover:bg-muted rounded-full">
+                <X className="w-3 h-3 text-muted-foreground" />
+              </button>
+            )}
+            <div className="hidden md:flex items-center gap-1 text-[10px] text-muted-foreground border rounded px-1.5 py-0.5 bg-background shadow-sm ml-1">
+              <Command className="w-2.5 h-2.5" /> K
+            </div>
           </div>
           
-          {/* 搜尋聯想預覽 (Mock) */}
-          {searchQuery && (
+          {/* 真實搜尋結果預覽 */}
+          {isSearchOpen && searchQuery && (
             <div className="absolute top-full left-0 w-full mt-2 bg-card border rounded-xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2">
-              <div className="p-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">搜尋建議</div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-3 p-2 hover:bg-muted rounded-lg cursor-pointer">
-                  <Globe className="w-4 h-4 text-primary" />
-                  <span className="text-sm">搜尋組織 "{searchQuery}"</span>
-                </div>
-                <div className="flex items-center gap-3 p-2 hover:bg-muted rounded-lg cursor-pointer">
-                  <Layers className="w-4 h-4 text-primary" />
-                  <span className="text-sm">搜尋空間 "{searchQuery}"</span>
-                </div>
-                <div className="flex items-center gap-3 p-2 hover:bg-muted rounded-lg cursor-pointer">
-                  <Users className="w-4 h-4 text-primary" />
-                  <span className="text-sm">搜尋人員 "{searchQuery}"</span>
-                </div>
-              </div>
+              <ScrollArea className="max-h-[400px]">
+                {hasResults ? (
+                  <div className="space-y-4 p-2">
+                    {/* 維度結果 */}
+                    {filteredResults.organizations.length > 0 && (
+                      <div className="space-y-1">
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2 mb-1">維度 (Organizations)</div>
+                        {filteredResults.organizations.map(org => (
+                          <div 
+                            key={org.id} 
+                            onClick={() => handleResultClick('org', org.id)}
+                            className="flex items-center justify-between p-2 hover:bg-primary/5 rounded-lg cursor-pointer transition-colors group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Globe className="w-4 h-4 text-primary" />
+                              <span className="text-sm font-medium">{org.name}</span>
+                            </div>
+                            {activeOrgId === org.id && <Badge variant="outline" className="text-[8px] h-4">當前</Badge>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* 空間結果 */}
+                    {filteredResults.workspaces.length > 0 && (
+                      <div className="space-y-1">
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2 mb-1">空間 (Workspaces)</div>
+                        {filteredResults.workspaces.map(ws => (
+                          <div 
+                            key={ws.id} 
+                            onClick={() => handleResultClick('ws', ws.id)}
+                            className="flex items-center gap-3 p-2 hover:bg-primary/5 rounded-lg cursor-pointer transition-colors"
+                          >
+                            <Layers className="w-4 h-4 text-primary" />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">{ws.name}</span>
+                              <span className="text-[9px] text-muted-foreground font-mono">{ws.id.toUpperCase()}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* 人員結果 */}
+                    {filteredResults.members.length > 0 && (
+                      <div className="space-y-1">
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2 mb-1">人員 (Members)</div>
+                        {filteredResults.members.map(member => (
+                          <div 
+                            key={member.id} 
+                            onClick={() => handleResultClick('member', member.id)}
+                            className="flex items-center gap-3 p-2 hover:bg-primary/5 rounded-lg cursor-pointer transition-colors"
+                          >
+                            <User className="w-4 h-4 text-primary" />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">{member.name}</span>
+                              <span className="text-[9px] text-muted-foreground">{member.email}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-muted-foreground text-xs italic">
+                    找不到與 "{searchQuery}" 相關的結果。
+                  </div>
+                )}
+              </ScrollArea>
             </div>
           )}
         </div>
@@ -66,7 +212,7 @@ export function DashboardHeader() {
             <button className="relative p-2 hover:bg-accent rounded-full transition-colors">
               <Bell className="w-5 h-5 text-muted-foreground" />
               {unreadCount > 0 && (
-                <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full border-2 border-background" />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-background" />
               )}
             </button>
           </PopoverTrigger>
