@@ -55,17 +55,17 @@ export function StatCards({ orgName }: { orgName: string }) {
 
       <Card className="border-border/60 shadow-sm hover:shadow-md transition-all">
         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">擴張向量</CardTitle>
+          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-widest">原子能力增量</CardTitle>
           <Layers className="w-4 h-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold font-headline">能力註冊量</div>
+          <div className="text-2xl font-bold font-headline">邏輯規格增長</div>
           <p className="text-[10px] text-muted-foreground mt-1">
             相較於上個週期的邏輯空間能力增長。
           </p>
           <div className="mt-4 flex items-center gap-2 text-primary">
             <Zap className="w-4 h-4 fill-primary" />
-            <span className="text-[10px] font-bold uppercase tracking-tight">閃電適配已激活</span>
+            <span className="text-[10px] font-bold uppercase tracking-tight">規格同步已激活</span>
           </div>
         </CardContent>
       </Card>

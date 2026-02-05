@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, ResourceBlock, MemberReference, Team, AuditLog } from '@/types/domain';
+import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, Capability, MemberReference, Team, AuditLog } from '@/types/domain';
 
 interface AppState {
   user: User | null;
@@ -17,27 +17,22 @@ interface AppState {
   updateOrganization: (id: string, updates: Partial<Omit<Organization, 'id' | 'members' | 'teams'>>) => void;
   updateOrgTheme: (id: string, theme: ThemeConfig | undefined) => void;
   
-  // 審計
   addAuditLog: (log: Omit<AuditLog, 'id' | 'timestamp' | 'orgId'>) => void;
   
-  // 組織成員
   addOrgMember: (orgId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
   removeOrgMember: (orgId: string, memberId: string) => void;
   updateOrgMember: (orgId: string, memberId: string, updates: Partial<MemberReference>) => void;
   
-  // 組織團隊
   addOrgTeam: (orgId: string, team: Omit<Team, 'id' | 'memberIds'>) => void;
   removeOrgTeam: (orgId: string, teamId: string) => void;
   
-  // 團隊成員分派
   addMemberToTeam: (orgId: string, teamId: string, memberId: string) => void;
   removeMemberFromTeam: (orgId: string, teamId: string, memberId: string) => void;
   
-  // 邏輯空間
-  addWorkspace: (workspace: Omit<Workspace, 'id' | 'specs' | 'members'>) => void;
+  addWorkspace: (workspace: Omit<Workspace, 'id' | 'capabilities' | 'members'>) => void;
   deleteWorkspace: (id: string) => void;
-  addSpecToWorkspace: (workspaceId: string, spec: Omit<ResourceBlock, 'id'>) => void;
-  removeSpecFromWorkspace: (workspaceId: string, specId: string) => void;
+  addCapabilityToWorkspace: (workspaceId: string, capability: Omit<Capability, 'id'>) => void;
+  removeCapabilityFromWorkspace: (workspaceId: string, capabilityId: string) => void;
   
   addWorkspaceMember: (workspaceId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
   removeWorkspaceMember: (workspaceId: string, memberId: string) => void;
@@ -177,7 +172,7 @@ export const useAppStore = create<AppState>()(
           workspaces: [...state.workspaces, { 
             ...workspace, 
             id: `ws-${Math.random().toString(36).substring(2, 6)}`,
-            specs: [],
+            capabilities: [],
             members: [] 
           }]
         }));
@@ -188,20 +183,20 @@ export const useAppStore = create<AppState>()(
         workspaces: state.workspaces.filter(w => w.id !== id)
       })),
 
-      addSpecToWorkspace: (workspaceId, spec) => {
+      addCapabilityToWorkspace: (workspaceId, capability) => {
         set((state) => ({
           workspaces: state.workspaces.map(w => w.id === workspaceId ? {
             ...w,
-            specs: [...(w.specs || []), { ...spec, id: `spec-${Math.random().toString(36).substring(2, 6)}` }]
+            capabilities: [...(w.capabilities || []), { ...capability, id: `cap-${Math.random().toString(36).substring(2, 6)}` }]
           } : w)
         }));
-        get().addAuditLog({ actor: get().user?.name || 'System', action: '掛載規格', target: spec.name, type: 'update' });
+        get().addAuditLog({ actor: get().user?.name || 'System', action: '掛載原子能力', target: capability.name, type: 'update' });
       },
 
-      removeSpecFromWorkspace: (workspaceId, specId) => set((state) => ({
+      removeCapabilityFromWorkspace: (workspaceId, capabilityId) => set((state) => ({
         workspaces: state.workspaces.map(w => w.id === workspaceId ? {
           ...w,
-          specs: (w.specs || []).filter(s => s.id !== specId)
+          capabilities: (w.capabilities || []).filter(c => c.id !== capabilityId)
         } : w)
       })),
 

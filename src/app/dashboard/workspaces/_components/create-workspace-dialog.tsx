@@ -34,8 +34,8 @@ export function CreateWorkspaceDialog({ open, onOpenChange, activeOrgName, activ
       name,
       orgId: activeOrgId,
       visibility: isVisible ? 'visible' : 'hidden',
-      scope: ['驗證', '運算'],
-      resolver: '標準閘道器'
+      boundary: ['驗證', '運算'],
+      protocol: '標準存取協議'
     });
     setName("");
     onOpenChange(false);
@@ -51,7 +51,7 @@ export function CreateWorkspaceDialog({ open, onOpenChange, activeOrgName, activ
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">建立邏輯空間</DialogTitle>
           <DialogDescription>
-            在 {activeOrgName} 維度中定義一個新的技術環境與邊界。
+            在 {activeOrgName} 維度中定義一個新的技術環境與資源邊界。
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-6 py-4">

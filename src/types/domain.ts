@@ -13,17 +13,14 @@ export interface MemberReference {
   role: UserRole;
   status: 'active' | 'away' | 'offline';
   isExternal?: boolean;
-  expiryDate?: string; // 對於外部成員的有效期限
+  expiryDate?: string; 
 }
 
-/**
- * Team (組織團隊/部門)
- */
 export interface Team {
   id: string;
   name: string;
   description: string;
-  memberIds: string[]; // 引用 Organization.members 的 ID
+  memberIds: string[]; 
 }
 
 export interface Organization {
@@ -38,15 +35,15 @@ export interface Organization {
 }
 
 /**
- * ResourceBlock (原子能力規範)
+ * Capability (原子能力) - 取代舊有的 ResourceBlock
  */
-export interface ResourceBlock {
+export interface Capability {
   id: string;
   name: string;
   type: 'component' | 'api' | 'data';
   status: 'stable' | 'beta';
   description: string;
-  spec?: object;
+  config?: object;
 }
 
 /**
@@ -57,9 +54,9 @@ export interface Workspace {
   orgId: string;
   name: string;
   visibility: 'visible' | 'hidden'; 
-  scope: string[];   
-  resolver: string;  
-  specs: ResourceBlock[]; 
+  boundary: string[]; // 取代舊有的 scope
+  protocol: string;  // 取代舊有的 resolver
+  capabilities: Capability[]; 
   members: MemberReference[]; 
 }
 
@@ -78,9 +75,6 @@ export interface Notification {
   timestamp: number;
 }
 
-/**
- * AuditLog (審計日誌)
- */
 export interface AuditLog {
   id: string;
   orgId: string;
