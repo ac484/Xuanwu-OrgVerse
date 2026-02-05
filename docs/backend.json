@@ -38,7 +38,7 @@
     }
   },
   "auth": {
-    "providers": ["password", "google.com", "anonymous"]
+    "providers": ["password", "anonymous"]
   },
   "firestore": {
     "/organizations/{orgId}": {
