@@ -1,7 +1,6 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, Capability, MemberReference, Team, PulseLog } from '@/types/domain';
+import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, Capability, MemberReference, Team, PulseLog, WorkspaceTask, WorkspaceIssue, WorkspaceDaily, WorkspaceFile } from '@/types/domain';
 
 interface AppState {
   user: User | null;
@@ -40,8 +39,14 @@ interface AppState {
   
   toggleTeamAccessToWorkspace: (workspaceId: string, teamId: string) => void;
   
-  addWorkspaceMember: (workspaceId: string, member: Omit<MemberReference, 'id' | 'status'>) => void;
+  addWorkspaceMember: (workspaceId: string, member: MemberReference) => void;
   removeWorkspaceMember: (workspaceId: string, memberId: string) => void;
+
+  addTaskToWorkspace: (workspaceId: string, task: Omit<WorkspaceTask, 'id'>) => void;
+  toggleTaskStatus: (workspaceId: string, taskId: string) => void;
+  addIssueToWorkspace: (workspaceId: string, issue: Omit<WorkspaceIssue, 'id'>) => void;
+  addDailyLogToWorkspace: (workspaceId: string, log: Omit<WorkspaceDaily, 'id' | 'timestamp'>) => void;
+  addFileToWorkspace: (workspaceId: string, file: Omit<WorkspaceFile, 'id' | 'timestamp'>) => void;
   
   addNotification: (notif: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   markAsRead: (id: string) => void;
@@ -194,7 +199,11 @@ export const useAppStore = create<AppState>()(
             id: `ws-${Math.random().toString(36).substring(2, 6)}`,
             capabilities: [],
             members: [],
-            teamIds: []
+            teamIds: [],
+            tasks: [],
+            issues: [],
+            dailyLogs: [],
+            files: []
           }]
         }));
         get().addPulseLog({ actor: get().user?.name || 'System', action: '初始化空間', target: workspace.name, type: 'create' });
@@ -252,7 +261,7 @@ export const useAppStore = create<AppState>()(
       addWorkspaceMember: (workspaceId, member) => set((state) => ({
         workspaces: state.workspaces.map(w => w.id === workspaceId ? {
           ...w,
-          members: [...(w.members || []), { ...member, id: `wm-${Math.random().toString(36).substring(2, 6)}`, status: 'active' }]
+          members: Array.from(new Set([...(w.members || []), member]))
         } : w)
       })),
 
@@ -260,6 +269,41 @@ export const useAppStore = create<AppState>()(
         workspaces: state.workspaces.map(w => w.id === workspaceId ? {
           ...w,
           members: (w.members || []).filter(m => m.id !== memberId)
+        } : w)
+      })),
+
+      addTaskToWorkspace: (workspaceId, task) => set((state) => ({
+        workspaces: state.workspaces.map(w => w.id === workspaceId ? {
+          ...w,
+          tasks: [...(w.tasks || []), { ...task, id: `task-${Date.now()}` }]
+        } : w)
+      })),
+
+      toggleTaskStatus: (workspaceId, taskId) => set((state) => ({
+        workspaces: state.workspaces.map(w => w.id === workspaceId ? {
+          ...w,
+          tasks: (w.tasks || []).map(t => t.id === taskId ? { ...t, status: t.status === 'todo' ? 'done' : 'todo' } : t)
+        } : w)
+      })),
+
+      addIssueToWorkspace: (workspaceId, issue) => set((state) => ({
+        workspaces: state.workspaces.map(w => w.id === workspaceId ? {
+          ...w,
+          issues: [...(w.issues || []), { ...issue, id: `issue-${Date.now()}` }]
+        } : w)
+      })),
+
+      addDailyLogToWorkspace: (workspaceId, log) => set((state) => ({
+        workspaces: state.workspaces.map(w => w.id === workspaceId ? {
+          ...w,
+          dailyLogs: [{ ...log, id: `daily-${Date.now()}`, timestamp: Date.now() }, ...(w.dailyLogs || [])]
+        } : w)
+      })),
+
+      addFileToWorkspace: (workspaceId, file) => set((state) => ({
+        workspaces: state.workspaces.map(w => w.id === workspaceId ? {
+          ...w,
+          files: [...(w.files || []), { ...file, id: `file-${Date.now()}`, timestamp: Date.now() }]
         } : w)
       })),
 

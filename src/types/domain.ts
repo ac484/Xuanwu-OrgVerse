@@ -34,34 +34,61 @@ export interface Organization {
   teams: Team[];
 }
 
-/**
- * Atomic Capability (原子能力)
- * 具備與 Protocol 和 Scope 的連動能力
- */
 export interface Capability {
   id: string;
   name: string;
   type: 'ui' | 'api' | 'data';
   status: 'stable' | 'beta';
   description: string;
-  requiredProtocol?: string; // 所需的存取協議
-  requiredScope?: string[];  // 所需的授權範疇
+  requiredProtocol?: string;
+  requiredScope?: string[];
   config?: object;
 }
 
-/**
- * Workspace (邏輯空間)
- */
+export interface WorkspaceTask {
+  id: string;
+  title: string;
+  status: 'todo' | 'done';
+  assignee?: string;
+}
+
+export interface WorkspaceIssue {
+  id: string;
+  title: string;
+  priority: 'low' | 'medium' | 'high';
+  status: 'open' | 'closed';
+}
+
+export interface WorkspaceDaily {
+  id: string;
+  content: string;
+  author: string;
+  timestamp: number;
+}
+
+export interface WorkspaceFile {
+  id: string;
+  name: string;
+  size: string;
+  type: string;
+  uploadedBy: string;
+  timestamp: number;
+}
+
 export interface Workspace {
   id: string;
   orgId: string;
   name: string;
   visibility: 'visible' | 'hidden'; 
-  scope: string[]; // 授權範疇 (核心治理參數)
-  protocol: string; // 存取協議 (通訊契約)
+  scope: string[];
+  protocol: string;
   capabilities: Capability[]; 
   members: MemberReference[]; 
-  teamIds?: string[]; // 關聯的團隊 ID
+  teamIds?: string[];
+  tasks?: WorkspaceTask[];
+  issues?: WorkspaceIssue[];
+  dailyLogs?: WorkspaceDaily[];
+  files?: WorkspaceFile[];
 }
 
 export interface User {
@@ -79,13 +106,10 @@ export interface Notification {
   timestamp: number;
 }
 
-/**
- * Pulse Log (維度脈動日誌)
- */
 export interface PulseLog {
   id: string;
   orgId: string;
-  workspaceId?: string; // 關聯的空間 ID
+  workspaceId?: string;
   timestamp: number;
   actor: string;
   action: string;
