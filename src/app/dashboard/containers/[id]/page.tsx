@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -39,6 +40,9 @@ export default function ContainerDetailPage() {
       </div>
     );
   }
+
+  // 安全處理
+  const scopes = container.scope || [];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-in slide-in-from-bottom-2 duration-500">
@@ -93,9 +97,10 @@ export default function ContainerDetailPage() {
                 <div>
                   <p className="text-[9px] text-muted-foreground uppercase font-bold mb-2">Resource Boundaries</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {container.scope.map(s => (
+                    {scopes.map(s => (
                       <Badge key={s} variant="secondary" className="text-[9px] uppercase tracking-tighter py-0">{s}</Badge>
                     ))}
+                    {scopes.length === 0 && <span className="text-[10px] text-muted-foreground italic">No scopes defined.</span>}
                   </div>
                 </div>
               </CardContent>

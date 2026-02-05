@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Container } from "@/types/domain";
@@ -18,6 +19,9 @@ interface ContainerCardProps {
  */
 export function ContainerCard({ container, onAction }: ContainerCardProps) {
   const router = useRouter();
+
+  // 安全處理：確保 scope 始終為陣列
+  const displayScope = container?.scope || [];
 
   return (
     <Card 
@@ -45,13 +49,13 @@ export function ContainerCard({ container, onAction }: ContainerCardProps) {
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap gap-1.5 mt-1">
-          {container.scope.slice(0, 3).map(s => (
+          {displayScope.slice(0, 3).map(s => (
             <Badge key={s} variant="secondary" className="text-[8px] px-1.5 py-0 uppercase tracking-tighter bg-muted/50 border-none">
               {s}
             </Badge>
           ))}
-          {container.scope.length > 3 && (
-            <span className="text-[8px] text-muted-foreground font-bold">+{container.scope.length - 3}</span>
+          {displayScope.length > 3 && (
+            <span className="text-[8px] text-muted-foreground font-bold">+{displayScope.length - 3}</span>
           )}
         </div>
       </CardContent>
