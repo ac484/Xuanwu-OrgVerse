@@ -9,7 +9,7 @@ import {
   Package, 
   LogOut,
   Plus,
-  Box,
+  Terminal,
   User,
   ChevronUp
 } from "lucide-react";
@@ -55,7 +55,7 @@ export function DashboardSidebar() {
     { title: "Overview", icon: LayoutDashboard, href: "/dashboard" },
     { title: "Logical Containers", icon: Layers, href: "/dashboard/containers" },
     { title: "Resonance Team", icon: Users, href: "/dashboard/team" },
-    { title: "Stackable blocks", icon: Package, href: "/dashboard/blocks" },
+    { title: "Capability Specs", icon: Package, href: "/dashboard/blocks" },
     { title: "Architecture", icon: Settings, href: "/dashboard/settings" },
   ];
 
@@ -98,10 +98,7 @@ export function DashboardSidebar() {
 
         <SidebarGroup>
           <div className="flex items-center justify-between px-2 mb-2">
-            <SidebarGroupLabel className="p-0 text-xs font-bold uppercase">Root Containers</SidebarGroupLabel>
-            <button className="text-muted-foreground hover:text-primary transition-colors">
-              <Plus className="w-3 h-3" />
-            </button>
+            <SidebarGroupLabel className="p-0 text-xs font-bold uppercase">Root Infrastructure</SidebarGroupLabel>
           </div>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -110,18 +107,18 @@ export function DashboardSidebar() {
                   <SidebarMenuButton asChild isActive={pathname === `/dashboard/containers/${container.id}`} className="group">
                     <Link href={`/dashboard/containers/${container.id}`} className="flex items-center justify-between w-full">
                       <div className="flex items-center gap-2 truncate">
-                        <Box className="w-3 h-3 text-primary/60 group-hover:text-primary" />
+                        <Terminal className="w-3 h-3 text-primary/60 group-hover:text-primary" />
                         <span className="truncate">{container.name}</span>
                       </div>
                       <Badge variant="outline" className="text-[8px] h-3.5 px-1 uppercase group-hover:border-primary group-hover:text-primary transition-colors">
-                        {container.type[0]}
+                        CID: {container.id.slice(0, 3)}
                       </Badge>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
               {orgContainers.length === 0 && (
-                <p className="text-[10px] text-muted-foreground px-2 italic">No containers established.</p>
+                <p className="text-[10px] text-muted-foreground px-2 italic">No infrastructure established.</p>
               )}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -147,18 +144,12 @@ export function DashboardSidebar() {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="w-[200px]">
-                <DropdownMenuLabel>My Identity</DropdownMenuLabel>
+                <DropdownMenuLabel>Identity Sovereignty</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard/settings" className="cursor-pointer flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    <span>View Profile</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/settings" className="cursor-pointer flex items-center gap-2">
-                    <Settings className="w-4 h-4" />
-                    <span>Account Settings</span>
+                    <span>Profile Logic</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
