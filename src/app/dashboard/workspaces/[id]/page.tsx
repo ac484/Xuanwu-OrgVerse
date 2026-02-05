@@ -115,6 +115,15 @@ function WorkspaceContent() {
     toast({ title: "授權範疇已重定義" });
   };
 
+  const handleDeleteWorkspace = () => {
+    deleteWorkspace(workspace.id);
+    router.push("/dashboard/workspaces");
+    toast({ 
+      title: "空間已銷毀", 
+      description: "相關的技術規格與數據已從維度中抹除。" 
+    });
+  };
+
   const handleAddCapability = (capKey: string) => {
     const capTemplates: Record<string, any> = {
       'files': { name: '檔案空間', type: 'data', description: '管理維度內的文檔與資產。' },
@@ -142,7 +151,6 @@ function WorkspaceContent() {
     }
   };
 
-  // 判斷哪些能力已被掛載
   const mountedCapIds = (workspace.capabilities || []).map(c => c.id);
 
   return (
