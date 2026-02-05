@@ -106,6 +106,16 @@ export function DashboardSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
+              {/* 優先順序調整：維度空間移至治理之前 */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/workspaces')}>
+                  <Link href="/dashboard/workspaces" className="flex items-center gap-3">
+                    <Layers className="w-4 h-4" />
+                    <span className="font-semibold">維度空間</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
               <Collapsible defaultOpen className="group/collapsible">
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
@@ -177,15 +187,6 @@ export function DashboardSidebar() {
                   </CollapsibleContent>
                 </SidebarMenuItem>
               </Collapsible>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/workspaces')}>
-                  <Link href="/dashboard/workspaces" className="flex items-center gap-3">
-                    <Layers className="w-4 h-4" />
-                    <span className="font-semibold">維度空間</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
