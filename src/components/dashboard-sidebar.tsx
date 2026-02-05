@@ -37,6 +37,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+/**
+ * DashboardSidebar - 職責：維度導航中樞
+ * 已移除所有舊有 Container 與 Blocks 語義入口。
+ */
 export function DashboardSidebar() {
   const { user, logout, activeOrgId, workspaces } = useAppStore();
   const router = useRouter();
@@ -76,7 +80,7 @@ export function DashboardSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
-                    isActive={pathname === item.href}
+                    isActive={pathname === item.href || (item.href === '/dashboard/workspaces' && pathname.startsWith('/dashboard/workspaces'))}
                     className="transition-all duration-200 hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
                   >
                     <Link href={item.href} className="flex items-center gap-3">

@@ -4,7 +4,7 @@ import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, Res
 
 /**
  * AppState - 職責：維度狀態管理核心
- * 實現 Organization 與 Workspace 雙層級成員管理。
+ * 已完全移除全局 ResourceBlocks，實現以 Workspace 為核心的局部主權管理。
  */
 interface AppState {
   user: User | null;

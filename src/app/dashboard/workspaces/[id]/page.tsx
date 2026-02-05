@@ -28,7 +28,8 @@ import { useState, useEffect } from "react";
 
 /**
  * WorkspaceDetailPage
- * 職責：管理組織子單元的技術規格與人員存取。
+ * 職責：管理組織子單元的技術規格與人員存取權。
+ * 已完全併入原子能力註冊表 (Specs) 管理邏輯。
  */
 export default function WorkspaceDetailPage() {
   const { id } = useParams();
@@ -86,7 +87,7 @@ export default function WorkspaceDetailPage() {
 
       <PageHeader 
         title={workspace.name} 
-        description={`子單元運行環境: ${workspace.context}`}
+        description={`運行時環境: ${workspace.context}`}
         badge={
           <Badge className="bg-primary/10 text-primary border-primary/20 uppercase text-[9px] tracking-widest font-bold">
             ID: {workspace.id.toUpperCase()}
