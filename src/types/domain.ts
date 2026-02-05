@@ -38,9 +38,9 @@ export interface ResourceBlock {
 }
 
 /**
- * Workspace (邏輯容器/空間)
+ * Workspace (邏輯空間)
  * 職責：定義純粹的技術邊界與運行上下文。
- * 已整合專屬的能力註冊表 (Specs)。
+ * 每個空間擁有獨立的原子能力註冊表 (Specs) 與成員存取名單。
  */
 export interface Workspace {
   id: string;

@@ -38,8 +38,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 /**
- * DashboardSidebar - 職責：管理維度核心與空間架構的導航。
- * 已完全移除全局 Specs 入口，將規格管理整合進每個 Workspace 內部。
+ * DashboardSidebar - 職責：管理維度核心與空間架構的導覽。
+ * 已完全統一語義為「邏輯空間 (Workspace)」。
  */
 export function DashboardSidebar() {
   const { user, logout, activeOrgId, workspaces } = useAppStore();
@@ -56,7 +56,7 @@ export function DashboardSidebar() {
   const mainMenuItems = [
     { title: "維度脈動", icon: LayoutDashboard, href: "/dashboard" },
     { title: "共鳴團隊", icon: Users, href: "/dashboard/team" },
-    { title: "邏輯容器", icon: Layers, href: "/dashboard/workspaces" },
+    { title: "邏輯空間", icon: Layers, href: "/dashboard/workspaces" },
   ];
 
   return (
@@ -111,7 +111,7 @@ export function DashboardSidebar() {
                         <span className="truncate text-xs font-medium">{workspace.name}</span>
                       </div>
                       <Badge variant="outline" className="text-[8px] h-3.5 px-1 uppercase group-hover:border-primary group-hover:text-primary transition-all">
-                        {workspace.id.slice(-3)}
+                        {workspace.id.slice(-3).toUpperCase()}
                       </Badge>
                     </Link>
                   </SidebarMenuButton>

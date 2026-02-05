@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -10,26 +9,22 @@ import {
   Search, 
   Filter, 
   LayoutGrid, 
-  List as ListIcon,
-  Box
+  List as ListIcon
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { WorkspaceCard } from "@/components/dashboard/workspaces/workspace-card";
 import { WorkspaceListItem } from "@/components/dashboard/workspaces/workspace-list-item";
 import { CreateWorkspaceDialog } from "./_components/create-workspace-dialog";
-import { useRouter } from "next/navigation";
 
 /**
- * WorkspacesPage - 職責：管理邏輯容器列表
- * 已整合「能力註冊表」入口，作為技術架構的核心管理點。
+ * WorkspacesPage - 職責：管理邏輯空間列表的導覽與篩選
  */
 export default function WorkspacesPage() {
   const { organizations, activeOrgId, workspaces, deleteWorkspace } = useAppStore();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const router = useRouter();
 
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
   const orgWorkspaces = workspaces.filter(w => 
@@ -40,18 +35,10 @@ export default function WorkspacesPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500">
       <PageHeader 
-        title="邏輯容器" 
-        description="管理維度中的技術邊界與空間節點。"
+        title="邏輯空間" 
+        description="當前維度中定義的活躍邏輯邊界。"
       >
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="h-10 gap-2 font-bold uppercase text-[10px] tracking-widest hidden md:flex"
-            onClick={() => router.push('/dashboard/workspaces/blocks')}
-          >
-            <Box className="w-3.5 h-3.5" /> 能力註冊表
-          </Button>
           <div className="flex items-center border rounded-lg bg-background p-1 shadow-sm border-border/60">
             <Button 
               variant={viewMode === 'grid' ? 'secondary' : 'ghost'} 
@@ -71,7 +58,7 @@ export default function WorkspacesPage() {
             </Button>
           </div>
           <Button className="gap-2 shadow-sm font-bold uppercase tracking-widest text-[11px] h-10 px-4" onClick={() => setIsCreateOpen(true)}>
-            <Plus className="w-4 h-4" /> 建立節點
+            <Plus className="w-4 h-4" /> 建立邏輯空間
           </Button>
         </div>
       </PageHeader>
@@ -80,7 +67,7 @@ export default function WorkspacesPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
-            placeholder="搜尋名稱或技術上下文..." 
+            placeholder="搜尋名稱或上下文..." 
             className="pl-10 h-10 bg-background border-border/40 focus-visible:ring-primary/30 rounded-xl"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -110,10 +97,10 @@ export default function WorkspacesPage() {
           <Terminal className="w-16 h-16 text-muted-foreground mx-auto mb-6 opacity-10" />
           <h3 className="text-2xl font-bold font-headline mb-2">空間虛無</h3>
           <p className="text-muted-foreground max-w-sm mx-auto mb-8 text-sm">
-            當前維度中沒有符合條件的邏輯空間節點。
+            當前維度中沒有符合條件的邏輯節點。
           </p>
           <Button size="lg" onClick={() => setIsCreateOpen(true)} className="rounded-full px-8 shadow-lg font-bold uppercase tracking-widest text-xs">
-            建立初始節點
+            建立初始空間
           </Button>
         </div>
       )}
