@@ -58,23 +58,23 @@ export default function ContainersPage() {
               <ListIcon className="w-4 h-4" />
             </Button>
           </div>
-          <Button className="gap-2 shadow-sm" onClick={() => setIsCreateOpen(true)}>
+          <Button className="gap-2 shadow-sm font-bold uppercase tracking-widest text-[11px] h-10 px-4" onClick={() => setIsCreateOpen(true)}>
             <Plus className="w-4 h-4" /> Forge Container
           </Button>
         </div>
       </PageHeader>
 
-      <div className="flex items-center gap-4 bg-card/50 p-3 rounded-xl border border-border/50 shadow-sm backdrop-blur-sm">
+      <div className="flex items-center gap-4 bg-card/50 p-3 rounded-2xl border border-border/50 shadow-sm backdrop-blur-sm">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
             placeholder="Search within this dimension..." 
-            className="pl-10 h-9 bg-background border-border/40 focus-visible:ring-primary/30"
+            className="pl-10 h-10 bg-background border-border/40 focus-visible:ring-primary/30 rounded-xl"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Button variant="outline" size="sm" className="h-9 gap-2 text-xs font-bold uppercase tracking-widest border-border/60">
+        <Button variant="outline" size="sm" className="h-10 px-4 gap-2 text-xs font-bold uppercase tracking-widest border-border/60 rounded-xl hover:bg-muted/50">
           <Filter className="w-3.5 h-3.5" /> Filter
         </Button>
       </div>
@@ -100,7 +100,7 @@ export default function ContainersPage() {
           <p className="text-muted-foreground max-w-sm mx-auto mb-8 text-sm">
             No logical containers match your current resonance filters in this dimension.
           </p>
-          <Button size="lg" onClick={() => setIsCreateOpen(true)} className="rounded-full px-8 shadow-lg">
+          <Button size="lg" onClick={() => setIsCreateOpen(true)} className="rounded-full px-8 shadow-lg font-bold uppercase tracking-widest text-xs">
             Forge Initial Container
           </Button>
         </div>

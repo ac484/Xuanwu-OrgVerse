@@ -9,15 +9,16 @@ import { PermissionConstellation } from "./_components/permission-constellation"
 
 /**
  * DashboardPage - 職責：作為儀表板的佈局協調者
- * 將具體業務功能拆分為獨立組件，實現高內聚。
+ * 將具體業務功能拆分為獨立組件，實現高內聚與原子化。
  */
 export default function DashboardPage() {
   const { organizations, activeOrgId, containers } = useAppStore();
+  
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
   const orgContainers = containers.filter(c => c.orgId === activeOrgId);
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto animate-in fade-in duration-500">
+    <div className="space-y-8 max-w-7xl mx-auto animate-in fade-in duration-700">
       <PageHeader 
         title="Organization Pulse" 
         description={activeOrg.context}
@@ -34,14 +35,14 @@ export default function DashboardPage() {
           </div>
         }
       >
-        <div className="flex items-center gap-4 bg-muted/40 p-4 rounded-xl border border-border/50 shadow-sm">
+        <div className="flex items-center gap-4 bg-muted/40 p-4 rounded-2xl border border-border/50 shadow-sm">
           <div className="flex flex-col items-center px-4 border-r border-border/50">
             <span className="text-2xl font-bold font-headline">{orgContainers.length}</span>
             <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">Containers</span>
           </div>
           <div className="flex flex-col items-center px-4">
             <span className="text-[10px] text-muted-foreground uppercase font-bold mb-1">Access Level</span>
-            <Badge className="font-headline bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">{activeOrg.role}</Badge>
+            <Badge className="font-headline bg-primary text-primary-foreground shadow-sm px-3">{activeOrg.role}</Badge>
           </div>
         </div>
       </PageHeader>
