@@ -7,10 +7,11 @@ import {
   Layers, 
   Users, 
   Package, 
-  HelpCircle,
   LogOut,
   Plus,
-  Box
+  Box,
+  User,
+  ChevronUp
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -29,13 +30,20 @@ import { GlobalSwitcher } from "@/components/global-switcher";
 import { useRouter, usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function DashboardSidebar() {
-  const { user, logout, activeOrgId, organizations, containers } = useAppStore();
+  const { user, logout, activeOrgId, containers } = useAppStore();
   const router = useRouter();
   const pathname = usePathname();
   
-  const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
   const orgContainers = containers.filter(c => c.orgId === activeOrgId);
 
   const handleLogout = () => {
@@ -123,21 +131,46 @@ export function DashboardSidebar() {
       <SidebarFooter className="p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex items-center gap-3 px-2 py-3 bg-muted/30 rounded-lg mb-2">
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-                {user?.name?.[0]}
-              </div>
-              <div className="flex flex-col overflow-hidden">
-                <span className="text-xs font-semibold truncate">{user?.name}</span>
-                <span className="text-[10px] text-muted-foreground truncate">{user?.email}</span>
-              </div>
-            </div>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout} className="text-destructive hover:text-destructive hover:bg-destructive/5">
-              <LogOut className="w-4 h-4" />
-              <span>Sever Identity</span>
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">
+                      {user?.name?.[0]}
+                    </div>
+                    <div className="flex flex-col overflow-hidden text-left flex-1">
+                      <span className="text-xs font-semibold truncate">{user?.name}</span>
+                      <span className="text-[10px] text-muted-foreground truncate">{user?.email}</span>
+                    </div>
+                    <ChevronUp className="ml-auto w-4 h-4 text-muted-foreground" />
+                  </div>
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="top" align="start" className="w-[200px]">
+                <DropdownMenuLabel>My Identity</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/settings" className="cursor-pointer flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    <span>View Profile</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/settings" className="cursor-pointer flex items-center gap-2">
+                    <Settings className="w-4 h-4" />
+                    <span>Account Settings</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handleLogout}
+                  className="text-destructive focus:text-destructive cursor-pointer flex items-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sever Identity</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
