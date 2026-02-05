@@ -27,3 +27,28 @@ export interface User {
   name: string;
   email: string;
 }
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'alert' | 'success';
+  read: boolean;
+  timestamp: number;
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: UserRole;
+  status: 'active' | 'away' | 'offline';
+  email: string;
+}
+
+export interface ResourceBlock {
+  id: string;
+  name: string;
+  type: 'component' | 'api' | 'data';
+  status: 'stable' | 'beta';
+  description: string;
+}

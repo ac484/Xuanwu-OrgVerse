@@ -2,16 +2,25 @@
 
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { UIAdapter } from "@/components/ui-adapter";
-import { Bell, Search, Command } from "lucide-react";
+import { Bell, Search, Command, Check, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { 
+  Popover, 
+  PopoverContent, 
+  PopoverTrigger 
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useAppStore();
+  const { user, notifications, markAsRead, clearNotifications } = useAppStore();
   const router = useRouter();
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   useEffect(() => {
     if (!user) {
@@ -40,10 +49,58 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button className="relative p-2 hover:bg-accent rounded-full transition-colors">
-              <Bell className="w-5 h-5 text-muted-foreground" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-accent-foreground rounded-full border-2 border-background" />
-            </button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="relative p-2 hover:bg-accent rounded-full transition-colors">
+                  <Bell className="w-5 h-5 text-muted-foreground" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full border-2 border-background" />
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="end">
+                <div className="p-4 border-b flex items-center justify-between">
+                  <h4 className="font-bold text-sm uppercase tracking-widest">Dimension Pulse</h4>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={clearNotifications}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+                <ScrollArea className="h-72">
+                  <div className="divide-y">
+                    {notifications.length > 0 ? notifications.map(n => (
+                      <div key={n.id} className={`p-4 hover:bg-muted/50 transition-colors ${!n.read ? 'bg-primary/5' : ''}`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="space-y-1">
+                            <p className="text-xs font-bold leading-none flex items-center gap-1">
+                              <span className={`w-1.5 h-1.5 rounded-full ${n.type === 'success' ? 'bg-green-500' : n.type === 'alert' ? 'bg-red-500' : 'bg-primary'}`} />
+                              {n.title}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground leading-tight">{n.message}</p>
+                            <p className="text-[9px] text-muted-foreground/60">{new Date(n.timestamp).toLocaleTimeString()}</p>
+                          </div>
+                          {!n.read && (
+                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => markAsRead(n.id)}>
+                              <Check className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="p-8 text-center text-muted-foreground text-xs italic">
+                        No active resonance detected.
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+                <div className="p-2 border-t text-center">
+                  <Button variant="ghost" size="sm" className="w-full text-[10px] font-bold uppercase tracking-widest">
+                    View Dimensional History
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </header>
         <main className="flex-1 p-6 overflow-y-auto">
