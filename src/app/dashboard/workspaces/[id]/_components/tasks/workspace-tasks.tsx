@@ -8,35 +8,28 @@ import {
   Plus, 
   ChevronRight, 
   ChevronDown, 
-  Layers, 
   Settings2, 
   Trash2, 
   Coins, 
-  FileDown, 
-  FileUp, 
   Clock, 
-  MapPin, 
-  Tag, 
   View, 
-  Link2,
-  Calendar,
-  Box,
-  BarChart3
+  BarChart3,
+  AlertTriangle,
+  Info
 } from "lucide-react";
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { useFirebase } from "@/firebase/provider";
 import { useCollection } from "@/firebase";
-import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy, writeBatch } from "firebase/firestore";
+import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from "firebase/firestore";
 import { WorkspaceTask } from "@/types/domain";
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogFooter,
-  DialogDescription
+  DialogFooter
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -52,8 +45,8 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
 /**
- * WorkspaceTasks - 職責：WBS 工程級任務治理中心 (Surpass Version)
- * 核心：無限層級、雙向預算約束、動態列治理、JSON 遷移、拓撲檢核。
+ * WorkspaceTasks - 職責：WBS 工程級任務治理中心 (超越版)
+ * 特色：無限層級、雙向預算約束、動態列治理、自動拓撲編號。
  */
 export function WorkspaceTasks() {
   const { workspace, emitEvent } = useWorkspace();
@@ -61,9 +54,8 @@ export function WorkspaceTasks() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Partial<WorkspaceTask> | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 動態列顯示狀態
+  // 動態列顯示狀態：治理大規模數據的視覺雜訊
   const [visibleColumns, setVisibleColumns] = useState<Set<string>>(new Set([
     'type', 'priority', 'subtotal', 'progress', 'status'
   ]));
@@ -76,7 +68,7 @@ export function WorkspaceTasks() {
   const { data: rawTasks } = useCollection<WorkspaceTask>(tasksQuery);
   const tasks = useMemo(() => rawTasks || [], [rawTasks]);
 
-  // WBS 樹狀結構構建與預算拓撲驗證
+  // WBS 樹狀結構構建與雙向預算驗證
   const tree = useMemo(() => {
     const map: Record<string, any> = {};
     tasks.forEach(t => map[t.id] = { ...t, children: [], descendantSum: 0, wbsNo: "" });
@@ -110,7 +102,7 @@ export function WorkspaceTasks() {
     const taxAmount = subtotal * ((Number(editingTask.taxRate) || 0) / 100);
     const total = subtotal + taxAmount;
     
-    // 預算主權驗證 (向下約束)
+    // 預算主權驗證：攔截溢出
     if (editingTask.parentId) {
       const parent = tasks.find(t => t.id === editingTask.parentId);
       if (parent) {
@@ -119,17 +111,17 @@ export function WorkspaceTasks() {
           .reduce((acc, t) => acc + (t.subtotal || 0), 0);
         
         if (currentChildrenSum + subtotal > parent.subtotal) {
-          toast({ variant: "destructive", title: "預算溢出攔截", description: `子項總額超過父項「${parent.name}」的上限。` });
+          toast({ variant: "destructive", title: "預算溢出攔截", description: `子項總合不可超過「${parent.name}」的額度限制。` });
           return;
         }
       }
     }
 
-    // 預算主權驗證 (向上鎖定)
+    // 向上鎖定：父項預算不可低於子項總和
     if (editingTask.id) {
       const childSum = tasks.filter(t => t.parentId === editingTask.id).reduce((acc, t) => acc + t.subtotal, 0);
       if (subtotal < childSum) {
-        toast({ variant: "destructive", title: "預算主權衝突", description: "預算上限不可低於現有子項總和。" });
+        toast({ variant: "destructive", title: "預算主權衝突", description: "預算上限不可低於現有子項目的金額總和。" });
         return;
       }
     }
@@ -144,7 +136,7 @@ export function WorkspaceTasks() {
 
     if (editingTask.id) {
       await updateDoc(doc(db, "workspaces", workspace.id, "tasks", editingTask.id), finalData as any);
-      emitEvent("校準 WBS 節點", `${editingTask.name}`);
+      emitEvent("校準工程節點", `${editingTask.name} (WBS: ${editingTask.no})`);
     } else {
       await addDoc(collection(db, "workspaces", workspace.id, "tasks"), { ...finalData, createdAt: serverTimestamp() } as any);
       emitEvent("定義 WBS 節點", editingTask.name!);
@@ -219,7 +211,7 @@ export function WorkspaceTasks() {
             <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg text-primary" onClick={() => { setEditingTask(node); setIsAddOpen(true); }}>
               <Settings2 className="w-3.5 h-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg text-destructive" onClick={() => { if(confirm('銷毀節點？')) deleteDoc(doc(db, "workspaces", workspace.id, "tasks", node.id)); }}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg text-destructive" onClick={() => { if(confirm('確認要銷毀此工程節點及其後代？')) deleteDoc(doc(db, "workspaces", workspace.id, "tasks", node.id)); }}>
               <Trash2 className="w-3.5 h-3.5" />
             </Button>
           </div>
@@ -244,7 +236,7 @@ export function WorkspaceTasks() {
           <div>
             <h3 className="text-sm font-black uppercase tracking-widest text-foreground">WBS 工程治理</h3>
             <p className="text-[9px] text-muted-foreground font-bold uppercase flex items-center gap-2">
-              <Clock className="w-3 h-3" /> 實時預算與進度監控
+              <Clock className="w-3 h-3" /> 實時預算與拓撲監控
             </p>
           </div>
         </div>
@@ -276,7 +268,7 @@ export function WorkspaceTasks() {
         {tree.length > 0 ? tree.map(root => <RenderTask key={root.id} node={root} />) : (
           <div className="p-20 text-center border-2 border-dashed rounded-3xl bg-muted/5 opacity-20 flex flex-col items-center gap-3">
             <Coins className="w-12 h-12" />
-            <p className="text-[10px] font-black uppercase tracking-widest">等待工程節點定義</p>
+            <p className="text-[10px] font-black uppercase tracking-widest">等待工程節點定義...</p>
           </div>
         )}
       </div>
@@ -299,39 +291,41 @@ export function WorkspaceTasks() {
 
             <div className="col-span-2 space-y-1.5">
               <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">描述與技術規格</Label>
-              <Textarea value={editingTask?.description || ""} onChange={e => setEditingTask({...editingTask, description: e.target.value})} className="rounded-xl bg-muted/30 border-none resize-none" />
+              <Textarea value={editingTask?.description || ""} onChange={e => setEditingTask({...editingTask, description: e.target.value})} className="rounded-xl bg-muted/30 border-none resize-none min-h-[100px]" />
             </div>
             
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">進度 (%)</Label>
+              <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">作業進度 (%)</Label>
               <Input type="number" min="0" max="100" value={editingTask?.progress} onChange={e => setEditingTask({...editingTask, progress: Number(e.target.value)})} className="h-11 rounded-xl bg-muted/30 border-none" />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">權重 (Weight)</Label>
+              <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">權重 (Weight %)</Label>
               <Input type="number" value={editingTask?.weight} onChange={e => setEditingTask({...editingTask, weight: Number(e.target.value)})} className="h-11 rounded-xl bg-muted/30 border-none" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 col-span-2">
-              <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">數量 (Qty)</Label>
-                <Input type="number" value={editingTask?.quantity} onChange={e => setEditingTask({...editingTask, quantity: Number(e.target.value)})} className="h-11 rounded-xl bg-muted/30 border-none" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">單價 (Price)</Label>
-                <Input type="number" value={editingTask?.unitPrice} onChange={e => setEditingTask({...editingTask, unitPrice: Number(e.target.value)})} className="h-11 rounded-xl bg-muted/30 border-none" />
-              </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">數量 (Qty)</Label>
+              <Input type="number" value={editingTask?.quantity} onChange={e => setEditingTask({...editingTask, quantity: Number(e.target.value)})} className="h-11 rounded-xl bg-muted/30 border-none" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">單價 (Price)</Label>
+              <Input type="number" value={editingTask?.unitPrice} onChange={e => setEditingTask({...editingTask, unitPrice: Number(e.target.value)})} className="h-11 rounded-xl bg-muted/30 border-none" />
             </div>
 
             <div className="space-y-1.5">
               <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">稅率 (%)</Label>
               <Input type="number" value={editingTask?.taxRate} onChange={e => setEditingTask({...editingTask, taxRate: Number(e.target.value)})} className="h-11 rounded-xl bg-muted/30 border-none" />
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">單位 (Unit)</Label>
+              <Input value={editingTask?.unit || ""} onChange={e => setEditingTask({...editingTask, unit: e.target.value})} className="h-11 rounded-xl bg-muted/30 border-none" />
+            </div>
 
             <div className="col-span-2 p-6 bg-primary/5 rounded-3xl flex justify-between items-center border border-primary/10">
               <div className="space-y-1">
                 <p className="text-[10px] font-black uppercase tracking-widest text-primary">含稅總額 (Total)</p>
-                <p className="text-[8px] text-muted-foreground uppercase">核算基數: ${(editingTask?.quantity || 0) * (editingTask?.unitPrice || 0)}</p>
+                <p className="text-[8px] text-muted-foreground uppercase">預算基數: ${(editingTask?.quantity || 0) * (editingTask?.unitPrice || 0)}</p>
               </div>
               <span className="text-2xl font-mono font-black text-primary">
                 ${(((editingTask?.quantity || 0) * (editingTask?.unitPrice || 0)) * (1 + (editingTask?.taxRate || 0)/100)).toLocaleString()}
@@ -340,8 +334,8 @@ export function WorkspaceTasks() {
           </div>
           
           <DialogFooter className="p-6 bg-muted/30 border-t">
-            <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-xl font-black uppercase text-[10px]">取消</Button>
-            <Button onClick={handleSaveTask} className="rounded-xl px-8 shadow-xl shadow-primary/20 font-black uppercase text-[10px]">同步主權</Button>
+            <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-xl font-black uppercase text-[10px]">取消操作</Button>
+            <Button onClick={handleSaveTask} className="rounded-xl px-8 shadow-xl shadow-primary/20 font-black uppercase text-[10px]">同步至雲端主權</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
