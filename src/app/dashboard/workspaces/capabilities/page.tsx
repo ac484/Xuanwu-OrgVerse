@@ -1,36 +1,32 @@
+
 "use client";
 
-/**
- * CapabilitiesPage - 職責：原子能力註冊表
- * 作為「邏輯空間 (Workspace)」可掛載能力的技術規格目錄。
- */
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Code, Database, Layers, Info, Terminal, ChevronRight, Layout } from "lucide-react";
+import { Code, Database, Layers, Info, Terminal, ChevronRight, Layout, ShieldCheck, Trophy, MessageSquare, AlertCircle, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+/**
+ * CapabilitiesPage - 職責：原子能力註冊表
+ * 集中管理維度中所有可掛載的技術規範。
+ */
 export default function CapabilitiesPage() {
   const router = useRouter();
 
   const availableCapabilities = [
-    { id: 'ui-auth', name: '身分驗證 UI 單元', type: 'ui', status: 'stable', description: '提供標準的維度登入與身分共振介面。' },
-    { id: 'api-storage', name: '分散式存儲接口', type: 'api', status: 'stable', description: '跨維度的高速數據存取協議封裝。' },
-    { id: 'data-ledger', name: '主權審計帳本', type: 'data', status: 'beta', description: '不可篡改的技術規格變動追蹤單元。' }
+    { id: 'files', name: '檔案空間', type: 'data', status: 'stable', description: '管理維度內的文檔與資產，實施 Scope 存取隔離。', icon: <FileText className="w-5 h-5" /> },
+    { id: 'tasks', name: '原子任務', type: 'ui', status: 'stable', description: '追蹤空間內的行動目標，與 QA/驗收能力連動。', icon: <Layout className="w-5 h-5" /> },
+    { id: 'qa', name: '品質檢驗', type: 'ui', status: 'stable', description: '檢核任務執行品質，自動觸發 B 軌異常議題。', icon: <ShieldCheck className="w-5 h-5" /> },
+    { id: 'acceptance', name: '最終驗收', type: 'ui', status: 'stable', description: '驗收成果並結案，確保 A 軌價值鏈閉環。', icon: <Trophy className="w-5 h-5" /> },
+    { id: 'issues', name: '議題追蹤', type: 'ui', status: 'stable', description: 'B 軌治理中心，追蹤技術衝突與 QA 駁回記錄。', icon: <AlertCircle className="w-5 h-5" /> },
+    { id: 'daily', name: '每日動態', type: 'ui', status: 'stable', description: '技術協作日誌牆，提供非同步的維度觀察分享。', icon: <MessageSquare className="w-5 h-5" /> },
+    { id: 'api-storage', name: '分散式存儲接口', type: 'api', status: 'beta', description: '跨維度的高速數據存取協議封裝。', icon: <Code className="w-5 h-5" /> },
   ];
 
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'ui': return <Layout className="w-5 h-5" />;
-      case 'api': return <Code className="w-5 h-5" />;
-      case 'data': return <Database className="w-5 h-5" />;
-      default: return <Layers className="w-5 h-5" />;
-    }
-  };
-
   return (
-    <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500">
+    <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500 pb-20">
       <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">
         <span className="cursor-pointer hover:text-primary transition-colors" onClick={() => router.push('/dashboard/workspaces')}>維度空間</span>
         <ChevronRight className="w-3 h-3" />
@@ -39,7 +35,7 @@ export default function CapabilitiesPage() {
 
       <PageHeader 
         title="原子能力註冊表" 
-        description="定義可供邏輯空間掛載的技術規範，確保模組間保持絕對技術隔離。"
+        description="定義可供邏輯空間掛載的技術規範，確保模組間保持絕對技術隔離與統一通訊協議。"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -48,10 +44,10 @@ export default function CapabilitiesPage() {
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between mb-4">
                 <div className="p-2.5 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
-                  {getIcon(cap.type)}
+                  {cap.icon}
                 </div>
                 <Badge variant="outline" className="text-[9px] uppercase tracking-[0.1em] font-bold bg-background/50">
-                  {cap.status === 'stable' ? '穩定版' : '測試版'}
+                  {cap.status === 'stable' ? 'PRODUCTION' : 'BETA'}
                 </Badge>
               </div>
               <CardTitle className="text-lg font-headline group-hover:text-primary transition-colors">{cap.name}</CardTitle>
@@ -72,6 +68,11 @@ export default function CapabilitiesPage() {
             </CardFooter>
           </Card>
         ))}
+        <div className="p-8 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center bg-muted/5 border-border/40 hover:bg-muted/10 transition-colors">
+          <Terminal className="w-8 h-8 text-muted-foreground mb-4 opacity-20" />
+          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em]">擴展新能力</p>
+          <p className="text-[9px] text-muted-foreground/50 mt-2 max-w-[160px]">遵循維度協議規範，自定義您的專屬原子單元。</p>
+        </div>
       </div>
     </div>
   );

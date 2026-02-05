@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -10,7 +11,7 @@ import { useState, useEffect } from "react";
 
 /**
  * DashboardPage - 職責：維度脈動主控台
- * 優化點：動態指標傳遞與語義純化。
+ * 優化點：移除冗餘的容器組件引用，統一使用 Workspace 術語。
  */
 export default function DashboardPage() {
   const { organizations, activeOrgId, workspaces } = useAppStore();
@@ -23,7 +24,7 @@ export default function DashboardPage() {
   if (!mounted) return null;
   
   const activeOrg = organizations.find(o => o.id === activeOrgId) || organizations[0];
-  const orgWorkspaces = workspaces.filter(w => w.orgId === activeOrgId);
+  const orgWorkspaces = (workspaces || []).filter(w => w.orgId === activeOrgId);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto animate-in fade-in duration-700">
