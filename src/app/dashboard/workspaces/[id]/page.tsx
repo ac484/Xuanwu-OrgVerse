@@ -1,6 +1,5 @@
 "use client";
 
-import { useAppStore } from "@/lib/store";
 import { useParams, useRouter } from "next/navigation";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -37,6 +36,11 @@ import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import { WorkspaceProvider, useWorkspace } from "./workspace-context";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useFirebase } from "@/firebase/provider";
+import { doc, updateDoc, deleteDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
+import { useAppStore } from "@/lib/store";
 
 import { WorkspaceFiles } from "./_components/workspace-files";
 import { WorkspaceTasks } from "./_components/workspace-tasks";
@@ -58,13 +62,8 @@ export default function WorkspaceDetailPage() {
 
 function WorkspaceContent() {
   const { workspace, protocol, scope, emitEvent } = useWorkspace();
-  
-  // 精準選擇器模式
+  const { db } = useFirebase();
   const pulseLogs = useAppStore(state => state.pulseLogs);
-  const updateWorkspace = useAppStore(state => state.updateWorkspace);
-  const addCapabilityToWorkspace = useAppStore(state => state.addCapabilityToWorkspace);
-  const removeCapabilityFromWorkspace = useAppStore(state => state.removeCapabilityFromWorkspace);
-  const deleteWorkspace = useAppStore(state => state.deleteWorkspace);
   
   const [mounted, setMounted] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -79,7 +78,7 @@ function WorkspaceContent() {
   );
 
   const mountedCapIds = useMemo(() => 
-    (workspace.capabilities || []).map(c => c.id),
+    (workspace.capabilities || []).map((c: any) => c.id),
     [workspace.capabilities]
   );
 
@@ -99,45 +98,108 @@ function WorkspaceContent() {
   }, [workspace]);
 
   const handleUpdateSettings = useCallback(() => {
-    updateWorkspace(workspace.id, { name: editName, visibility: editVisibility });
-    emitEvent("校準主權設定", editName);
-    setIsSettingsOpen(false);
-    toast({ title: "空間規格已同步" });
-  }, [workspace.id, editName, editVisibility, updateWorkspace, emitEvent]);
+    const wsRef = doc(db, "workspaces", workspace.id);
+    const updates = { name: editName, visibility: editVisibility };
+    
+    updateDoc(wsRef, updates)
+      .then(() => {
+        emitEvent("校準主權設定", editName);
+        setIsSettingsOpen(false);
+        toast({ title: "空間規格已同步" });
+      })
+      .catch(async () => {
+        const error = new FirestorePermissionError({
+          path: wsRef.path,
+          operation: 'update',
+          requestResourceData: updates
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', error);
+      });
+  }, [workspace.id, editName, editVisibility, db, emitEvent]);
 
   const handleUpdateSpecs = useCallback(() => {
-    updateWorkspace(workspace.id, {
+    const wsRef = doc(db, "workspaces", workspace.id);
+    const updates = {
       protocol: editProtocol,
       scope: editScope.split(",").map(s => s.trim()).filter(Boolean)
-    });
-    emitEvent("重定義協議範疇", editProtocol);
-    setIsSpecsOpen(false);
-    toast({ title: "授權範疇已重定義" });
-  }, [workspace.id, editProtocol, editScope, updateWorkspace, emitEvent]);
+    };
+
+    updateDoc(wsRef, updates)
+      .then(() => {
+        emitEvent("重定義協議範疇", editProtocol);
+        setIsSpecsOpen(false);
+        toast({ title: "授權範疇已重定義" });
+      })
+      .catch(async () => {
+        const error = new FirestorePermissionError({
+          path: wsRef.path,
+          operation: 'update',
+          requestResourceData: updates
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', error);
+      });
+  }, [workspace.id, editProtocol, editScope, db, emitEvent]);
 
   const handleDeleteWorkspace = useCallback(() => {
-    deleteWorkspace(workspace.id);
-    router.push("/dashboard/workspaces");
-    toast({ title: "空間已銷毀" });
-  }, [workspace.id, deleteWorkspace, router]);
+    const wsRef = doc(db, "workspaces", workspace.id);
+    deleteDoc(wsRef)
+      .then(() => {
+        router.push("/dashboard/workspaces");
+        toast({ title: "空間已銷毀" });
+      })
+      .catch(async () => {
+        const error = new FirestorePermissionError({
+          path: wsRef.path,
+          operation: 'delete'
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', error);
+      });
+  }, [workspace.id, db, router]);
 
   const handleAddCapability = useCallback((capKey: string) => {
     const capTemplates: Record<string, any> = {
-      'files': { name: '檔案空間', type: 'data', description: '管理維度內的文檔與資產。' },
-      'tasks': { name: '原子任務', type: 'ui', description: '追蹤空間內的行動目標。' },
-      'qa': { name: '品質檢驗', type: 'ui', description: '檢核任務執行品質。' },
-      'acceptance': { name: '最終驗收', type: 'ui', description: '驗收成果並結案。' },
-      'issues': { name: '議題追蹤', type: 'ui', description: '處理技術衝突與異常。' },
-      'daily': { name: '每日動態', type: 'ui', description: '極簡的技術協作日誌牆。' },
+      'files': { id: 'files', name: '檔案空間', type: 'data', description: '管理維度內的文檔與資產。', status: 'stable' },
+      'tasks': { id: 'tasks', name: '原子任務', type: 'ui', description: '追蹤空間內的行動目標。', status: 'stable' },
+      'qa': { id: 'qa', name: '品質檢驗', type: 'ui', description: '檢核任務執行品質。', status: 'stable' },
+      'acceptance': { id: 'acceptance', name: '最終驗收', type: 'ui', description: '驗收成果並結案。', status: 'stable' },
+      'issues': { id: 'issues', name: '議題追蹤', type: 'ui', description: '處理技術衝突與異常。', status: 'stable' },
+      'daily': { id: 'daily', name: '每日動態', type: 'ui', description: '極簡的技術協作日誌牆。', status: 'stable' },
     };
     
     const template = capTemplates[capKey];
     if (template) {
-      addCapabilityToWorkspace(workspace.id, { ...template, id: capKey });
-      setIsAddCapOpen(false);
-      toast({ title: `${template.name} 已掛載` });
+      const wsRef = doc(db, "workspaces", workspace.id);
+      updateDoc(wsRef, { capabilities: arrayUnion(template) })
+        .then(() => {
+          setIsAddCapOpen(false);
+          toast({ title: `${template.name} 已掛載` });
+        })
+        .catch(async () => {
+          const error = new FirestorePermissionError({
+            path: wsRef.path,
+            operation: 'update',
+            requestResourceData: { capabilities: 'arrayUnion' }
+          } satisfies SecurityRuleContext);
+          errorEmitter.emit('permission-error', error);
+        });
     }
-  }, [workspace.id, addCapabilityToWorkspace]);
+  }, [workspace.id, db]);
+
+  const handleRemoveCapability = useCallback((cap: any) => {
+    const wsRef = doc(db, "workspaces", workspace.id);
+    updateDoc(wsRef, { capabilities: arrayRemove(cap) })
+      .then(() => {
+        toast({ title: "能力已卸載" });
+      })
+      .catch(async () => {
+        const error = new FirestorePermissionError({
+          path: wsRef.path,
+          operation: 'update',
+          requestResourceData: { capabilities: 'arrayRemove' }
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', error);
+      });
+  }, [workspace.id, db]);
 
   if (!mounted) return null;
 
@@ -226,7 +288,7 @@ function WorkspaceContent() {
                 </Button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {(workspace.capabilities || []).map((cap) => (
+                {(workspace.capabilities || []).map((cap: any) => (
                   <Card key={cap.id} className="border-border/60 hover:border-primary/40 transition-all group bg-card/40 backdrop-blur-sm overflow-hidden">
                     <CardHeader className="pb-4">
                       <div className="flex items-center justify-between mb-4">
@@ -242,7 +304,7 @@ function WorkspaceContent() {
                     </CardHeader>
                     <CardFooter className="border-t border-border/10 flex justify-between items-center py-4 bg-muted/5">
                       <span className="text-[9px] font-mono text-muted-foreground opacity-60">ID: {cap.id.toUpperCase()}</span>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => removeCapabilityFromWorkspace(workspace.id, cap.id)}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => handleRemoveCapability(cap)}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </CardFooter>
@@ -257,13 +319,13 @@ function WorkspaceContent() {
               </div>
             </TabsContent>
 
-            <TabsContent value="files" className="content-visibility-auto"><WorkspaceFiles /></TabsContent>
-            <TabsContent value="tasks" className="content-visibility-auto"><WorkspaceTasks /></TabsContent>
-            <TabsContent value="qa" className="content-visibility-auto"><WorkspaceQA /></TabsContent>
-            <TabsContent value="acceptance" className="content-visibility-auto"><WorkspaceAcceptance /></TabsContent>
-            <TabsContent value="issues" className="content-visibility-auto"><WorkspaceIssues /></TabsContent>
-            <TabsContent value="daily" className="content-visibility-auto"><WorkspaceDaily /></TabsContent>
-            <TabsContent value="members" className="content-visibility-auto"><WorkspaceMembersManagement /></TabsContent>
+            <TabsContent value="files"><WorkspaceFiles /></TabsContent>
+            <TabsContent value="tasks"><WorkspaceTasks /></TabsContent>
+            <TabsContent value="qa"><WorkspaceQA /></TabsContent>
+            <TabsContent value="acceptance"><WorkspaceAcceptance /></TabsContent>
+            <TabsContent value="issues"><WorkspaceIssues /></TabsContent>
+            <TabsContent value="daily"><WorkspaceDaily /></TabsContent>
+            <TabsContent value="members"><WorkspaceMembersManagement /></TabsContent>
 
             <TabsContent value="specs" className="space-y-6 animate-in fade-in duration-300">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

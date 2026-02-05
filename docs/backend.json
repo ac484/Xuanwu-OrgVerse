@@ -21,7 +21,8 @@
         "orgId": { "type": "string" },
         "visibility": { "type": "string", "enum": ["visible", "hidden"] },
         "protocol": { "type": "string" },
-        "scope": { "type": "array", "items": { "type": "string" } }
+        "scope": { "type": "array", "items": { "type": "string" } },
+        "capabilities": { "type": "array", "items": { "type": "object" } }
       },
       "required": ["name", "orgId"]
     },
@@ -32,9 +33,19 @@
       "properties": {
         "title": { "type": "string" },
         "status": { "type": "string", "enum": ["todo", "completed", "verified", "accepted"] },
-        "assignee": { "type": "string" }
+        "createdAt": { "type": "object" }
       },
       "required": ["title", "status"]
+    },
+    "WorkspaceIssue": {
+      "title": "Workspace Issue",
+      "description": "A conflict or anomaly entry",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "priority": { "type": "string", "enum": ["low", "medium", "high"] },
+        "status": { "type": "string", "enum": ["open", "closed"] }
+      }
     }
   },
   "auth": {
@@ -52,6 +63,18 @@
     "/workspaces/{workspaceId}/tasks/{taskId}": {
       "schema": "#/backend/entities/WorkspaceTask",
       "description": "Tasks within a specific workspace"
+    },
+    "/workspaces/{workspaceId}/issues/{issueId}": {
+      "schema": "#/backend/entities/WorkspaceIssue",
+      "description": "Anomalies within a specific workspace"
+    },
+    "/workspaces/{workspaceId}/dailyLogs/{logId}": {
+      "schema": "object",
+      "description": "Daily status updates"
+    },
+    "/workspaces/{workspaceId}/files/{fileId}": {
+      "schema": "object",
+      "description": "Registered document assets"
     }
   }
 }
