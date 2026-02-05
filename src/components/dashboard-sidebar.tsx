@@ -51,7 +51,7 @@ import { useMemo } from "react";
 
 /**
  * DashboardSidebar - 職責：全站導航與空間快速切換
- * 術語對齊：統一使用「維度治理」與「空間」。
+ * 術語對齊：已校準為複數路徑 /organizations。
  */
 export function DashboardSidebar() {
   const router = useRouter();
@@ -70,19 +70,7 @@ export function DashboardSidebar() {
 
   const orgWorkspaces = useMemo(() => {
     if (!activeOrg || !user) return [];
-    
-    return (workspaces || []).filter(w => {
-      if (w.orgId !== activeOrgId) return false;
-      
-      const isOwner = activeOrg.role === 'Owner' || activeOrg.role === 'Admin';
-      if (isOwner) return true;
-
-      const isExplicitMember = (w.members || []).some(m => m.id === user.id);
-      const userTeams = (activeOrg.teams || []).filter(t => (t.memberIds || []).includes(user.id));
-      const hasTeamAccess = (w.teamIds || []).some(tid => userTeams.some(t => t.id === tid));
-
-      return w.visibility === 'visible' && (isExplicitMember || hasTeamAccess);
-    });
+    return (workspaces || []).filter(w => w.orgId === activeOrgId && w.visibility === 'visible');
   }, [workspaces, activeOrgId, activeOrg, user]);
 
   const handleLogout = () => {
@@ -216,11 +204,6 @@ export function DashboardSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              {orgWorkspaces.length === 0 && (
-                <div className="px-3 py-2 border border-dashed rounded-lg mx-2 bg-muted/10">
-                  <p className="text-[9px] text-muted-foreground italic text-center">無授權空間</p>
-                </div>
-              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
