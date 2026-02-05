@@ -1,11 +1,10 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, Organization, Workspace, ThemeConfig, UserRole, Notification, TeamMember, ResourceBlock } from '@/types/domain';
 
 /**
  * AppState - 職責：維度狀態管理核心
- * 已準備好 Firebase 串接，移除了大部分 Mock 邏輯。
+ * 已實現 Workspace 與 Specs 的深度整合。
  */
 interface AppState {
   user: User | null;
@@ -14,15 +13,15 @@ interface AppState {
   workspaces: Workspace[];
   notifications: Notification[];
   teamMembers: TeamMember[];
-  resourceBlocks: ResourceBlock[];
   
   login: (userData: User) => void;
   logout: () => void;
   setActiveOrg: (id: string) => void;
   addOrganization: (org: Omit<Organization, 'id' | 'role'>) => void;
   updateOrgTheme: (id: string, theme: ThemeConfig) => void;
-  addWorkspace: (workspace: Omit<Workspace, 'id'>) => void;
+  addWorkspace: (workspace: Omit<Workspace, 'id' | 'specs'>) => void;
   deleteWorkspace: (id: string) => void;
+  addSpecToWorkspace: (workspaceId: string, spec: Omit<ResourceBlock, 'id'>) => void;
   addNotification: (notif: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   markAsRead: (id: string) => void;
   clearNotifications: () => void;
@@ -39,10 +38,6 @@ export const useAppStore = create<AppState>()(
       workspaces: [],
       notifications: [],
       teamMembers: [],
-      resourceBlocks: [
-        { id: 'b1', name: '身分共鳴模組', type: 'api', status: 'stable', description: '處理跨維度身分識別的原子化單元。' },
-        { id: 'b2', name: '資源監測模組', type: 'component', status: 'beta', description: '即時可視化邏輯容器內資源流向。' },
-      ],
 
       login: (userData) => set({ user: userData }),
       logout: () => set({ user: null, activeOrgId: 'personal' }),
@@ -59,11 +54,22 @@ export const useAppStore = create<AppState>()(
       })),
       
       addWorkspace: (workspace) => set((state) => ({
-        workspaces: [...state.workspaces, { ...workspace, id: `ws-${Math.random().toString(36).substring(2, 6)}` }]
+        workspaces: [...state.workspaces, { 
+          ...workspace, 
+          id: `ws-${Math.random().toString(36).substring(2, 6)}`,
+          specs: [] // 初始空間不帶任何規範
+        }]
       })),
 
       deleteWorkspace: (id) => set((state) => ({
         workspaces: state.workspaces.filter(w => w.id !== id)
+      })),
+
+      addSpecToWorkspace: (workspaceId, spec) => set((state) => ({
+        workspaces: state.workspaces.map(w => w.id === workspaceId ? {
+          ...w,
+          specs: [...w.specs, { ...spec, id: `spec-${Math.random().toString(36).substring(2, 6)}` }]
+        } : w)
       })),
 
       addNotification: (notif) => set((state) => ({

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -10,9 +9,7 @@ import {
   LogOut,
   Terminal,
   ChevronUp,
-  Box,
-  Fingerprint,
-  BookOpen
+  Fingerprint
 } from "lucide-react";
 import { 
   Sidebar, 
@@ -42,7 +39,7 @@ import {
 
 /**
  * DashboardSidebar - 職責：管理維度核心與空間架構的導航。
- * 已將「能力註冊表」整合進「邏輯空間」範疇，實現扁平且直覺的技術導向設計。
+ * 已完全移除全局 Specs 入口，將規格管理整合進每個 Workspace 內部。
  */
 export function DashboardSidebar() {
   const { user, logout, activeOrgId, workspaces } = useAppStore();
@@ -59,7 +56,7 @@ export function DashboardSidebar() {
   const mainMenuItems = [
     { title: "維度脈動", icon: LayoutDashboard, href: "/dashboard" },
     { title: "共鳴團隊", icon: Users, href: "/dashboard/team" },
-    { title: "邏輯空間", icon: Layers, href: "/dashboard/workspaces" },
+    { title: "邏輯容器", icon: Layers, href: "/dashboard/workspaces" },
   ];
 
   return (
@@ -93,20 +90,6 @@ export function DashboardSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              
-              {/* 能力註冊表整合在邏輯空間之下 */}
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  asChild 
-                  isActive={pathname === "/dashboard/workspaces/blocks"}
-                  className="transition-all duration-200 hover:bg-primary/5 opacity-80"
-                >
-                  <Link href="/dashboard/workspaces/blocks" className="flex items-center gap-3 pl-8">
-                    <BookOpen className="w-3.5 h-3.5" />
-                    <span className="text-xs font-medium">能力註冊表 (Specs)</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
